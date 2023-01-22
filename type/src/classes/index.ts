@@ -1,3 +1,3 @@
-import { OCServer } from './server.mjs';
+import { OCServer } from './server';
 
 export { OCServer }
