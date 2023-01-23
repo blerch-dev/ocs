@@ -1,3 +1,3 @@
-import { OCServer } from './server';
+import { OCServer, OCRequest, OCProps } from './server';
 
-export { OCServer }
+export { OCServer, OCRequest, OCProps }

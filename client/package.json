@@ -9,7 +9,7 @@
     "main": "build/index.js",
     "scripts": {
         "start": "node build/index.js",
-        "build": "tsc",
+        "build": "tsc -p tsconfig.json",
         "dev": "npm run build && npm start"
     },
     "dependencies": {

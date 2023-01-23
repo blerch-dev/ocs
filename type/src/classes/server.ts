@@ -1,39 +1,31 @@
 import express = require('express');
+import http = require('http');
 
 export class OCServer {
 
-    private app = express();
+    private app?: express.Application;
 
-    constructor(port: Number) {
-        this.app.get('*', (req: express.Request, res: express.Response) => {
-            res.status(200).send(`
-                <!DOCTYPE html>
-                <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-                        <title>HTML 5 Boilerplate</title>
-                    </head>
-                    <body>
-                        <h1>OCS</h1>
-                        <h4>shits working...</h4>
-                    </body>
-                    <style>
-                        * {
-                            position: 'relative';
-                            box-sizing: 'border-box';
-                            margin: 0px;
-                        }
+    constructor(props: OCProps) {
+        this.app = express();
+        if(props.static !== undefined)
+            props.static.forEach((uri: string) => { this.app?.use(express.static(uri)); });
 
-                        body {
-                            padding: 5px;
-                        }
-                    </style>
-                </html>
-            `);
-        });
+        // Find matching domain/regex to route, fallback to default route
 
-        this.app.listen(port);
+        // http server / chat server, express for debug till reimp
+        this.app.listen(props.port ?? 3000)
     }
+}
+
+export interface OCRequest { (req: express.Request, res: express.Response, next?: express.NextFunction): void }
+
+export interface OCProps {
+    routes: [OCRoute],
+
+    port?: number,
+    static?: [string]
+}
+
+export class OCRoute {
+    constructor() { }
 }
