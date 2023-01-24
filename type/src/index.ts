@@ -1,3 +1,3 @@
-import { OCServer, OCRequest, OCProps } from "./classes";
+import { OCServer, OCRequest, OCServerProps, OCRoute, OCRouteProps } from './server';
 
-export { OCServer, OCRequest, OCProps }
+export { OCServer, OCRequest, OCServerProps, OCRoute, OCRouteProps }
