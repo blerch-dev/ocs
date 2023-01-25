@@ -5,7 +5,6 @@
 <br>
 
 ## Roadmap
-___
 
 * Default client app, paired with simple chat server.
 * Auth/Data server, intergrated to both chat and client.
