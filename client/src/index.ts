@@ -4,8 +4,10 @@ import { OCServer } from 'ocs-type';
 // Routes will define layout, import components (add component type to oc-type)
     // Returns html string from domain + path
 
+import DefaultRoute from './routes/default';
+
 const server = new OCServer({
-    routes: [],
+    routes: [DefaultRoute],
     port: 8080,
     static: ['../public/']
 });

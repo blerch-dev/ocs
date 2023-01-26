@@ -1,9 +1,9 @@
 // Default Layout/Route for ocs.gg
+import { OCRoute, OCRequest } from "ocs-type";
+import { defaultLayout } from "../components/layout";
 
-const layout = `
-    <!DOCTYPE html>
-    <html lang="en">
-        <head></head>
-        <body></body>
-    </html>
-`;
+const DefaultRoute = new OCRoute({
+    domain: '[\\s\\S]*'
+});
+
+export default DefaultRoute;
