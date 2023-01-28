@@ -1,0 +1,61 @@
+:root {
+    --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+    --page-bg: #272424;
+    --header-bg: #363535;
+    --font-color: #f5efef;
+}
+
+html {
+    font-family: "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif, 
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #2b2929;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--page-bg);
+}
+
+* {
+    margin: 0px;
+    box-sizing: border-box;
+    position: relative;
+    color: var(--font-color);
+}
+
+code {
+    font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
+        Bitstream Vera Sans Mono, Courier New, monospace;
+}
+
+main {
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+main.live {
+    padding: 0px;
+    flex-direction: row;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    background-color: var(--header-bg);
+    min-height: 30px;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}

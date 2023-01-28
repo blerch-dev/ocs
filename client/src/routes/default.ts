@@ -1,43 +1,33 @@
 // Default Layout/Route for ocs.gg
 import { OCRoute, OCRequest } from "ocs-type";
-import { defaultLayout } from "../components/layout";
+import { defaultLayout, defaultHead, embedComponent, chatComponent } from "../components/layout";
 
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
     callback: (router, options, setOption) => {
-        router.get('*', (req, res, next) => {
-            let head = `<title>Test Layout</title>`
+        router.get('/chat', (req, res, next) => {
+            let head = defaultHead('OCS - Chat');
+            let embed = embedComponent();
+            let chat = chatComponent('Global Chat');
             let body = `
-            <header>
-                <h1>Test Header</h1>
-            </header>
-            <main>
-                <h3>Test Page</h3>
-            </main>
-            <style>
-                * {
-                    margin: 0px;
-                    box-sizing: border-box;
-                    position: relative;
-                    color: white;
-                }
+                <header>
+                    <h2>Test Header</h2>
+                </header>
+                <main class="live">${embed}${chat}</main>
+            `;
 
-                body {
-                    display: flex;
-                    flex-direction: column;
-                    background-color: #111111;
-                    min-height: 100vh;
-                }
+            res.send(defaultLayout(head, body)).end();
+        });
 
-                header {
-                    height: 30px;
-                    background-color: #ffffff44;
-                }
-
-                main {
-                    flex: 1;
-                }
-            </style>
+        router.get('/', (req, res, next) => {
+            let head = defaultHead('OCS');
+            let body = `
+                <header>
+                    <h2>Test Header</h2>
+                </header>
+                <main>
+                    <h3>Test Page</h3>
+                </main>
             `;
 
             res.send(defaultLayout(head, body)).end();

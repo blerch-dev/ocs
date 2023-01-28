@@ -7,7 +7,7 @@ export interface OCServerProps {
     routes: [OCRoute],
 
     port?: number,
-    static?: [string]
+    static?: string[]
 }
 
 export class OCServer {
@@ -23,7 +23,7 @@ export class OCServer {
                 if(route.matchesDomain(req.hostname))
                     route.getHandler()(req, res, next);
             });
-        })
+        });
 
         // http server / chat server, express for debug till reimp
         let port = props.port ?? 3000;

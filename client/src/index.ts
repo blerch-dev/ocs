@@ -1,3 +1,4 @@
+import path from 'path';
 import { OCServer } from 'ocs-type';
 
 // Custom Express Based JS Renderer/Session Management
@@ -9,5 +10,5 @@ import DefaultRoute from './routes/default';
 const server = new OCServer({
     routes: [DefaultRoute],
     port: 8080,
-    static: ['../public/']
+    static: [path.resolve(__dirname, './public/')]
 });
