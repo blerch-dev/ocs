@@ -21,17 +21,20 @@ export class OCServer {
         this.app.use((req, res, next) => {
             props.routes.forEach((route) => {
                 if(route.matchesDomain(req.hostname))
-                    console.log('Get Handler Here: TODO');
+                    route.getHandler()(req, res, next);
             });
         })
 
         // http server / chat server, express for debug till reimp
-        this.app.listen(props.port ?? 3000)
+        let port = props.port ?? 3000;
+        this.app.listen(port);
+        console.log(`Listening on Port: ${port}`);
     }
 }
 
 export interface OCRouteProps {
-    domain: string
+    domain: string,
+    callback: (router: express.Router, opt?: object, sOpt?: Function) => express.Router
 }
 
 export class OCRoute {
@@ -39,7 +42,11 @@ export class OCRoute {
     public getHandler;
 
     constructor(props: OCRouteProps) {
-        this.matchesDomain = (domain: string) => { if(props.domain === domain) return true; return false; }
-        this.getHandler = () => { }
+        this.matchesDomain = (domain: string) => { 
+            if(props.domain === domain) return true; 
+            if(domain.match(props.domain)) return true;
+            return false; 
+        }
+        this.getHandler = (opt?: object, sOpt?: Function) => { return props.callback(express.Router(), opt, sOpt); }
     }
 }
