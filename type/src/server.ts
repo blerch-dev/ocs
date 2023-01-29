@@ -1,5 +1,5 @@
 import express = require('express');
-import http = require('http');
+import http from "http";
 
 export interface OCRequest { (req: express.Request, res: express.Response, next?: express.NextFunction): void }
 
@@ -7,10 +7,13 @@ export interface OCServerProps {
     routes: [OCRoute],
 
     port?: number,
-    static?: string[]
+    static?: string[],
+    appFunctions?: Function[]
 }
 
 export class OCServer {
+    public getServer: () => http.Server;
+
     private app = express();
 
     constructor(props: OCServerProps) {
@@ -27,14 +30,22 @@ export class OCServer {
 
         // http server / chat server, express for debug till reimp
         let port = props.port ?? 3000;
-        this.app.listen(port);
+        const server = this.app.listen(port);
+        this.getServer = () => { return server; }
         console.log(`Listening on Port: ${port}`);
+
+        // App Functions (WSS Upgrade)
+        props.appFunctions?.forEach((func) => { func(this); });
     }
+}
+
+export interface OCOptions {
+    [key: string]: any;
 }
 
 export interface OCRouteProps {
     domain: string,
-    callback: (router: express.Router, opt?: object, sOpt?: Function) => express.Router
+    callback: (router: express.Router, opt?: OCOptions, sOpt?: Function) => express.Router
 }
 
 export class OCRoute {
@@ -47,6 +58,6 @@ export class OCRoute {
             if(domain.match(props.domain)) return true;
             return false; 
         }
-        this.getHandler = (opt?: object, sOpt?: Function) => { return props.callback(express.Router(), opt, sOpt); }
+        this.getHandler = (opt?: OCOptions, sOpt?: Function) => { return props.callback(express.Router(), opt, sOpt); }
     }
 }

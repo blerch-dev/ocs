@@ -34,9 +34,34 @@
         }
     }
     
+    main {
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        & > #OCS-Chat-List {
+            display: flex;
+            flex-direction: column;
+            
+            & > .chat-message {
+                width: 100%;
+                overflow: hidden;
+                padding: 2px 3px;
+
+                & > p {
+                    overflow: hidden;
+                    white-space: normal;
+                }
+
+                &.odd {
+                    background-color: #ffffff08;
+                }
+            }
+        }
+    }
+
     footer {
         padding: 4px;
-        min-height: 50px;
+        min-height: 42px;
     }
     
     input {
@@ -50,7 +75,16 @@
         height: 100%;
         font-size: 14px;
         flex: 1;
-        border-right: 1px solid #ffffff22;
+        border-right: 1px solid #ffffff05;
+        transition: 0.1s all;
+
+        &:hover {
+            background-color: #00000055;
+        }
+
+        &:focus {
+            background-color: #00000077;
+        }
     }
     
     button {

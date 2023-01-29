@@ -6,7 +6,7 @@
 
 ## Roadmap
 
-* Default client app, paired with simple chat server.
+* ~~Default client app, paired with simple chat server.~~
 * Auth/Data server, intergrated to both chat and client.
 * Pub/Sub server, further development of chat.
 * Internal service authentication, more auth features.

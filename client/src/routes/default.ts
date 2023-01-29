@@ -1,6 +1,6 @@
 // Default Layout/Route for ocs.gg
-import { OCRoute, OCRequest } from "ocs-type";
-import { defaultLayout, defaultHead, embedComponent, chatComponent } from "../components/layout";
+import { OCRoute } from "ocs-type";
+import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
 
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
@@ -10,27 +10,23 @@ const DefaultRoute = new OCRoute({
             let embed = embedComponent();
             let chat = chatComponent('Global Chat');
             let body = `
-                <header>
-                    <h2>Test Header</h2>
-                </header>
+                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main class="live">${embed}${chat}</main>
             `;
 
-            res.send(defaultLayout(head, body)).end();
+            res.send(defaultLayout(head, body));
         });
 
         router.get('/', (req, res, next) => {
             let head = defaultHead('OCS');
             let body = `
-                <header>
-                    <h2>Test Header</h2>
-                </header>
+                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main>
-                    <h3>Test Page</h3>
+                    <h3>Home Page</h3>
                 </main>
             `;
 
-            res.send(defaultLayout(head, body)).end();
+            res.send(defaultLayout(head, body));
         });
 
         return router;

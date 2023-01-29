@@ -1,0 +1,17 @@
+HTTrack3.49-2+libhtsjava.so.2 launched on Sat, 28 Jan 2023 23:05:01 at http://localhost:8079 +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/*
+(webhttrack -q -%i -w http://localhost:8079 -O "~/Code/ocs/client/ocs-live" -n -%P -N0 -s2 -p7 -D -a -K0 -c4 -%k -A25000 -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -%s -%u )
+
+Information, Warnings and Errors reported for this mirror:
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
+	such as username/password authentication for websites mirrored in this project
+	do not share these files/folders if you want these information to remain private
+
+23:05:01	Warning: 	Unexpected socket error during pre-loop
+23:05:02	Error: 	"Receive Error" (-4) after 2 retries at link localhost:8079/robots.txt (from primary/primary)
+23:05:02	Warning: 	Unexpected socket error during pre-loop
+23:05:03	Warning: 	Retry after error -4 (Receive Error) at link localhost:8079/ (from primary/primary)
+23:05:03	Warning: 	Unexpected socket error during pre-loop
+23:05:04	Warning: 	Retry after error -4 (Receive Error) at link localhost:8079/ (from primary/primary)
+23:05:04	Warning: 	Unexpected socket error during pre-loop
+23:05:05	Error: 	"Receive Error" (-4) after 2 retries at link localhost:8079/ (from primary/primary)
+23:05:05	Warning: 	No data seems to have been transferred during this session! : restoring previous one!

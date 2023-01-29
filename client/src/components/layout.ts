@@ -14,30 +14,3 @@ export const defaultHead = (title: string) => `
     <title>${title}</title>
     <link rel="stylesheet" href="/css/style.css">
 `;
-
-export const embedComponent = () => `
-    <div style="flex: 1;"></div>
-`;
-
-export const chatComponent = (title: string) => `
-    <div id="OCS-Chat">
-        <header>
-            <h4>${title}</h4>
-            <div>
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </header>
-        <span id="InteractList"></span>
-        <main>
-
-        </main>
-        <span id="FillList" class="no-scrollbar"></span>
-        <footer>
-            <input id="OCS-Chat-Input" type="text" placeholder="Message..."/>
-            <button id="OCS-Chat-Send" type="button">Send</button>
-        </footer>
-        <script type="module" src="/js/chat.js"></script>
-    </div>
-`;

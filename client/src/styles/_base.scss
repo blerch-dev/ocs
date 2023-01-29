@@ -2,8 +2,11 @@
     --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
     --page-bg: #272424;
+    --page-alt: #333131;
     --header-bg: #363535;
     --font-color: #f5efef;
+
+    --lower-shadow: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg) 85%, var(--page-alt) 100%);
 }
 
 html {
@@ -43,12 +46,49 @@ main.live {
     flex-direction: row;
 }
 
+body > header {
+    background: var(--lower-shadow);
+}
+
 header {
     display: flex;
     align-items: center;
     padding: 4px 8px;
-    background-color: var(--header-bg);
     min-height: 30px;
+
+    & > #OCS-Header-Controls {
+        flex: 1;
+        display: flex;
+        align-items: center;
+
+        & > .header-links {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0px 15px;
+            gap: 10px;
+        }
+
+        & > .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            & > #OCS-Header-Status {
+                padding: 6px 10px;
+                border-radius: 15px;
+                display: flex;
+                align-items: center;
+                background-color: var(--page-bg);
+
+                & > p {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+            }
+        }
+    }
 }
 
 .no-scrollbar {
