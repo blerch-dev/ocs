@@ -29,6 +29,9 @@ const DefaultRoute = new OCRoute({
             res.send(defaultLayout(head, body));
         });
 
+        // 404 Page
+        // JSON Catch All
+
         return router;
     }
 });

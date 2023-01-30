@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(msg !== '' && msg != undefined) {
             OCS.sendChat(msg); input.value = "";
         }
+        input.focus();
     }
 
     input.addEventListener('keydown', (e) => {

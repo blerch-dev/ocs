@@ -16,7 +16,8 @@
         & > div {
             flex: 1;
             display: flex;
-            flex-direction: row-reverse;
+            flex-direction: row;
+            justify-content: flex-end;
             gap: 5px;
         }
 
@@ -41,6 +42,8 @@
         & > #OCS-Chat-List {
             display: flex;
             flex-direction: column;
+            width: 100%;
+            position: absolute;
             
             & > .chat-message {
                 width: 100%;
@@ -100,7 +103,7 @@
         cursor: pointer;
         transition: 0.1s all;
 
-        &:hover {
+        &:hover, &:focus {
             background-color: #00000055;
         }
 
@@ -129,5 +132,15 @@
         align-items: center;
         overflow-x: scroll;
         overflow-y: hidden;
+    }
+}
+
+#OCS-Chat.embed {
+    & > header, & > footer, & > span {
+        display: none;
+    }
+
+    & > main > #OCS-Chat-List {
+        background-color: transparent !important;
     }
 }

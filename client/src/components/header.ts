@@ -2,10 +2,10 @@
 
 export const headerComponent = (header: string, username?: string, links?: { label: string, link: string }[]) => { 
     let cv = 0;
-    const getNV = () => { ('0' + cv++).slice(-2) }
+    const getNV = () => { return ('0' + cv++).slice(-2) }
     return `
     <header id="OCS-Header">
-        <a href="/"><h2>${header}</h2></a>
+        <a tabindex="1${getNV()}" href="/"><h2>${header}</h2></a>
         <div id="OCS-Header-Controls">
             <div class="header-links">
                 ${links?.map((l) => { return `<a tabindex="1${getNV()}" href="${l.link}">${l.label}</a>` }).join('')}
@@ -19,8 +19,8 @@ export const headerComponent = (header: string, username?: string, links?: { lab
                         <span id="OCS-Header-Status-Source">●</span>
                     </p>
                 </span>
-                <a href="/live" id="OCS-Live">Stream</a>
-                <a href="${username ? '/profile' : '/login'}" id="OCS-Profile">${username ?? 'Login'}</a>
+                <a tabindex="1${getNV()}" href="/live" id="OCS-Live">Stream</a>
+                <a tabindex="1${getNV()}" href="${username ? '/profile' : '/login'}" id="OCS-Profile">${username ?? 'Login'}</a>
             </div>
         </div>
     </header>

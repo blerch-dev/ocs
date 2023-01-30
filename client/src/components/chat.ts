@@ -1,22 +1,25 @@
-export const chatComponent = (title: string, embed?: string, directLink?: string) => `
+export const chatComponent = (title: string, embed?: string, directLink?: string) => {
+    let cv = 0;
+    const getNV = (sv?: number) => { if(sv != undefined) { cv = 0; } return ('0' + cv++).slice(-2) }
+    return `
     <div id="OCS-Chat" data-embed="${embed ?? ''}" data-link="${directLink ?? ''}">
         <header>
             <h4>${title}</h4>
             <div>
-                <span></span>
-                <span></span>
-                <span></span>
+                <span tabindex="2${getNV()}"></span>
+                <span tabindex="2${getNV()}"></span>
+                <span tabindex="2${getNV()}"></span>
             </div>
         </header>
-        <span id="InteractList"></span>
+        <span id="InteractList" data-tab="3"></span>
         <main class="no-scrollbar" style="padding: 0px;">
-            <div id="OCS-Chat-List"></div>
+            <div id="OCS-Chat-List" data-tab="4"></div>
         </main>
-        <span id="FillList" class="no-scrollbar"></span>
+        <span id="FillList" class="no-scrollbar" data-tab="5"></span>
         <footer>
-            <input id="OCS-Chat-Input" type="text" placeholder="Message..."/>
-            <button id="OCS-Chat-Send" type="button">Send</button>
+            <input tabindex="6${getNV(0)}" id="OCS-Chat-Input" type="text" placeholder="Message..."/>
+            <button tabindex="6${getNV()}" id="OCS-Chat-Send" type="button">Send</button>
         </footer>
         <script type="module" src="/js/chat.js"></script>
     </div>
-`;
+`};

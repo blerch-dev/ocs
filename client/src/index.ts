@@ -10,5 +10,5 @@ import DefaultRoute from './routes/default';
 const server = new OCServer({
     routes: [DefaultRoute],
     port: 8080,
-    static: [path.resolve(__dirname, './public/')]
+    static: [path.resolve(__dirname, './public/')],
 });
