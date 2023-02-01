@@ -24,7 +24,7 @@ const DefaultRoute = new OCRoute({
         router.post('/username', (req, res, next) => {
             //console.log(req.body);
             setSessionData('user', 'username', req.body.username);
-            res.status(200).end();
+            res.status(200).send(JSON.stringify({ okay: true }));
         });
 
         router.get('/username', (req, res, next) => {

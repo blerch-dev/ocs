@@ -31,7 +31,7 @@ export class OCRedisClient {
             if(err)
                 return console.log("Redis Client Connect Error:", err);
 
-            console.log("Connected to Redis Server.");
+            console.log("Connected to Redis Server");
         });
 
         this.getClient = () => { return this.client; }

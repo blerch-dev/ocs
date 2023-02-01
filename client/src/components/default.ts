@@ -13,4 +13,5 @@ export const defaultHead = (title: string) => `
     <link rel="icon" href="/assets/favicon.ico" />
     <title>${title}</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script type="module" src="/js/main.js"></script>
 `;

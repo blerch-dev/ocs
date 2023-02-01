@@ -6,14 +6,16 @@ import cors from 'cors';
 
 import { OCRedisStore, OCRedisClient } from './state';
 
-export interface OCRequest { (req: express.Request, res: express.Response, next?: express.NextFunction): void }
-
 export interface OCServerProps {
     routes: [OCRoute],
 
     port?: number,
     static?: string[],
-    appFunctions?: Function[]
+    appFunctions?: Function[],
+    cors?: {
+        creds?: boolean
+        domains?: string[]
+    }
 }
 
 export interface OCOptions {
@@ -39,24 +41,21 @@ export class OCServer {
         // App Middleware
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-        this.app.set('trust proxy', 1);
+        // this.app.set('trust proxy', 1);
         this.app.enable('trust proxy');
 
         const RedisClient = new OCRedisClient('localhost');
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
-        
-        this.app.use(function(req, res, next) {
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, authorization");
-            res.header("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
-            next();
-        });
 
-        this.app.use(cors({
-            credentials: true,
-            origin: 'http://auth.com'
-        }));
+        if(props.cors) {
+            this.app.use(cors({
+                credentials: props.cors.creds ?? true,
+                origin: props.cors.domains ?? '*'
+            }));
+        }
 
+        // This will be set to a custom solution attached to above cors and the central auth domain
+        // Here for simple implmentation
         this.app.use(session({
             store: RedisStore.getStore(),
             secret: 'test',
@@ -65,7 +64,7 @@ export class OCServer {
             cookie: {
                 secure: true,
                 path: '/',
-                domain: 'auth.com',
+                // domain: 'auth.com', // Above comment
                 sameSite: 'none',
                 httpOnly: true,
                 maxAge: 1000 * 60 * 10
@@ -74,12 +73,13 @@ export class OCServer {
 
         // Find matching domain/regex to route, fallback to default route
         this.app.use((req, res, next) => {
-            console.log(res);
             let options: OCOptions = {
                 session: req.session,
                 cookies: req.cookies
             };
+
             let setOption = (key: string, value: any) => { options[key] = value; }
+
             let setSesh = (obj: string, key: string, value: any) => {
                 if(obj === 'state') s_state(key, value);
                 else if(obj === 'user') s_user(key, value);
@@ -91,7 +91,6 @@ export class OCServer {
                 else req.session.state = { [key]: value };
             }
             let s_user = (key: string, value: any) => {
-                console.log("Setting User Data:", key, value);
                 if(req.session.user) req.session.user[key] = value;
                 else req.session.user = { [key]: value };
             }
