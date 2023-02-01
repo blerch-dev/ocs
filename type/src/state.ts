@@ -1,17 +1,13 @@
-import redis = require('redis');
+import Redis from 'ioredis';
 import connectRedis = require('connect-redis');
 
 export class OCRedisStore {
     public getStore;
 
-    private handler;
-    private store;
-
     constructor(session: any, client: any) {
-        this.handler = connectRedis(session);
-        this.store = new this.handler({ client });
+        let store = connectRedis(session);
 
-        this.getStore = () => { return this.store; }
+        this.getStore = () => { return new store({ client: client }) }
     }
 }
 
@@ -22,7 +18,10 @@ export class OCRedisClient {
 
     constructor(host: string, port = 6379) {
         let url = `redis://${host}:${port}`;
-        this.client = redis.createClient({ url });
+        this.client = new Redis({
+            host: host,
+            port: port
+        });
 
         this.client.on('error', (err) => {
             console.log("Redis Client Error:", err);
