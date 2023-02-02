@@ -12,3 +12,5 @@ const server = new OCServer({
     port: 8080,
     static: [path.resolve(__dirname, './public/')],
 });
+
+export default server;

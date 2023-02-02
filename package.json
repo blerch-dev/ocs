@@ -1,0 +1,22 @@
+{
+  "name": "ocs",
+  "version": "0.0.1",
+  "description": "Open Chat Software",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node dev.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blerch-dev/ocs.git"
+  },
+  "author": {
+    "email": "contact@bler.ch",
+    "name": "blerch"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blerch-dev/ocs/issues"
+  },
+  "homepage": "https://github.com/blerch-dev/ocs#readme"
+}

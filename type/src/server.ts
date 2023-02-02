@@ -15,6 +15,7 @@ export interface OCServerProps {
     cors?: {
         creds?: boolean
         domains?: string[]
+        origin?: (origin: any, callback: any) => void
     }
 }
 
@@ -50,7 +51,7 @@ export class OCServer {
         if(props.cors) {
             this.app.use(cors({
                 credentials: props.cors.creds ?? true,
-                origin: props.cors.domains ?? '*'
+                origin: props.cors.origin ?? props.cors.domains ?? '*'
             }));
         }
 
@@ -62,10 +63,10 @@ export class OCServer {
             resave: false,
             saveUninitialized: false,
             cookie: {
-                secure: true,
+                secure: false,
                 path: '/',
                 // domain: 'auth.com', // Above comment
-                sameSite: 'none',
+                // sameSite: 'none',
                 httpOnly: true,
                 maxAge: 1000 * 60 * 10
             }

@@ -14,3 +14,5 @@ const server = new OCServer({
     port: 8081,
     appFunctions: [WSS]
 });
+
+export default server;
