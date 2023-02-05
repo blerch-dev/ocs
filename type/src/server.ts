@@ -3,8 +3,12 @@ import session, { Cookie } from 'express-session';
 import http from "http";
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import passport, { PassportStatic } from 'passport';
+import OAuth2Strategy from 'passport-oauth2';
 
 import { OCRedisStore, OCRedisClient } from './state';
+
+//import * as twitch from '../secrets/twitch.json';
 
 export interface OCServerProps {
     routes: [OCRoute],
@@ -48,11 +52,40 @@ export class OCServer {
         const RedisClient = new OCRedisClient('localhost');
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
 
+        // PassportJS - Fix JSON Module Building Stuff
+        let redirectURL = 'https://auth.local/auth';
+        // let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
+        //     `&redirect_uri=${redirectURL}&response_type=code` + 
+        //     `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
+        //     `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
+        //     `&state=twitch`;
+        let tokenURL = `https://id.twitch.tv/oauth2/token`
+        
+        // passport.use(new OAuth2Strategy({
+        //     authorizationURL: authURL,
+        //     tokenURL: tokenURL,
+        //     clientID: twitch.id,
+        //     clientSecret: twitch.secret,
+        //     callbackURL: redirectURL
+        // }, (access: any, refresh: any, profile: any, cb: any) => {
+        //     // Find/Create User
+        //     console.log("OAuth2 CB:", access, refresh, profile, cb);
+        // }));
+
         if(props.cors) {
             this.app.use(cors({
                 credentials: props.cors.creds ?? true,
                 origin: props.cors.origin ?? props.cors.domains ?? '*'
             }));
+
+            // Example Origin Source
+            // cors: {
+            //     creds: true,
+            //     origin: (origin, callback) => {
+            //         if(Whitelist.indexOf(origin) !== -1) callback(null, true);
+            //         else callback(new Error('Not allowed by CORS'));
+            //     }
+            // }
         }
 
         // This will be set to a custom solution attached to above cors and the central auth domain
@@ -74,10 +107,7 @@ export class OCServer {
 
         // Find matching domain/regex to route, fallback to default route
         this.app.use((req, res, next) => {
-            let options: OCOptions = {
-                session: req.session,
-                cookies: req.cookies
-            };
+            let options: OCOptions = {};
 
             let setOption = (key: string, value: any) => { options[key] = value; }
 
@@ -98,7 +128,7 @@ export class OCServer {
 
             props.routes.forEach((route) => {
                 if(route.matchesDomain(req.hostname))
-                    route.getHandler(options, setOption, setSesh)(req, res, next);
+                    route.getHandler(options, setOption, setSesh, RedisClient, passport)(req, res, next);
             });
         });
 
@@ -115,7 +145,14 @@ export class OCServer {
 
 export interface OCRouteProps {
     domain: string,
-    callback: (router: express.Router, opt?: OCOptions, sOpt?: Function, sSesh?: Function) => express.Router
+    callback: (
+        router: express.Router, 
+        opt: OCOptions, 
+        sOpt: Function, 
+        sSesh: Function, 
+        redis: OCRedisClient, 
+        passport: PassportStatic
+    ) => express.Router
 }
 
 export class OCRoute {
@@ -128,8 +165,8 @@ export class OCRoute {
             if(domain.match(props.domain)) return true;
             return false; 
         }
-        this.getHandler = (opt?: OCOptions, sOpt?: Function, sSesh?: Function) => {
-            return props.callback(express.Router(), opt, sOpt, sSesh);
+        this.getHandler = (opt: OCOptions, sOpt: Function, sSesh: Function, redis: OCRedisClient, passport: PassportStatic) => {
+            return props.callback(express.Router(), opt, sOpt, sSesh, redis, passport);
         }
     }
 }

@@ -9,8 +9,12 @@ const DefaultRoute = new OCRoute({
             if(setSesh != undefined) setSesh(obj, key, value);
         }
 
+        const isAuthed = (req: any, res: any, next: any) => {
+            if(req?.session?.user == undefined) return res.redirect(`http://auth.local/sso?site=${req.hostname}`); next();
+        }
+
         router.get('/chat', (req, res, next) => {
-            let head = defaultHead('OCS - Chat');
+            let head = defaultHead('OCS | Chat');
             let embed = embedComponent();
             let chat = chatComponent('Global Chat');
             let body = `
@@ -21,33 +25,16 @@ const DefaultRoute = new OCRoute({
             res.send(defaultLayout(head, body));
         });
 
-        router.post('/username', (req, res, next) => {
-            //console.log(req.body);
-            setSessionData('user', 'username', req.body.username);
-            res.status(200).send(JSON.stringify({ okay: true }));
+        router.get('/login', (req, res, next) => {
+            return res.redirect(`http://auth.local/sso?site=${req.hostname}`);
         });
 
-        router.get('/username', (req, res, next) => {
-            let head = defaultHead('OCS');
+        router.get('/profile', isAuthed, (req, res, next) => {
+            let head = defaultHead('OCS | Profile');
             let body = `
                 ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main>
-                    <form action="/username" method="post">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username">
-                        <input type="submit" value="Submit">
-                    </form>
-                </main>
-            `;
-            res.send(defaultLayout(head, body));
-        });
-
-        router.get('/', (req, res, next) => {
-            let head = defaultHead('OCS');
-            let body = `
-                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
-                <main>
-                    <h3>Home Page</h3>
+                    <h3>Profile Page (Dev/Session Data)</h3>
                     <p>Session</p>
                     <pre>${JSON.stringify(options?.session ?? { error: 'No Session' }, null, 2)}</pre>
                     <p>Cookies:</p>
@@ -57,6 +44,18 @@ const DefaultRoute = new OCRoute({
                             margin-bottom: 10px;
                         }
                     </style>
+                </main>
+            `;
+
+            res.send(defaultLayout(head, body));
+        })
+
+        router.get('/', (req, res, next) => {
+            let head = defaultHead('OCS');
+            let body = `
+                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
+                <main>
+                    <h3>Home Page</h3>
                 </main>
             `;
 

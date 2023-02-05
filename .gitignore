@@ -5,6 +5,7 @@ node_modules/
 lib/
 build/
 dist/
+secrets/
 
 # logs
 npm-debug.log*
