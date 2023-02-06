@@ -9,6 +9,7 @@ import OAuth2Strategy from 'passport-oauth2';
 import { OCRedisStore, OCRedisClient } from './state';
 
 //import * as twitch from '../secrets/twitch.json';
+const twitch = require('../secrets/twitch.json');
 
 export interface OCServerProps {
     routes: [OCRoute],
@@ -53,24 +54,25 @@ export class OCServer {
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
 
         // PassportJS - Fix JSON Module Building Stuff
-        let redirectURL = 'https://auth.local/auth';
-        // let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
-        //     `&redirect_uri=${redirectURL}&response_type=code` + 
-        //     `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
-        //     `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
-        //     `&state=twitch`;
+        let redirectURL = 'https://auth.local/auth/twitch';
+        let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
+            `&redirect_uri=${redirectURL}&response_type=code` + 
+            `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
+            `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
+            `&state=twitch`;
         let tokenURL = `https://id.twitch.tv/oauth2/token`
         
-        // passport.use(new OAuth2Strategy({
-        //     authorizationURL: authURL,
-        //     tokenURL: tokenURL,
-        //     clientID: twitch.id,
-        //     clientSecret: twitch.secret,
-        //     callbackURL: redirectURL
-        // }, (access: any, refresh: any, profile: any, cb: any) => {
-        //     // Find/Create User
-        //     console.log("OAuth2 CB:", access, refresh, profile, cb);
-        // }));
+        passport.use(new OAuth2Strategy({
+            authorizationURL: authURL,
+            tokenURL: tokenURL,
+            clientID: twitch.id,
+            clientSecret: twitch.secret,
+            callbackURL: redirectURL,
+            state: true
+        }, (access: any, refresh: any, profile: any, cb: any) => {
+            // Find/Create User
+            return cb(JSON.stringify(profile));
+        }));
 
         if(props.cors) {
             this.app.use(cors({

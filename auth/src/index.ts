@@ -35,11 +35,11 @@ const ErrorPage = (code: number, message?: string) => `
     `)}
 `;
 
-const AuthPage = (login: boolean) => `
+const AuthPage = (login?: boolean) => `
     ${DefaultPage('OCS | SSO', `
         <main>
             <div class="auth-form">
-                <a class="twitch-auth-button" href="">Twitch</a>
+                <a class="twitch-auth-button" href="https://auth.local/twitch">Twitch</a>
             </div>
         </main>
     `)}
@@ -50,6 +50,7 @@ const DefaultRoute = new OCRoute({
     callback: (router, option, setOption, setSesh, redis, passport) => {
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
+            console.log("SSO");
             let site = req.query.site as string;
 
             if(site == undefined)
@@ -66,8 +67,22 @@ const DefaultRoute = new OCRoute({
                 console.log("Creating Session from SSI");
             } else {
                 // Login/Auth
-                console.log("Login");
+                setSesh('state', 'authing_site', site);
+                res.send(AuthPage());
             }
+        });
+
+        router.get('/twitch', passport.authenticate('oauth2'));
+        router.get('/auth/twitch', (req, res, next) => {
+            let site = req.session.state?.authing_site ?? 'no site';
+            console.log(site);
+            // set user session
+            return res.end();
+            res.redirect(`https://${site}`);
+        });
+
+        router.get('*', (req, res) => {
+            res.send("Auth Catch All");
         });
 
         return router;
