@@ -39,7 +39,7 @@ const AuthPage = (login?: boolean) => `
     ${DefaultPage('OCS | SSO', `
         <main>
             <div class="auth-form">
-                <a class="twitch-auth-button" href="https://auth.local/twitch">Twitch</a>
+                <a class="twitch-auth-button" href="https://auth.local/twitch"><h3>Twitch<h3></a>
             </div>
         </main>
     `)}
@@ -50,7 +50,6 @@ const DefaultRoute = new OCRoute({
     callback: (router, option, setOption, setSesh, redis, passport) => {
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
-            console.log("SSO");
             let site = req.query.site as string;
 
             if(site == undefined)
@@ -72,13 +71,13 @@ const DefaultRoute = new OCRoute({
             }
         });
 
-        router.get('/twitch', passport.authenticate('oauth2'));
-        router.get('/auth/twitch', (req, res, next) => {
+        router.get('/twitch', passport.authenticate('twitch'));
+        router.get('/auth/twitch', passport.authenticate('twitch', { failureRedirect: '/sso' }), (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            console.log(site);
-            // set user session
+            // console.log(site);
+            // set user session, create cross origin key stuff
             return res.end();
-            res.redirect(`https://${site}`);
+            // res.redirect(`https://${site}`);
         });
 
         router.get('*', (req, res) => {

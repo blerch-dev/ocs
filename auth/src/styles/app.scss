@@ -6,6 +6,8 @@
     --header-bg: #363535;
     --font-color: #f5efef;
 
+    --twitch-purple: #6441a5;
+
     --lower-shadow: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg) 85%, var(--page-alt) 100%);
 }
 
@@ -42,3 +44,30 @@ main {
     flex-direction: column;
     align-items: center;
 }
+
+.auth-form {
+    min-width: 250px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    & > .twitch-auth-button {
+        width: 100%;
+        height: 40px;
+        text-decoration: none;
+        background-color: var(--twitch-purple);
+        border: 2px solid white;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        & > * {
+            font-weight: 800;
+            color: white;
+        }
+    }
+}
+
+
