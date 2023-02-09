@@ -16,7 +16,7 @@ export class OCRedisClient {
 
     private client;
 
-    constructor(host: string, port = 6379) {
+    constructor(host: string, port = 6379, debug = false) {
         let url = `redis://${host}:${port}`;
         this.client = new Redis({
             host: host,
@@ -31,7 +31,8 @@ export class OCRedisClient {
             if(err)
                 return console.log("Redis Client Connect Error:", err);
 
-            console.log("Connected to Redis Server");
+            if(debug === true)
+                console.log("Connected to Redis Server");
         });
 
         this.getClient = () => { return this.client; }

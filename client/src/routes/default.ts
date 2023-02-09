@@ -10,7 +10,7 @@ const DefaultRoute = new OCRoute({
         }
 
         const isAuthed = (req: any, res: any, next: any) => {
-            if(req?.session?.user == undefined) return res.redirect(`http://auth.local/sso?site=${req.hostname}`); next();
+            if(req?.session?.user == undefined) return res.redirect(`https://auth.local/sso?site=${req.hostname}`); next();
         }
 
         router.get('/chat', (req, res, next) => {
@@ -26,7 +26,7 @@ const DefaultRoute = new OCRoute({
         });
 
         router.get('/login', (req, res, next) => {
-            return res.redirect(`http://auth.local/sso?site=${req.hostname}`);
+            return res.redirect(`https://auth.local/sso?site=${req.hostname}`);
         });
 
         router.get('/profile', isAuthed, (req, res, next) => {

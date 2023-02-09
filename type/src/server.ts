@@ -15,6 +15,7 @@ const twitch = require('../secrets/twitch.json');
 export interface OCServerProps {
     routes: [OCRoute],
 
+    debug?: boolean
     port?: number,
     static?: string[],
     appFunctions?: Function[],
@@ -22,7 +23,9 @@ export interface OCServerProps {
         creds?: boolean
         domains?: string[]
         origin?: (origin: any, callback: any) => void
-    }
+    },
+    noSession?: boolean, // will be replaced with a session config object
+    noPassport?: boolean // same as noSession
 }
 
 export interface OCOptions {
@@ -51,7 +54,7 @@ export class OCServer {
         // this.app.set('trust proxy', 1);
         this.app.enable('trust proxy');
 
-        const RedisClient = new OCRedisClient('localhost');
+        const RedisClient = new OCRedisClient('localhost', undefined, props.debug);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
 
         // PassportJS - Twitch
@@ -62,50 +65,49 @@ export class OCServer {
             `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
             `&state=twitch`;
         
-        passport.use(new TwitchStrategy({
-            clientID: twitch.id,
-            clientSecret: twitch.secret,
-            callbackURL: redirectURL,
-            authorization: authURL
-        }, (accessToken: any, refreshToken: any, profile: any, done: any) => {
-            //console.log(profile); // Twitch Profile
-            // Find/Create User
-            // return done(err, user);
-            done();
-        }));
+        // Setup like cors below
+        if(props.noPassport !== true) {
+            passport.use(new TwitchStrategy({
+                clientID: twitch.id,
+                clientSecret: twitch.secret,
+                callbackURL: redirectURL,
+                authorization: authURL
+            }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+                //console.log(profile); // Twitch Profile
+                // Find/Create User
+                // return done(err, user);
+                let result = await fetch('http://data.local/users')
+                let output = await result.json();
+                console.log("Auth Server Result:", output);
+                done();
+            }));
+        }
 
         if(props.cors) {
             this.app.use(cors({
                 credentials: props.cors.creds ?? true,
                 origin: props.cors.origin ?? props.cors.domains ?? '*'
             }));
-
-            // Example Origin Source
-            // cors: {
-            //     creds: true,
-            //     origin: (origin, callback) => {
-            //         if(Whitelist.indexOf(origin) !== -1) callback(null, true);
-            //         else callback(new Error('Not allowed by CORS'));
-            //     }
-            // }
         }
 
         // This will be set to a custom solution attached to above cors and the central auth domain
         // Here for simple implmentation
-        this.app.use(session({
-            store: RedisStore.getStore(),
-            secret: 'test',
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                secure: false,
-                path: '/',
-                // domain: 'auth.com', // Above comment
-                // sameSite: 'none',
-                httpOnly: true,
-                maxAge: 1000 * 60 * 10
-            }
-        }));
+        if(props.noSession !== true) {
+            this.app.use(session({
+                store: RedisStore.getStore(),
+                secret: 'test',
+                resave: false,
+                saveUninitialized: false,
+                cookie: {
+                    secure: false,
+                    path: '/',
+                    // domain: 'auth.com', // Above comment
+                    // sameSite: 'none',
+                    httpOnly: true,
+                    maxAge: 1000 * 60 * 10
+                }
+            }));
+        }
 
         // Find matching domain/regex to route, fallback to default route
         this.app.use((req, res, next) => {
@@ -138,7 +140,8 @@ export class OCServer {
         let port = props.port ?? 3000;
         const server = this.app.listen(port);
         this.getServer = () => { return server; }
-        console.log(`Listening on Port: ${port}`);
+        if(props.debug === true)
+            console.log(`Listening on Port: ${port}`);
 
         // App Functions (WSS Upgrade)
         props.appFunctions?.forEach((func) => { func(this); });

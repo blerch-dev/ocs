@@ -17,19 +17,19 @@ const exe = (cmd) => {
 }
 
 let type = exe('cd type && npm run build');
-let client = exe('cd client && npm run build');
-let chat = exe('cd chat && npm run build');
-let auth = exe('cd auth && npm run build');
 
 const start = async () => {
     await type;
-    await client;
-    await chat;
-    await auth;
+
+    await exe('cd client && npm run build');
+    await exe('cd chat && npm run build');
+    await exe('cd auth && npm run build');
+    await exe('cd data && npm run build');
     
     const Client = require('./client/build');
     const Chat = require('./chat/build');
     const Auth = require('./auth/build');
+    const Data = require('./data/build');
 }
 
 start();
