@@ -7,9 +7,9 @@
 ## Roadmap
 
 * ~~Default client app, paired with simple chat server.~~
-* State functionaly, auto deploy redis DOI on deploy
-* Auth/Data server, intergrated to both chat and client.
-* Pub/Sub server, further development of chat.
+* ~~State functionaly, auto deploy redis DOI on deploy~~
+* ~~Auth/Data server, intergrated to both chat and client.~~
+* ~~Pub/Sub server, further development of chat.~~
 * Internal service authentication, more auth features.
 * Mod view, along side a development overview app.
 * Additional chat features.
