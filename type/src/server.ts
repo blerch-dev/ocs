@@ -56,27 +56,27 @@ export class OCServer {
 
         const RedisClient = new OCRedisClient('localhost', undefined, props.debug);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
-
-        // PassportJS - Twitch
-        let redirectURL = 'https://auth.local/auth/twitch';
-        let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
-            `&redirect_uri=${redirectURL}&response_type=code` + 
-            `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
-            `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
-            `&state=twitch`;
         
         // Setup like cors below
         if(props.noPassport !== true) {
+            // PassportJS - Twitch
+            let redirectURL = 'https://auth.local/auth/twitch';
+            let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
+                `&redirect_uri=${redirectURL}&response_type=code` + 
+                `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
+                `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
+                `&state=twitch`;
+
             passport.use(new TwitchStrategy({
                 clientID: twitch.id,
                 clientSecret: twitch.secret,
                 callbackURL: redirectURL,
                 authorization: authURL
             }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-                //console.log(profile); // Twitch Profile
+                // console.log(profile); // Twitch Profile
                 // Find/Create User
                 // return done(err, user);
-                let result = await fetch('http://data.local/users')
+                let result = await fetch(`http://data.local/user/twitch/${profile.id}`);
                 let output = await result.json();
                 console.log("Auth Server Result:", output);
                 done();

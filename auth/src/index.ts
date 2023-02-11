@@ -8,7 +8,8 @@ import { OCServer, OCRoute } from 'ocs-type';
 const Whitelist = [
     'app.local',
     'client.local',
-    'chat.local'
+    'chat.local',
+    'data.local'
 ];
 
 const DefaultPage = (title: string, body: string) => `
@@ -74,7 +75,7 @@ const DefaultRoute = new OCRoute({
         router.get('/twitch', passport.authenticate('twitch'));
         router.get('/auth/twitch', passport.authenticate('twitch', { failureRedirect: '/sso' }), (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            // console.log(site);
+            console.log(site);
             // set user session, create cross origin key stuff
             return res.end();
             // res.redirect(`https://${site}`);
