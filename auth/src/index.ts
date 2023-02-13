@@ -3,7 +3,9 @@
 // still figuring out session logic for everything
 
 import path from 'path';
-import { OCServer, OCRoute } from 'ocs-type';
+import { OCServer, OCAuth, OCRoute } from 'ocs-type';
+
+import { AuthPage, ErrorPage, SessionPage } from './pages';
 
 const Whitelist = [
     'app.local',
@@ -12,43 +14,9 @@ const Whitelist = [
     'data.local'
 ];
 
-const DefaultPage = (title: string, body: string) => `
-    <!DOCTYPE html>
-    <html lang="en">
-        <script> var exports = {}; </script>
-        <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link rel="icon" href="/assets/favicon.ico" />
-            <title>${title}</title>
-            <link rel="stylesheet" href="/css/style.css">
-        </head>
-        <body>${body}</body>
-    </html>
-`;
-
-const ErrorPage = (code: number, message?: string) => `
-    ${DefaultPage('OCS | SSO', `
-        <main>
-            <h2>OCS.GG Authentication Error: ${code}</h2>
-            <p>${message ?? 'Undefined Error. Please try again later.'}</p>
-        </main>
-    `)}
-`;
-
-const AuthPage = (login?: boolean) => `
-    ${DefaultPage('OCS | SSO', `
-        <main>
-            <div class="auth-form">
-                <a class="twitch-auth-button" href="https://auth.local/twitch"><h3>Twitch<h3></a>
-            </div>
-        </main>
-    `)}
-`;
-
 const DefaultRoute = new OCRoute({
     domain: 'auth.local',
-    callback: (router, option, setOption, setSesh, redis, passport) => {
+    callback: (router, option, setOption, setSesh, redis) => {
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
             let site = req.query.site as string;
@@ -72,14 +40,19 @@ const DefaultRoute = new OCRoute({
             }
         });
 
+        router.get('/session', (req, res) => {
+            return res.send(SessionPage(req.session));
+        });
+
+        /*
         router.get('/twitch', passport.authenticate('twitch'));
-        router.get('/auth/twitch', passport.authenticate('twitch', { failureRedirect: '/sso' }), (req, res, next) => {
+        router.get('/auth/twitch', passport.authenticate('twitch', { failureRedirect: '/sso', successRedirect: '/session' }), (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            console.log(site);
-            // set user session, create cross origin key stuff
-            return res.end();
+            console.log("Auth Server: (/auth/twitch/)");
+            return res.redirect('/session');
             // res.redirect(`https://${site}`);
         });
+        */
 
         router.get('*', (req, res) => {
             res.send("Auth Catch All");

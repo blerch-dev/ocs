@@ -3,14 +3,8 @@ import session, { Cookie } from 'express-session';
 import http from "http";
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import passport, { PassportStatic } from 'passport';
-import OAuth2Strategy from 'passport-oauth2';
-const TwitchStrategy = require('passport-twitch-latest');
 
 import { OCRedisStore, OCRedisClient } from './state';
-
-//import * as twitch from '../secrets/twitch.json';
-const twitch = require('../secrets/twitch.json');
 
 export interface OCServerProps {
     routes: [OCRoute],
@@ -57,39 +51,6 @@ export class OCServer {
         const RedisClient = new OCRedisClient('localhost', undefined, props.debug);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
         
-        // Setup like cors below
-        if(props.noPassport !== true) {
-            // PassportJS - Twitch
-            let redirectURL = 'https://auth.local/auth/twitch';
-            let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
-                `&redirect_uri=${redirectURL}&response_type=code` + 
-                `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
-                `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
-                `&state=twitch`;
-
-            passport.use(new TwitchStrategy({
-                clientID: twitch.id,
-                clientSecret: twitch.secret,
-                callbackURL: redirectURL,
-                authorization: authURL
-            }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-                // console.log(profile); // Twitch Profile
-                // Find/Create User
-                // return done(err, user);
-                let result = await fetch(`http://data.local/user/twitch/${profile.id}`);
-                let output = await result.json();
-                console.log("Auth Server Result:", output);
-                done();
-            }));
-        }
-
-        if(props.cors) {
-            this.app.use(cors({
-                credentials: props.cors.creds ?? true,
-                origin: props.cors.origin ?? props.cors.domains ?? '*'
-            }));
-        }
-
         // This will be set to a custom solution attached to above cors and the central auth domain
         // Here for simple implmentation
         if(props.noSession !== true) {
@@ -106,6 +67,13 @@ export class OCServer {
                     httpOnly: true,
                     maxAge: 1000 * 60 * 10
                 }
+            }));
+        }
+
+        if(props.cors) {
+            this.app.use(cors({
+                credentials: props.cors.creds ?? true,
+                origin: props.cors.origin ?? props.cors.domains ?? '*'
             }));
         }
 
@@ -132,7 +100,7 @@ export class OCServer {
 
             props.routes.forEach((route) => {
                 if(route.matchesDomain(req.hostname))
-                    route.getHandler(options, setOption, setSesh, RedisClient, passport)(req, res, next);
+                    route.getHandler(options, setOption, setSesh, RedisClient)(req, res, next);
             });
         });
 
@@ -155,8 +123,7 @@ export interface OCRouteProps {
         opt: OCOptions, 
         sOpt: Function, 
         sSesh: Function, 
-        redis: OCRedisClient, 
-        passport: PassportStatic
+        redis: OCRedisClient
     ) => express.Router
 }
 
@@ -170,8 +137,8 @@ export class OCRoute {
             if(domain.match(props.domain)) return true;
             return false; 
         }
-        this.getHandler = (opt: OCOptions, sOpt: Function, sSesh: Function, redis: OCRedisClient, passport: PassportStatic) => {
-            return props.callback(express.Router(), opt, sOpt, sSesh, redis, passport);
+        this.getHandler = (opt: OCOptions, sOpt: Function, sSesh: Function, redis: OCRedisClient) => {
+            return props.callback(express.Router(), opt, sOpt, sSesh, redis);
         }
     }
 }

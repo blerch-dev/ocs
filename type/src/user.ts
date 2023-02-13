@@ -13,20 +13,18 @@ interface OCUserProps {
 
 export class OCUser {
     public toJSON;
-    public fullUserData;
 
     constructor(data: OCUserProps) {
-        const UserData = {
-            uuid: data.uuid,
-            username: data.username,
-            roles: data.roles,
-            status: data.status,
-            created_at: data.created_at,
-            email: data.email,
-            twitch: data.twitch
-        }
+        // const UserData = {
+        //     uuid: data.uuid,
+        //     username: data.username,
+        //     roles: data.roles,
+        //     status: data.status,
+        //     created_at: data.created_at,
+        //     email: data.email,
+        //     twitch: data.twitch
+        // }
 
-        this.toJSON = () => { return UserData; }
-        this.fullUserData = () => { return data; }
+        this.toJSON = () => { return data; }
     }
 }
