@@ -13,6 +13,7 @@ interface OCUserProps {
 
 export class OCUser {
     public toJSON;
+    public fullUserData;
 
     constructor(data: OCUserProps) {
         const UserData = {
@@ -26,5 +27,6 @@ export class OCUser {
         }
 
         this.toJSON = () => { return UserData; }
+        this.fullUserData = () => { return data; }
     }
 }
