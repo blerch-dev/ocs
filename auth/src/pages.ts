@@ -36,7 +36,7 @@ export const SessionPage = (session: any) => `
     ${DefaultPage('OCS | Session', `
         <main>
             <h3>Session Data:</h3>
-            <pre>${JSON.stringify(session), null, 2}</pre>
+            <pre>${JSON.stringify(session, null, 2)}</pre>
         </main>
     `)}
 `;

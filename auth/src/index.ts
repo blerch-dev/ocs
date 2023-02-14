@@ -3,7 +3,7 @@
 // still figuring out session logic for everything
 
 import path from 'path';
-import { OCServer, OCAuth, OCRoute } from 'ocs-type';
+import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
 
 import { AuthPage, ErrorPage, SessionPage } from './pages';
 
@@ -13,6 +13,8 @@ const Whitelist = [
     'chat.local',
     'data.local'
 ];
+
+const Auth = new OCAuth({ twitch: true });
 
 const DefaultRoute = new OCRoute({
     domain: 'auth.local',
@@ -29,7 +31,9 @@ const DefaultRoute = new OCRoute({
 
             if(req.session?.user) {
                 // Session
-                console.log("Current Session");
+                //console.log("Current Session: ", req.session);
+                console.log(req.cookies);
+                res.redirect('/session');
             } else if(req.cookies?.ssi) {
                 // Stay Signed In
                 console.log("Creating Session from SSI");
@@ -44,18 +48,35 @@ const DefaultRoute = new OCRoute({
             return res.send(SessionPage(req.session));
         });
 
-        /*
-        router.get('/twitch', passport.authenticate('twitch'));
-        router.get('/auth/twitch', passport.authenticate('twitch', { failureRedirect: '/sso', successRedirect: '/session' }), (req, res, next) => {
+        router.get('/twitch', Auth.twitch.authenticate);
+        router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            console.log("Auth Server: (/auth/twitch/)");
+            console.log(`Twitch ID: ${res.locals.twitch_id}\nSite: ${site}`);
+
+            // Find User
+            if(res.locals.twitch_id == undefined)
+                return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
+
+            let output = await (await fetch(`http://data.local/user/twitch/${res.locals.twitch_id}`)).json();
+            if(output.data instanceof Error) {
+                return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
+            }
+
+            let user = new OCUser(output.data);
+            if(user instanceof OCUser) {
+                console.log("OCUser:", user.toJSON());
+                setSesh('user', null, user.toJSON());
+                console.log("Session:", req.session);
+            } else {
+                // Create User
+            }
+
             return res.redirect('/session');
             // res.redirect(`https://${site}`);
         });
-        */
 
         router.get('*', (req, res) => {
-            res.send("Auth Catch All");
+            res.send(ErrorPage(404, "Resources missing at this location."));
         });
 
         return router;

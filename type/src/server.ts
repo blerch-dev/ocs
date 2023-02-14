@@ -2,6 +2,7 @@ import express = require('express');
 import session, { Cookie } from 'express-session';
 import http from "http";
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 import { OCRedisStore, OCRedisClient } from './state';
@@ -19,7 +20,6 @@ export interface OCServerProps {
         origin?: (origin: any, callback: any) => void
     },
     noSession?: boolean, // will be replaced with a session config object
-    noPassport?: boolean // same as noSession
 }
 
 export interface OCOptions {
@@ -45,6 +45,7 @@ export class OCServer {
         // App Middleware
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
+        this.app.use(cookieParser());
         // this.app.set('trust proxy', 1);
         this.app.enable('trust proxy');
 
@@ -85,7 +86,7 @@ export class OCServer {
 
             let setSesh = (obj: string, key: string, value: any) => {
                 if(obj === 'state') s_state(key, value);
-                else if(obj === 'user') s_user(key, value);
+                else if(obj === 'user') s_user(value);
                 else console.log("Session Undefined:", obj, key, value);
             }
 
@@ -93,10 +94,7 @@ export class OCServer {
                 if(req.session.state) req.session.state[key] = value;
                 else req.session.state = { [key]: value };
             }
-            let s_user = (key: string, value: any) => {
-                if(req.session.user) req.session.user[key] = value;
-                else req.session.user = { [key]: value };
-            }
+            let s_user = (value: any) => { req.session.user = value; }
 
             props.routes.forEach((route) => {
                 if(route.matchesDomain(req.hostname))

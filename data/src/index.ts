@@ -45,8 +45,7 @@ const server = new OCServer({
         }
     },
     debug: true,
-    noSession: true,
-    noPassport: true
+    noSession: true
 });
 
 export default server;

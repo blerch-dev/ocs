@@ -1,32 +1,53 @@
-import passport, { PassportStatic } from 'passport';
-const TwitchStrategy = require('passport-twitch-latest');
-
 const twitch = require('../secrets/twitch.json');
-
-// let redirectURL = 'https://auth.local/auth/twitch';
-// let authURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
-//     `&redirect_uri=${redirectURL}&response_type=code` + 
-//     `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
-//     `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
-//     `&state=twitch`;
-
-// passport.use(new TwitchStrategy({
-//     clientID: twitch.id,
-//     clientSecret: twitch.secret,
-//     callbackURL: redirectURL,
-//     authorization: authURL
-// }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-//     // Find User
-//     let result = await fetch(`http://data.local/user/twitch/${profile.id}`);
-//     let output = await result.json();
-//     if(output.data instanceof Error) { return done(output.data); }
-//     let user = new OCUser(output.data); console.log("OCUser:", user instanceof OCUser);
-//     //if(user instanceof OCUser) { return user.toJSON(); }
-//     // Create User
-//     done();
-// }));
+let twitchRedirectURL = 'https://auth.local/auth/twitch';
+let twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
+    `&redirect_uri=${twitchRedirectURL}&response_type=code` + 
+    `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
+    `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
+    `&state=twitch`;
 
 // Will hold all auth logic, pulled in per server required to auth something
+// will probably remove passportjs and do this manually
+export interface OCAuthProps {
+    twitch?: boolean
+}
+
 export class OCAuth {
-    constructor() {}
+    public twitch = {
+        authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
+        verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); }
+    }
+
+    constructor(props: OCAuthProps) {
+        if(props.twitch === true) {
+            this.twitch = {
+                authenticate: (req: any, res: any, next: any) => { res.redirect(twitchAuthURL); },
+                verify: async (req: any, res: any, next: any) => {
+                    let validate_url = `https://id.twitch.tv/oauth2/token?client_id=${twitch.id}
+                        &client_secret=${twitch.secret}
+                        &code=${req.query.code}
+                        &grant_type=authorization_code
+                        &redirect_uri=https://auth.local/auth/twitch`.replace(/\s/g,'');
+
+                    let validate = await fetch(validate_url, { method: 'POST', headers: { 
+                        'Content-Type': 'application/vnd.twitchtv.v3+json' 
+                    } });
+                    let json = await validate.json();
+
+                    let result = await fetch('https://api.twitch.tv/helix/users', {
+                        headers: {
+                            'Authorization': `Bearer ${json.access_token}`,
+                            'Client-Id': `${twitch.id}`
+                        }
+                    });
+                    json = await result.json();
+                    if(json?.data[0]?.id !== undefined) {
+                        res.locals.twitch_id = json.data[0].id;
+                    }
+
+                    next();
+                }
+            }
+        }
+    }
 }
