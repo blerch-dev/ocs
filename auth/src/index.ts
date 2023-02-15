@@ -19,6 +19,14 @@ const Auth = new OCAuth({ twitch: true });
 const DefaultRoute = new OCRoute({
     domain: 'auth.local',
     callback: (router, option, setOption, setSesh, redis) => {
+        let passToApp = (res: any, value: string, site: string) => {
+            let code = require('crypto').randomBytes(16).toString('hex');
+            redis.getClient().set(code, value);
+            Auth.clearCode(() => { redis.getClient().del(code); }, 10);
+            
+            res.redirect(`http://${site}/auth?authcode=${code}`);
+        }
+
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
             let site = req.query.site as string;
@@ -30,10 +38,8 @@ const DefaultRoute = new OCRoute({
                 return res.send(ErrorPage(403, "This domain is not authorized to use OCS.GG SSO."));
 
             if(req.session?.user) {
-                // Session
-                //console.log("Current Session: ", req.session);
-                console.log(req.cookies);
-                res.redirect('/session');
+                return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
+                //res.redirect('/session');
             } else if(req.cookies?.ssi) {
                 // Stay Signed In
                 console.log("Creating Session from SSI");
@@ -51,7 +57,9 @@ const DefaultRoute = new OCRoute({
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            console.log(`Twitch ID: ${res.locals.twitch_id}\nSite: ${site}`);
+            let cookie = req.cookies['connect.sid'];
+
+            console.log(cookie);
 
             // Find User
             if(res.locals.twitch_id == undefined)
@@ -64,15 +72,16 @@ const DefaultRoute = new OCRoute({
 
             let user = new OCUser(output.data);
             if(user instanceof OCUser) {
-                console.log("OCUser:", user.toJSON());
                 setSesh('user', null, user.toJSON());
-                console.log("Session:", req.session);
             } else {
                 // Create User
             }
 
-            return res.redirect('/session');
-            // res.redirect(`https://${site}`);
+            if(req.sessionID == undefined) {
+                return res.redirect('/session');
+            }
+
+            return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
         });
 
         router.get('*', (req, res) => {

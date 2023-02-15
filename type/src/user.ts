@@ -25,6 +25,8 @@ export class OCUser {
         //     twitch: data.twitch
         // }
 
+        // If data doesnt include certain fields, return error
+
         this.toJSON = () => { return data; }
     }
 }

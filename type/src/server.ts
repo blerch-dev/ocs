@@ -79,7 +79,7 @@ export class OCServer {
         }
 
         // Find matching domain/regex to route, fallback to default route
-        this.app.use((req, res, next) => {
+        this.app.use(async (req, res, next) => {
             let options: OCOptions = {};
 
             let setOption = (key: string, value: any) => { options[key] = value; }

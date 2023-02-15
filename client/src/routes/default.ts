@@ -4,7 +4,7 @@ import { defaultLayout, defaultHead, embedComponent, chatComponent, headerCompon
 
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
-    callback: (router, options, setOption, setSesh) => {
+    callback: (router, options, setOption, setSesh, redis) => {
         const setSessionData = (obj: string, key: string, value: any) => {
             if(setSesh != undefined) setSesh(obj, key, value);
         }
@@ -29,6 +29,18 @@ const DefaultRoute = new OCRoute({
             return res.redirect(`https://auth.local/sso?site=${req.hostname}`);
         });
 
+        router.get('/auth', async (req, res) => {
+            let code = req.query.authcode as string;
+            redis.getClient().get(code, (err, result) => {
+                if(err) {
+                    return res.redirect('/error');
+                }
+
+                res.cookie('connect.sid', result);
+                return res.redirect('/profile');
+            });
+        });
+
         router.get('/profile', isAuthed, (req, res, next) => {
             let head = defaultHead('OCS | Profile');
             let body = `
@@ -36,9 +48,9 @@ const DefaultRoute = new OCRoute({
                 <main>
                     <h3>Profile Page (Dev/Session Data)</h3>
                     <p>Session</p>
-                    <pre>${JSON.stringify(options?.session ?? { error: 'No Session' }, null, 2)}</pre>
+                    <pre>${JSON.stringify(options?.session ?? req.session ?? { error: 'No Session' }, null, 2)}</pre>
                     <p>Cookies:</p>
-                    <pre>${options?.cookies ?? 'No Cookies'}</pre>
+                    <pre>${JSON.stringify(options?.cookies ?? req.cookies ?? { error: 'No Cookies' }, null, 2)}</pre>
                     <style>
                         pre {
                             margin-bottom: 10px;
