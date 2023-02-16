@@ -7,7 +7,10 @@ export class OCRedisStore {
     constructor(session: any, client: any) {
         let store = connectRedis(session);
 
-        this.getStore = () => { return new store({ client: client }) }
+        this.getStore = (ttl = (60 * 60 * 24)) => { return new store({ 
+            client: client,
+            ttl: ttl
+        }) }
     }
 }
 

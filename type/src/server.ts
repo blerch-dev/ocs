@@ -4,8 +4,10 @@ import http from "http";
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { createCipheriv, createDecipheriv } from 'crypto';
 
 import { OCRedisStore, OCRedisClient } from './state';
+const config = require('../secrets/server.json');
 
 export interface OCServerProps {
     routes: [OCRoute],
@@ -35,8 +37,16 @@ declare module "express-session" {
 
 export class OCServer {
     public getServer: () => http.Server;
+    // public encrypt = (value: string) => { 
+    //     let d = this.cipher.update(value, 'utf-8', 'hex'); d += this.cipher.final('hex'); return d; 
+    // }
+    // public decrypt = (value: string) => { 
+    //     let d = this.decipher.update(value, 'hex', 'utf-8'); d += this.decipher.final('utf-8'); return d; 
+    // }
 
     private app = express();
+    // private cipher = createCipheriv('aes-256-cbc', config.redis.secret, 'startmeup');
+    // private decipher = createDecipheriv('aes-256-cbc', config.redis.secret, 'startmeup');
 
     constructor(props: OCServerProps) {
         if(props.static !== undefined)
@@ -55,9 +65,10 @@ export class OCServer {
         // This will be set to a custom solution attached to above cors and the central auth domain
         // Here for simple implmentation
         if(props.noSession !== true) {
+            let ttl = 1000 * 60 * 60 * 24;
             this.app.use(session({
-                store: RedisStore.getStore(),
-                secret: 'test',
+                store: RedisStore.getStore(ttl),
+                secret: config.redis.secret,
                 resave: false,
                 saveUninitialized: false,
                 cookie: {
@@ -66,8 +77,9 @@ export class OCServer {
                     // domain: 'auth.com', // Above comment
                     // sameSite: 'none',
                     httpOnly: true,
-                    maxAge: 1000 * 60 * 10
-                }
+                    maxAge: ttl
+                },
+                rolling: true
             }));
         }
 

@@ -5,10 +5,6 @@ import { defaultLayout, defaultHead, embedComponent, chatComponent, headerCompon
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
     callback: (router, options, setOption, setSesh, redis) => {
-        const setSessionData = (obj: string, key: string, value: any) => {
-            if(setSesh != undefined) setSesh(obj, key, value);
-        }
-
         const isAuthed = (req: any, res: any, next: any) => {
             if(req?.session?.user == undefined) return res.redirect(`https://auth.local/sso?site=${req.hostname}`); next();
         }
@@ -32,11 +28,13 @@ const DefaultRoute = new OCRoute({
         router.get('/auth', async (req, res) => {
             let code = req.query.authcode as string;
             redis.getClient().get(code, (err, result) => {
-                if(err) {
+                if(err || typeof(result) !== 'string') {
                     return res.redirect('/error');
                 }
 
-                res.cookie('connect.sid', result);
+                let json = JSON.parse(result);
+                // get session id from cookie, get session, extract info for ssi cookie here
+                res.cookie('connect.sid', json.cookie);
                 return res.redirect('/profile');
             });
         });

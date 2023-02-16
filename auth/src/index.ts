@@ -21,7 +21,8 @@ const DefaultRoute = new OCRoute({
     callback: (router, option, setOption, setSesh, redis) => {
         let passToApp = (res: any, value: string, site: string) => {
             let code = require('crypto').randomBytes(16).toString('hex');
-            redis.getClient().set(code, value);
+            let json = JSON.stringify({ cookie: value, ssi: false }); // add toggle to ssi
+            redis.getClient().set(code, json);
             Auth.clearCode(() => { redis.getClient().del(code); }, 10);
             
             res.redirect(`http://${site}/auth?authcode=${code}`);
@@ -59,8 +60,6 @@ const DefaultRoute = new OCRoute({
             let site = req.session.state?.authing_site ?? 'no site';
             let cookie = req.cookies['connect.sid'];
 
-            console.log(cookie);
-
             // Find User
             if(res.locals.twitch_id == undefined)
                 return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
@@ -71,6 +70,7 @@ const DefaultRoute = new OCRoute({
             }
 
             let user = new OCUser(output.data);
+            // Add ways to select stay signed in here
             if(user instanceof OCUser) {
                 setSesh('user', null, user.toJSON());
             } else {
@@ -81,7 +81,7 @@ const DefaultRoute = new OCRoute({
                 return res.redirect('/session');
             }
 
-            return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
+            return passToApp(res, cookie ?? req.sessionID, site);
         });
 
         router.get('*', (req, res) => {

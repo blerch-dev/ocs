@@ -25,8 +25,8 @@ export class OCAuth {
             this.twitch = {
                 authenticate: (req: any, res: any, next: any) => { res.redirect(twitchAuthURL); },
                 verify: async (req: any, res: any, next: any) => {
-                    res.locals.timing = Date.now();
-                    //console.log("Verifying... (t-0)");
+                    // res.locals.timing = Date.now();
+
                     let validate_url = `https://id.twitch.tv/oauth2/token?client_id=${twitch.id}
                         &client_secret=${twitch.secret}
                         &code=${req.query.code}
@@ -38,7 +38,6 @@ export class OCAuth {
                     } });
                     let json = await validate.json();
 
-                    //console.log(`Fetching Twitch Data... (t-${Date.now() - res.locals.timing})`);
                     let result = await fetch('https://api.twitch.tv/helix/users', {
                         headers: {
                             'Authorization': `Bearer ${json.access_token}`,
