@@ -46,7 +46,7 @@ export class OCAuth {
                     });
                     json = await result.json();
                     if(json?.data[0]?.id !== undefined) {
-                        res.locals.twitch_id = json.data[0].id;
+                        res.locals.twitch = json.data[0];
                     }
 
                     next();

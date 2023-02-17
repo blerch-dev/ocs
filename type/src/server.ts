@@ -21,7 +21,16 @@ export interface OCServerProps {
         domains?: string[]
         origin?: (origin: any, callback: any) => void
     },
-    noSession?: boolean, // will be replaced with a session config object
+    session?: {
+        domain?: string,
+        sameSite?: string,
+        ttl?: number,
+        secure?: boolean,
+        httpOnly?: boolean
+        resave?: boolean,
+        saveUninitialized?: boolean,
+        rolling?: boolean
+    }
 }
 
 export interface OCOptions {
@@ -56,30 +65,27 @@ export class OCServer {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(cookieParser());
-        // this.app.set('trust proxy', 1);
         this.app.enable('trust proxy');
 
         const RedisClient = new OCRedisClient('localhost', undefined, props.debug);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
         
-        // This will be set to a custom solution attached to above cors and the central auth domain
-        // Here for simple implmentation
-        if(props.noSession !== true) {
+        if(props.session) {
             let ttl = 1000 * 60 * 60 * 24;
             this.app.use(session({
-                store: RedisStore.getStore(ttl),
+                store: RedisStore.getStore(props.session?.ttl ?? ttl),
                 secret: config.redis.secret,
-                resave: false,
-                saveUninitialized: false,
+                resave: props.session?.resave ?? false,
+                saveUninitialized: props.session?.saveUninitialized ?? false,
                 cookie: {
-                    secure: false,
+                    secure: props.session?.secure ?? false,
                     path: '/',
-                    // domain: 'auth.com', // Above comment
-                    // sameSite: 'none',
-                    httpOnly: true,
-                    maxAge: ttl
+                    domain: props.session?.domain,
+                    // sameSite: props.session?.sameSite, // some ts error
+                    httpOnly: props.session?.httpOnly ?? true,
+                    maxAge: props.session?.ttl ?? ttl
                 },
-                rolling: true
+                rolling: props.session?.rolling ?? true
             }));
         }
 

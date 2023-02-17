@@ -28,6 +28,25 @@ export const AuthPage = (login?: boolean) => `
             <div class="auth-form">
                 <a class="twitch-auth-button" href="https://auth.local/twitch"><h3>Twitch<h3></a>
             </div>
+            <div class="auth-form">
+                <span style="display: flex; gap: 6px;">
+                    <label for="ssi">Keep Me Signed In?</label>
+                    <input type="checkbox" name="ssi" id="ssi">
+                    <script>
+                        // Syncs SSI Checkbox
+                        document.addEventListener('DOMContentLoaded, () => {
+                            let elem = document.getElementById('ssi');
+                            elem.check = document.cookie.includes('ssi=true');
+                            elem.addEventListener('change', function() {
+                                if(this.checked)
+                                    document.cookie = "ssi=true";
+                                else
+                                    document.cookie = "ssi=false";
+                            });
+                        });
+                    </script>
+                </span>
+            </div>
         </main>
     `)}
 `;

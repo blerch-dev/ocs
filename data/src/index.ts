@@ -44,8 +44,7 @@ const server = new OCServer({
             else callback(new Error('Not allowed by CORS'));
         }
     },
-    debug: true,
-    noSession: true
+    debug: true
 });
 
 export default server;

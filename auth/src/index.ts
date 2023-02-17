@@ -7,11 +7,11 @@ import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
 
 import { AuthPage, ErrorPage, SessionPage } from './pages';
 
+const rootURL = 'ocs.local';
+
 const Whitelist = [
     'app.local',
-    'client.local',
-    'chat.local',
-    'data.local'
+    'client.local'
 ];
 
 const Auth = new OCAuth({ twitch: true });
@@ -28,9 +28,14 @@ const DefaultRoute = new OCRoute({
             res.redirect(`http://${site}/auth?authcode=${code}`);
         }
 
+        router.all('*', (req, res, next) => {
+            console.log("Hit auth.ocs.local"); next(); 
+        });
+
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
             let site = req.query.site as string;
+            console.log("Site:", site);
 
             if(site == undefined)
                 return res.send(ErrorPage(404, "Did not specify an app domain."));
@@ -61,10 +66,10 @@ const DefaultRoute = new OCRoute({
             let cookie = req.cookies['connect.sid'];
 
             // Find User
-            if(res.locals.twitch_id == undefined)
+            if(res.locals.twitch.id == undefined)
                 return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
-            let output = await (await fetch(`http://data.local/user/twitch/${res.locals.twitch_id}`)).json();
+            let output = await (await fetch(`http://data.${rootURL}/user/twitch/${res.locals.twitch.id}`)).json();
             if(output.data instanceof Error) {
                 return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
             }
@@ -95,7 +100,11 @@ const DefaultRoute = new OCRoute({
 const server = new OCServer({
     routes: [DefaultRoute],
     port: 8082,
-    static: [path.resolve(__dirname, './public/')]
+    static: [path.resolve(__dirname, './public/')],
+    cors: {},
+    session: {
+        domain: `.${rootURL}`
+    }
 });
 
 export default server;

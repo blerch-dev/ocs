@@ -12,7 +12,8 @@ const ChatRoute = new OCRoute({
 const server = new OCServer({
     routes: [ChatRoute],
     port: 8081,
-    appFunctions: [WSS]
+    appFunctions: [WSS],
+    session: {}
 });
 
 export default server;

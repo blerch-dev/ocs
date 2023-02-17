@@ -2,11 +2,16 @@
 import { OCRoute } from "ocs-type";
 import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
 
+const rootURL = 'ocs.local';
+
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
     callback: (router, options, setOption, setSesh, redis) => {
         const isAuthed = (req: any, res: any, next: any) => {
-            if(req?.session?.user == undefined) return res.redirect(`https://auth.local/sso?site=${req.hostname}`); next();
+            if(req?.session?.user == undefined) 
+                return res.redirect(`https://auth.${rootURL}/sso?site=${req.hostname}`);
+
+            next();
         }
 
         router.get('/chat', (req, res, next) => {
@@ -21,8 +26,8 @@ const DefaultRoute = new OCRoute({
             res.send(defaultLayout(head, body));
         });
 
-        router.get('/login', (req, res, next) => {
-            return res.redirect(`https://auth.local/sso?site=${req.hostname}`);
+        router.get('/login', isAuthed, (req, res, next) => {
+            return res.redirect('/profile');
         });
 
         router.get('/auth', async (req, res) => {
