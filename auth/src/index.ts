@@ -7,7 +7,7 @@ import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
 
 import { AuthPage, ErrorPage, SessionPage } from './pages';
 
-const rootURL = 'ocs.local';
+const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 const Whitelist = [
     'app.local',
@@ -17,7 +17,7 @@ const Whitelist = [
 const Auth = new OCAuth({ twitch: true });
 
 const DefaultRoute = new OCRoute({
-    domain: 'auth.local',
+    domain: `auth.${rootURL}`,
     callback: (router, option, setOption, setSesh, redis) => {
         let passToApp = (res: any, value: string, site: string) => {
             let code = require('crypto').randomBytes(16).toString('hex');
@@ -28,14 +28,9 @@ const DefaultRoute = new OCRoute({
             res.redirect(`http://${site}/auth?authcode=${code}`);
         }
 
-        router.all('*', (req, res, next) => {
-            console.log("Hit auth.ocs.local"); next(); 
-        });
-
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
             let site = req.query.site as string;
-            console.log("Site:", site);
 
             if(site == undefined)
                 return res.send(ErrorPage(404, "Did not specify an app domain."));
@@ -48,7 +43,7 @@ const DefaultRoute = new OCRoute({
                 //res.redirect('/session');
             } else if(req.cookies?.ssi) {
                 // Stay Signed In
-                console.log("Creating Session from SSI");
+                console.log("Creating Session from SSI:", req.cookies.ssi);
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);

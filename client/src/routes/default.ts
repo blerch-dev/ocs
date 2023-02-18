@@ -2,7 +2,7 @@
 import { OCRoute } from "ocs-type";
 import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
 
-const rootURL = 'ocs.local';
+const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',

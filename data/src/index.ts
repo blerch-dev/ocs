@@ -2,15 +2,15 @@ import { OCServer, OCRoute, OCUser } from 'ocs-type';
 import { getFullUser, getFullUserFromTwitch } from './user';
 import { pg, queryDB } from './data';
 
+const rootURL = process.env?.rootURL ?? 'ocs.local';
+
 const Whitelist = [
     'app.local',
-    'client.local',
-    'chat.local',
-    'auth.local'
+    'client.local'
 ];
 
 const DefaultRoute = new OCRoute({
-    domain: 'data.local',
+    domain: `data.${rootURL}`,
     callback: (router, option, setOption, setSesh, redis) => {
         router.get('/user/twitch/:id', async (req, res) => {
             let user = await getFullUserFromTwitch(req.params.id);
@@ -43,8 +43,7 @@ const server = new OCServer({
             if(!origin || Whitelist.indexOf(origin) !== -1) callback(null, true);
             else callback(new Error('Not allowed by CORS'));
         }
-    },
-    debug: true
+    }
 });
 
 export default server;

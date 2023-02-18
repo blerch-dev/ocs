@@ -1,3 +1,5 @@
+const rootURL = process.env?.rootURL ?? 'ocs.local';
+
 export const DefaultPage = (title: string, body: string) => `
     <!DOCTYPE html>
     <html lang="en">
@@ -26,7 +28,7 @@ export const AuthPage = (login?: boolean) => `
     ${DefaultPage('OCS | SSO', `
         <main>
             <div class="auth-form">
-                <a class="twitch-auth-button" href="https://auth.local/twitch"><h3>Twitch<h3></a>
+                <a class="twitch-auth-button" href="https://auth.${rootURL}/twitch"><h3>Twitch<h3></a>
             </div>
             <div class="auth-form">
                 <span style="display: flex; gap: 6px;">

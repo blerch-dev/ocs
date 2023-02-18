@@ -30,6 +30,8 @@ const start = async () => {
     const Chat = require('./chat/build');
     const Auth = require('./auth/build');
     const Data = require('./data/build');
+
+    console.log("Services Running...");
 }
 
 start();
