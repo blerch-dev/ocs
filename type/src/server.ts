@@ -19,7 +19,8 @@ export interface OCServerProps {
     cors?: {
         creds?: boolean
         domains?: string[]
-        origin?: (origin: any, callback: any) => void
+        origin?: (origin: any, callback: any) => void,
+        preflightContinue?: boolean
     },
     session?: {
         domain?: string,
@@ -81,7 +82,7 @@ export class OCServer {
                     secure: props.session?.secure ?? false,
                     path: '/',
                     domain: props.session?.domain,
-                    // sameSite: props.session?.sameSite, // some ts error
+                    sameSite: 'none',
                     httpOnly: props.session?.httpOnly ?? true,
                     maxAge: props.session?.ttl ?? ttl
                 },
@@ -92,7 +93,8 @@ export class OCServer {
         if(props.cors) {
             this.app.use(cors({
                 credentials: props.cors.creds ?? true,
-                origin: props.cors.origin ?? props.cors.domains ?? '*'
+                origin: props.cors.origin ?? props.cors.domains ?? '*',
+                preflightContinue: props.cors?.preflightContinue
             }));
         }
 

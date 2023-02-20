@@ -14,12 +14,24 @@ const DefaultRoute = new OCRoute({
             next();
         }
 
+        router.get('/live', (req, res, next) => {
+            let head = defaultHead('OCS | Live');
+            let embed = embedComponent();
+            let chat = chatComponent('Global Chat');
+            let body = `
+                ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
+                <main class="live">${embed}${chat}</main>
+            `;
+
+            res.send(defaultLayout(head, body));
+        });
+
         router.get('/chat', (req, res, next) => {
             let head = defaultHead('OCS | Chat');
             let embed = embedComponent();
             let chat = chatComponent('Global Chat');
             let body = `
-                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
+                ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main class="live">${embed}${chat}</main>
             `;
 
@@ -28,6 +40,11 @@ const DefaultRoute = new OCRoute({
 
         router.get('/login', isAuthed, (req, res, next) => {
             return res.redirect('/profile');
+        });
+
+        router.get('/logout', (req, res) => {
+            res.clearCookie('connect.sid');
+            res.redirect(`https://auth.${rootURL}/logout?site=${req.hostname}`);
         });
 
         router.get('/auth', async (req, res) => {
@@ -47,9 +64,13 @@ const DefaultRoute = new OCRoute({
         router.get('/profile', isAuthed, (req, res, next) => {
             let head = defaultHead('OCS | Profile');
             let body = `
-                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
+                ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main>
-                    <h3>Profile Page (Dev/Session Data)</h3>
+                    <h3>Profile Page</h3>
+                    <div>
+                        <a href="http://${req.hostname}/logout">Logout</a>
+                    </div>
+                    <h3>Dev/Session Data</h3>
                     <p>Session</p>
                     <pre>${JSON.stringify(options?.session ?? req.session ?? { error: 'No Session' }, null, 2)}</pre>
                     <p>Cookies:</p>
@@ -68,7 +89,7 @@ const DefaultRoute = new OCRoute({
         router.get('/', (req, res, next) => {
             let head = defaultHead('OCS');
             let body = `
-                ${headerComponent('OCS Live', undefined, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
+                ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main>
                     <h3>Home Page</h3>
                 </main>

@@ -29,11 +29,9 @@ export const AuthPage = (login?: boolean) => `
         <main>
             <div class="auth-form">
                 <a class="twitch-auth-button" href="https://auth.${rootURL}/twitch"><h3>Twitch<h3></a>
-            </div>
-            <div class="auth-form">
                 <span style="display: flex; gap: 6px;">
-                    <label for="ssi">Keep Me Signed In?</label>
                     <input type="checkbox" name="ssi" id="ssi">
+                    <label for="ssi">Keep Me Signed In?</label>
                     <script>
                         // Syncs SSI Checkbox
                         document.addEventListener('DOMContentLoaded, () => {
@@ -49,6 +47,17 @@ export const AuthPage = (login?: boolean) => `
                     </script>
                 </span>
             </div>
+        </main>
+    `)}
+`;
+
+export const SignUpPage = (currentUserData: any) => `
+    ${DefaultPage('OCS | Sign Up', `
+        <main>
+            <div class="auth-form">
+            
+            </div>
+            <pre>${JSON.stringify(currentUserData, null, 2)}</pre>
         </main>
     `)}
 `;

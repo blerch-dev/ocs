@@ -1,4 +1,4 @@
-import { OCServer, OCMessage } from "ocs-type";
+import { OCServer, OCMessage, OCUser } from "ocs-type";
 import WebSocket from 'ws';
 
 export default (server: OCServer) => {
@@ -19,8 +19,14 @@ export default (server: OCServer) => {
 
     // This will be a User -> Sockets<Set> Map once auth is in.
     const Sockets = new Set<WebSocket>;
+    const Users = new Map<string, WebSocket[]>;
 
     wss.on("connection", (socket, request) => {
+        console.log("Chat Connection:", JSON.stringify({
+            headers: request.headers,
+            rawHeaders: request.rawHeaders
+        }, null, 2));
+
         Sockets.add(socket);
         (socket as any).isAlive = true;
         (socket as any).UUID = 'User-' + hexId(4);
@@ -60,6 +66,10 @@ export default (server: OCServer) => {
         const onError = (err: unknown) => {
             console.log(err);
         }
+
+        socket.send(JSON.stringify({
+            // connection details, session details
+        }));
     });
 
     return wss;

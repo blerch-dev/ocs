@@ -1,14 +1,9 @@
 const twitch = require('../secrets/twitch.json');
-let twitchRedirectURL = 'https://auth.local/auth/twitch';
-let twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
-    `&redirect_uri=${twitchRedirectURL}&response_type=code` + 
-    `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
-    `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
-    `&state=twitch`;
 
 // Will hold all auth logic, pulled in per server required to auth something
 // will probably remove passportjs and do this manually
 export interface OCAuthProps {
+    callbackURL: string,
     twitch?: boolean
 }
 
@@ -23,7 +18,16 @@ export class OCAuth {
     constructor(props: OCAuthProps) {
         if(props.twitch === true) {
             this.twitch = {
-                authenticate: (req: any, res: any, next: any) => { res.redirect(twitchAuthURL); },
+                authenticate: (req: any, res: any, next: any) => {
+                    let twitchRedirectURL = `https://${props.callbackURL}/auth/twitch`;
+                    let twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
+                        `&redirect_uri=${twitchRedirectURL}&response_type=code` + 
+                        `&scope=user:read:subscriptions+channel:read:polls+channel:read:subscriptions` +
+                        `+channel:read:vips+moderation:read+moderator:read:blocked_terms+chat:edit+chat:read` + 
+                        `&state=twitch`;
+
+                    res.redirect(twitchAuthURL); 
+                },
                 verify: async (req: any, res: any, next: any) => {
                     // res.locals.timing = Date.now();
 
@@ -31,7 +35,7 @@ export class OCAuth {
                         &client_secret=${twitch.secret}
                         &code=${req.query.code}
                         &grant_type=authorization_code
-                        &redirect_uri=https://auth.local/auth/twitch`.replace(/\s/g,'');
+                        &redirect_uri=https://${props.callbackURL}/auth/twitch`.replace(/\s/g,'');
 
                     let validate = await fetch(validate_url, { method: 'POST', headers: { 
                         'Content-Type': 'application/vnd.twitchtv.v3+json' 
