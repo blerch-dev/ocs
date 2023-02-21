@@ -88,7 +88,7 @@ const DefaultRoute = new OCRoute({
             if(user instanceof OCUser) {
                 setSesh('user', null, user.toJSON());
             } else {
-                // Create User
+                // Create User - remember to normalize usernames on creation
                 return res.send(SignUpPage(res.locals));
             }
 

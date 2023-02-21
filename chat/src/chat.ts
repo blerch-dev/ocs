@@ -1,4 +1,4 @@
-import { OCServer, OCMessage, OCUser } from "ocs-type";
+import { OCServer, OCMessage, OCUser, OCChannel } from "ocs-type";
 import WebSocket from 'ws';
 
 export default (server: OCServer) => {
@@ -6,6 +6,13 @@ export default (server: OCServer) => {
         noServer: true,
         path: "/"
     });
+
+    // Load Channels on Start
+    const Channels = new Set<OCChannel>
+    const getChannel = (origin: string) => {
+        // return matching channel with origin or undefined
+        return { name: 'Test Channel' } // testing
+    }
 
     //console.log(server, server.getServer);
     server.getServer().on("upgrade", (request, socket, head) => {
@@ -17,19 +24,49 @@ export default (server: OCServer) => {
     // Random Hex UUID
     const hexId = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
-    // This will be a User -> Sockets<Set> Map once auth is in.
+    // Get User Session
+    const getSession = (req: any) => {
+        let sessionParser = server.getSessionParser();
+        return new Promise((res, rej) => {
+            if(sessionParser !== undefined) {
+                sessionParser(req, {} as any, () => {
+                    if(req?.session)
+                        return res(req.session);
+                    
+                    return res("No Session");
+                });
+            } else {
+                return res("No Session");
+            }
+        });
+    }
+
+    interface Chatter {
+        channel?: OCChannel,
+        user: OCUser
+    }
+
     const Sockets = new Set<WebSocket>;
-    const Users = new Map<string, WebSocket[]>;
+    const Users = new Map<Chatter, Set<WebSocket>>;
 
     wss.on("connection", async (socket, request) => {
-        let sessionParser = server.getSessionParser();
-        if(sessionParser !== undefined) {
-            sessionParser(request as any, {} as any, () => {
-                console.log("Valid Session Parser", (request as any)?.session ?? 'no session');
-            });
+        let session = await getSession(request);
+        console.log("Socket Connection:\n", session);
+
+        let chatter = { channel: getChannel((request as any)?.headers?.origin), user: new OCUser((session as any)?.user) }
+
+        if(chatter.user instanceof OCUser) {
+            if(Users.has(chatter)) {
+                Users.get(chatter)?.add(socket);
+            } else {
+                // check if banned
+                Users.set(chatter, new Set([socket]));
+            }
+        } else {
+            // anon socket, tell them to login
+            Sockets.add(socket);
         }
 
-        Sockets.add(socket);
         (socket as any).isAlive = true;
         (socket as any).UUID = 'User-' + hexId(4);
 
@@ -46,6 +83,7 @@ export default (server: OCServer) => {
 
         socket.on("message", (message) => {
             if(message.toString() === 'pong') { (socket as any).isAlive = true; return; }
+            // check if muted
             try { onJSON(JSON.parse(message.toString())) } catch(err) { onError(err); }
         });
 
@@ -70,7 +108,7 @@ export default (server: OCServer) => {
         }
 
         socket.send(JSON.stringify({
-            // connection details, session details
+            ServerMessage: `Connected to Channel ${chatter.channel.name} as ${chatter.user.getName()}.`
         }));
     });
 
