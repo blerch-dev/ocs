@@ -24,7 +24,7 @@ export interface OCServerProps {
     },
     session?: {
         domain?: string,
-        sameSite?: string,
+        sameSite?: boolean | "lax" | "strict" | "none",
         ttl?: number,
         secure?: boolean,
         httpOnly?: boolean
@@ -47,6 +47,7 @@ declare module "express-session" {
 
 export class OCServer {
     public getServer: () => http.Server;
+    public getSessionParser: () => express.RequestHandler | undefined;
     // public encrypt = (value: string) => { 
     //     let d = this.cipher.update(value, 'utf-8', 'hex'); d += this.cipher.final('hex'); return d; 
     // }
@@ -73,7 +74,7 @@ export class OCServer {
         
         if(props.session) {
             let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
-            this.app.use(session({
+            let sessionParser = session({
                 store: RedisStore.getStore(props.session?.ttl ?? ttl),
                 secret: config.redis.secret,
                 resave: props.session?.resave ?? false,
@@ -82,12 +83,17 @@ export class OCServer {
                     secure: props.session?.secure ?? false,
                     path: '/',
                     domain: props.session?.domain,
-                    sameSite: 'none',
+                    sameSite: props.session?.sameSite ?? 'lax',
                     httpOnly: props.session?.httpOnly ?? true,
                     maxAge: props.session?.ttl ?? ttl
                 },
                 rolling: props.session?.rolling ?? true
-            }));
+            });
+
+            this.app.use(sessionParser);
+            this.getSessionParser = () => { return sessionParser; }
+        } else {
+            this.getSessionParser = () => undefined;
         }
 
         if(props.cors) {
@@ -98,8 +104,24 @@ export class OCServer {
             }));
         }
 
+        // Header Checks
+        if(props.debug) {
+            this.app.use((req, res, next) => {
+                console.log("Req Headers:", JSON.stringify({
+                    host: req.headers.host,
+                    origin: req.headers.origin,
+                    upgrade: req.headers.upgrade
+                }, null, 2));
+
+                return next();
+            });
+        }
+
         // Find matching domain/regex to route, fallback to default route
         this.app.use(async (req, res, next) => {
+            if(props.debug)
+                console.log("Router Flow:", req.hostname, req.headers.origin);
+
             let options: OCOptions = {};
 
             let setOption = (key: string, value: any) => { options[key] = value; }
@@ -117,9 +139,17 @@ export class OCServer {
             let s_user = (value: any) => { req.session.user = value; }
 
             props.routes.forEach((route) => {
-                if(route.matchesDomain(req.hostname))
-                    route.getHandler(options, setOption, setSesh, RedisClient)(req, res, next);
+                let matches = route.matchesDomain(req.hostname);
+
+                if(props.debug)
+                    console.log("Router Domain:", matches, req.hostname);
+
+                if(matches)
+                    return route.getHandler(options, setOption, setSesh, RedisClient)(req, res, next);
             });
+
+            if(props.debug)
+                console.log("End of Route Flow");
         });
 
         // http server / chat server, express for debug till reimp

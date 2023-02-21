@@ -43,6 +43,9 @@ const server = new OCServer({
             if(!origin || Whitelist.indexOf(origin) !== -1) callback(null, true);
             else callback(new Error('Not allowed by CORS'));
         }
+    },
+    session: {
+        domain: `*.${rootURL}`
     }
 });
 

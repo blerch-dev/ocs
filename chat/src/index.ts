@@ -3,6 +3,11 @@ import WSS from "./chat";
 
 const rootURL = process.env?.rootURL ?? 'ocs.local';
 
+const Whitelist = [
+    'http://app.local',
+    'client.local'
+];
+
 // Chat Route
 const ChatRoute = new OCRoute({
     domain: `chat.${rootURL}`,
@@ -19,11 +24,14 @@ const server = new OCServer({
     routes: [ChatRoute],
     port: 8081,
     appFunctions: [WSS],
-    session: {},
+    session: {
+        domain: `.${rootURL}`
+    },
     cors: {
         creds: true,
         preflightContinue: true
-    }
+    },
+    debug: true
 });
 
 export default server;

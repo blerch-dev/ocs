@@ -19,9 +19,9 @@ const Auth = new OCAuth({ callbackURL: `auth.${rootURL}`, twitch: true });
 const DefaultRoute = new OCRoute({
     domain: `auth.${rootURL}`,
     callback: (router, option, setOption, setSesh, redis) => {
-        let passToApp = (res: any, value: string, site: string) => {
+        let passToApp = (res: any, value: string, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
-            let json = JSON.stringify({ cookie: value, ssi: false, uuid: undefined }); // add toggle to ssi, encrypt todo
+            let json = JSON.stringify({ cookie: value, ssi: ssi ?? false, uuid: undefined }); // add toggle to ssi, encrypt todo
 
             redis.getClient().set(code, json);
             Auth.clearCode(() => { redis.getClient().del(code); }, 10);
@@ -73,9 +73,6 @@ const DefaultRoute = new OCRoute({
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            let cookie = req.cookies['connect.sid'];
-
-            console.log("Auth/Twitch", site, cookie);
 
             // Find User
             if(res.locals.twitch.id == undefined)
@@ -99,7 +96,7 @@ const DefaultRoute = new OCRoute({
                 return res.redirect('/session');
             }
 
-            return passToApp(res, cookie ?? req.sessionID, site);
+            return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
         });
 
         router.get('*', (req, res) => {

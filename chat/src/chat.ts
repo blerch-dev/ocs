@@ -21,11 +21,13 @@ export default (server: OCServer) => {
     const Sockets = new Set<WebSocket>;
     const Users = new Map<string, WebSocket[]>;
 
-    wss.on("connection", (socket, request) => {
-        console.log("Chat Connection:", JSON.stringify({
-            headers: request.headers,
-            rawHeaders: request.rawHeaders
-        }, null, 2));
+    wss.on("connection", async (socket, request) => {
+        let sessionParser = server.getSessionParser();
+        if(sessionParser !== undefined) {
+            sessionParser(request as any, {} as any, () => {
+                console.log("Valid Session Parser", (request as any)?.session ?? 'no session');
+            });
+        }
 
         Sockets.add(socket);
         (socket as any).isAlive = true;

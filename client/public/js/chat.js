@@ -30,7 +30,8 @@ class OCSocket {
 
 const OCS = new OCSocket(window.location);
 document.addEventListener('DOMContentLoaded', () => {
-    OCS.connect('ws://localhost:8081'); // 'chat.ocs.local'
+    // OCS.connect('ws://localhost:8081');
+    OCS.connect('ws://chat.ocs.local');
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')
