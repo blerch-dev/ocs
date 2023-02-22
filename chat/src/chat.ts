@@ -43,7 +43,7 @@ export default (server: OCServer) => {
 
     interface Chatter {
         channel?: OCChannel,
-        user: OCUser
+        user?: OCUser
     }
 
     const Sockets = new Set<WebSocket>;
@@ -53,7 +53,13 @@ export default (server: OCServer) => {
         let session = await getSession(request);
         console.log("Socket Connection:\n", session);
 
-        let chatter = { channel: getChannel((request as any)?.headers?.origin), user: new OCUser((session as any)?.user) }
+        let user = (session as any)?.user;
+        if(OCUser.validUserObject(user))
+            user = new OCUser(user);
+        else
+            user = undefined;
+
+        let chatter = { channel: getChannel((request as any)?.headers?.origin), user: user }
 
         if(chatter.user instanceof OCUser) {
             if(Users.has(chatter)) {
@@ -107,9 +113,15 @@ export default (server: OCServer) => {
             console.log(err);
         }
 
-        socket.send(JSON.stringify({
-            ServerMessage: `Connected to Channel ${chatter.channel.name} as ${chatter.user.getName()}.`
-        }));
+        if(chatter.user instanceof OCUser) {
+            socket.send(JSON.stringify({
+                ServerMessage: `Connected to Channel ${chatter.channel.name} as ${chatter.user.getName()}.`
+            }));
+        } else {
+            socket.send(JSON.stringify({
+                ServerMessage: 'Sign in to chat...'
+            }));
+        }
     });
 
     return wss;

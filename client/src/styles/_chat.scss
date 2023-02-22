@@ -59,6 +59,18 @@
                     background-color: #ffffff08;
                 }
             }
+
+            & > .server-message {
+                width: 100%;
+                overflow: hidden;
+                padding: 2px 3px;
+
+                & > p {
+                    overflow: hidden;
+                    white-space: normal;
+                    font-weight: 700;
+                }
+            }
         }
     }
 

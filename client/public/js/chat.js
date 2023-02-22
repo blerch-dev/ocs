@@ -28,24 +28,7 @@ class OCSocket {
     }
 }
 
-const OCS = new OCSocket(window.location);
 document.addEventListener('DOMContentLoaded', () => {
-    // OCS.connect('ws://localhost:8081');
-    OCS.connect('ws://chat.ocs.local');
-    OCS.on('message', (event) => {
-        let msg = event.data;
-        if(msg === 'ping')
-            return OCS.socket.send("pong");
-
-        console.log("Message Event:", event);
-        
-        try {
-            onMessage(JSON.parse(msg));
-        } catch(err) {
-            console.log("Error:", err);
-        }
-    });
-
     const chat = document.getElementById("OCS-Chat-List");
     const input = document.getElementById("OCS-Chat-Input");
     const submit = document.getElementById("OCS-Chat-Send");
@@ -68,9 +51,39 @@ document.addEventListener('DOMContentLoaded', () => {
         getValue();
     });
 
+    ConfigureChat(chat, input, submit)
+});
+
+const OCS = new OCSocket(window.location);
+function ConfigureChat(chat, input, submit) {
+    // OCS.connect('ws://localhost:8081');
+    OCS.connect('ws://chat.ocs.local');
+    OCS.on('message', (event) => {
+        let msg = event.data;
+        if(msg === 'ping')
+            return OCS.socket.send("pong");
+        
+        try {
+            onMessage(JSON.parse(msg));
+        } catch(err) {
+            console.log("Error:", err);
+            console.log("Message Event:", event);
+        }
+    });
+
     let even = true;
     const onMessage = (json) => {
         console.log("JSON:", json);
+        if(json.ServerMessage)
+            return serverMessage(json);
+
+        if(json.EventMessage)
+            return eventMessage(json);
+
+        chatMessage(json);
+    }
+
+    const chatMessage = (json) => {
         let elem = document.createElement('div');
         elem.classList.add('chat-message', even ? undefined : 'odd');
         even = !even;
@@ -80,4 +93,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
         chat.appendChild(elem);
     }
-});
+
+    const serverMessage = (json) => {
+        let elem = document.createElement('div');
+        elem.classList.add('server-message');
+        even = !even;
+        elem.innerHTML = `
+            <p>${json.ServerMessage}</p>
+        `;
+
+        chat.appendChild(elem);
+    }
+
+    const eventMessage = (json) => {
+
+    }
+}

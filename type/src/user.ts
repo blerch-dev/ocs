@@ -18,6 +18,18 @@ interface OCUserProps {
 }
 
 export class OCUser {
+    public static validUserObject = (data: object) => {
+        if(typeof(data) !== 'object')
+            return false;
+
+        let required_keys = ['uuid', 'username', 'roles', 'status'];
+        required_keys.forEach(key => {
+            if((data as any)[key] === undefined)
+                return false;
+        });
+        return true;
+    };
+
     public toJSON;
     public getName;
 
@@ -33,16 +45,8 @@ export class OCUser {
         // }
 
         // If data doesnt include certain fields, return error
-        if(typeof(data) !== 'object')
+        if(!OCUser.validUserObject(data))
             throw new Error("Invalid User Object");
-
-        console.log(data);
-        let required_keys = ['uuid', 'username', 'roles', 'status'];
-        required_keys.forEach(key => {
-            console.log(key);
-            if((data as any)[key] === undefined)
-                throw new Error("Invalid User Object");
-        });
 
         this.toJSON = () => { return data; }
         this.getName = () => { return data.username };
