@@ -3,29 +3,11 @@ import WebSocket from 'ws';
 
 export default (server: OCServer) => {
     const wss = new WebSocket.Server({
-        noServer: true,
-        path: "/"
+        noServer: true
     });
-
-    // Load Channels on Start
-    const Channels = new Set<OCChannel>
-    const getChannel = (origin: string) => {
-        // return matching channel with origin or undefined
-        return { name: 'Test Channel' } // testing
-    }
-
-    //console.log(server, server.getServer);
-    server.getServer().on("upgrade", (request, socket, head) => {
-        wss.handleUpgrade(request, socket, head, (ws) => {
-            wss.emit("connection", ws, request);
-        });
-    });
-
-    // Random Hex UUID
-    const hexId = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
     // Get User Session
-    const getSession = (req: any) => {
+    const getSession = async (req: any) => {
         let sessionParser = server.getSessionParser();
         return new Promise((res, rej) => {
             if(sessionParser !== undefined) {
@@ -40,6 +22,21 @@ export default (server: OCServer) => {
             }
         });
     }
+
+    // Load Channels on Start
+    const Channels = new Set<OCChannel>
+    const getChannel = (origin: string) => {
+        // return matching channel with origin or undefined
+        return { name: 'Test Channel' } // testing
+    }
+
+    //console.log(server, server.getServer);
+    server.getServer().on("upgrade", async (request, socket, head) => {
+        //console.log("Request Headers:", request.headers);
+        wss.handleUpgrade(request, socket, head, (ws) => {
+            wss.emit("connection", ws, request);
+        });
+    });
 
     interface Chatter {
         channel?: OCChannel,
@@ -73,10 +70,8 @@ export default (server: OCServer) => {
             Sockets.add(socket);
         }
 
-        (socket as any).isAlive = true;
-        (socket as any).UUID = 'User-' + hexId(4);
-
         // Heartbeat
+        (socket as any).isAlive = true;
         setInterval(() => {
             if((socket as any).isAlive !== true) {
                 Sockets.delete(socket);

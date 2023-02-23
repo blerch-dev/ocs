@@ -48,6 +48,7 @@ const DefaultRoute = new OCRoute({
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);
+                console.log("State:", req.session.state);
                 res.send(AuthPage());
             }
         });
@@ -96,6 +97,7 @@ const DefaultRoute = new OCRoute({
                 return res.redirect('/session');
             }
 
+            console.log(site, req.session.state);
             return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
         });
 
@@ -113,7 +115,9 @@ const server = new OCServer({
     static: [path.resolve(__dirname, './public/')],
     cors: {},
     session: {
-        domain: `.${rootURL}`
+        secure: true,
+        domain: `.${rootURL}`,
+        sameSite: 'lax'
     }
 });
 

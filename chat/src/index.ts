@@ -20,8 +20,9 @@ const server = new OCServer({
     port: 8081,
     appFunctions: [WSS],
     session: {
+        secure: true,
         domain: `.${rootURL}`,
-        sameSite: 'lax' // has to be secure if none
+        sameSite: 'none'
     },
     cors: {
         creds: true,

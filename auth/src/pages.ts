@@ -34,7 +34,7 @@ export const AuthPage = (login?: boolean) => `
                     <label for="ssi">Keep Me Signed In?</label>
                     <script>
                         // Syncs SSI Checkbox
-                        document.addEventListener('DOMContentLoaded, () => {
+                        document.addEventListener('DOMContentLoaded', () => {
                             let elem = document.getElementById('ssi');
                             elem.check = document.cookie.includes('ssi=true');
                             elem.addEventListener('change', function() {
