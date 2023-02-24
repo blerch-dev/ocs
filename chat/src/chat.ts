@@ -47,8 +47,8 @@ export default (server: OCServer) => {
     const Users = new Map<Chatter, Set<WebSocket>>;
 
     wss.on("connection", async (socket, request) => {
-        let session = await getSession(request);
-        console.log("Socket Connection:\n", session);
+        let session = await getSession(request) as any;
+        console.log("Socket Connection:", session?.user);
 
         let user = (session as any)?.user;
         if(OCUser.validUserObject(user))

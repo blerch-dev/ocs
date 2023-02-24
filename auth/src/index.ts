@@ -48,7 +48,6 @@ const DefaultRoute = new OCRoute({
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);
-                console.log("State:", req.session.state);
                 res.send(AuthPage());
             }
         });
@@ -109,6 +108,9 @@ const DefaultRoute = new OCRoute({
     }
 });
 
+// Secure/SameSite with nginx requires this in rp: proxy_set_header X-Forwarded-Proto $scheme;
+// https://www.digitalocean.com/community/questions/secure-cookies-not-working-despite-successful-https-connection
+
 const server = new OCServer({
     routes: [DefaultRoute],
     port: 8082,
@@ -117,7 +119,7 @@ const server = new OCServer({
     session: {
         secure: true,
         domain: `.${rootURL}`,
-        sameSite: 'lax'
+        sameSite: 'none'
     }
 });
 
