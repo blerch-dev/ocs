@@ -26,6 +26,10 @@ const DefaultRoute = new OCRoute({
             res.send(JSON.stringify({ code: 200, data: result.rows }));
         });
 
+        router.get('/ping', (req, res) => {
+            res.send('pong');
+        });
+
         router.all('*', (req, res) => {
             res.json({ code: 404, message: 'data.ocs.gg catch all' })
         });
@@ -38,11 +42,7 @@ const server = new OCServer({
     routes: [DefaultRoute],
     port: 8083,
     cors: {
-        creds: true,
-        origin: (origin, callback) => {
-            if(!origin || Whitelist.indexOf(origin) !== -1) callback(null, true);
-            else callback(new Error('Not allowed by CORS'));
-        }
+        creds: true
     },
     session: {
         domain: `*.${rootURL}`

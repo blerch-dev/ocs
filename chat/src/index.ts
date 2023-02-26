@@ -27,7 +27,8 @@ const server = new OCServer({
     cors: {
         creds: true,
         preflightContinue: true
-    }
+    },
+    debug: true
 });
 
 export default server;

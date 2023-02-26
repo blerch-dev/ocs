@@ -74,6 +74,16 @@ export class OCServer {
         props.env = process.env.NODE_ENV ?? 'dev';
 
         // Logger
+        let formatter = winston.format.printf((info) => {
+            let str = `Server ${info?.server ?? 'undefined'} (${info?.level}): ${info?.message}`;
+            if(info?.level == 'verbose')
+                str += `|${JSON.stringify(info)}`;
+
+            return str;
+        });
+        
+        let format = winston.format.combine(winston.format.timestamp(), winston.format.splat(), winston.format.json(), formatter);
+
         this.logger = winston.createLogger({
             level: process.env.NODE_ENV !== 'prod' && props.debug === true ? 'debug' : 'info',
             levels: {
@@ -83,17 +93,17 @@ export class OCServer {
                 debug: 3,
                 verbose: 4
             },
-            format: winston.format.json(),
+            format: format,
             defaultMeta: {
                 server: props.id ?? this.generateServerID(6),
                 node: props.node
             },
             transports: process.env.NODE_ENV !== 'prod' ? [
-                new winston.transports.Console({ format: winston.format.simple() })
+                new winston.transports.Console({ format: format })
             ] : [
                 new winston.transports.File({ filename: 'error.log', level: 'error' })
             ]
-        });
+        }); 
 
         // App Middleware
         if(props.static !== undefined)
@@ -104,7 +114,7 @@ export class OCServer {
         this.app.use(cookieParser());
         this.app.enable('trust proxy');
 
-        const RedisClient = new OCRedisClient('localhost', undefined, props.debug);
+        const RedisClient = new OCRedisClient('localhost', undefined, this);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
         
         // Session
@@ -144,7 +154,7 @@ export class OCServer {
         // Header Checks
         if(props.debug) {
             this.app.use((req, res, next) => {
-                this.logger.debug(`Req Headers: ${JSON.stringify({
+                this.logger.verbose(`Req Headers: ${JSON.stringify({
                     host: req.headers.host,
                     origin: req.headers.origin,
                     upgrade: req.headers.upgrade

@@ -7,16 +7,47 @@ export interface OCMessage {
 
 export class OCChannel {
     public getName;
+
+    public setBannedIP;
+    public clearBannedIP;
+
     public addUserConnection;
+    public getUserConnection;
     public deleteUserConnection;
+
     public addAnonConnection;
     public deleteAnonConnection;
 
-    private UserConnections = new Map<string, { banned: boolean, muted: boolean, sockets: Set<WebSocket.WebSocket> }>();
+    public broadcast;
+
+    private BannedIPs: Set<string>;
+    private UserConnections = new Map<string, { banned: boolean, muted: boolean, sockets: Set<WebSocket.WebSocket>, send: (msg: string) => void }>();
     private AnonConnections = new Set<WebSocket.WebSocket>();
 
-    constructor(props: {}) {
-        this.getName = () => { return "Test" }
+    constructor(props: {
+        name: string,
+        id: string,
+        commands?: any,
+        bans?: {
+            users: any,
+            ips: any
+        },
+        mutes?: any
+    }) {
+        this.getName = () => { return props.name }
+
+        this.BannedIPs = new Set<string>();
+        this.setBannedIP = (ip: string) => {
+            let count = this.BannedIPs.entries.length;
+            if(this.BannedIPs.add(ip).entries.length > count)
+                return true;
+
+            return false;
+        }
+
+        this.clearBannedIP = (ip: string) => {
+            return this.BannedIPs.delete(ip);
+        }
 
         this.addUserConnection = (user: OCUser, socket: WebSocket.WebSocket) => {
             if(this.UserConnections.has(user.getName())) {
@@ -29,12 +60,18 @@ export class OCChannel {
                 return false;
             }
 
+            let sockets = new Set<WebSocket.WebSocket>([socket]);
             this.UserConnections.set(user.getName(), {
                 banned: user.isBanned(this.getName()),
                 muted: user.isMuted(this.getName()),
-                sockets: new Set<WebSocket.WebSocket>([socket])
+                sockets: sockets,
+                send: (msg) => { [...sockets].forEach((socket) => { socket.send(msg); }) }
             });
             return true;
+        }
+
+        this.getUserConnection = (user: OCUser) => {
+            return this.UserConnections.get(user.getName());
         }
 
         this.deleteUserConnection = (user: OCUser, socket: WebSocket.WebSocket) => {
@@ -63,6 +100,11 @@ export class OCChannel {
 
         this.deleteAnonConnection = (socket: WebSocket.WebSocket) => {
             return this.AnonConnections.delete(socket);
+        }
+
+        this.broadcast = (message: { username: string, message: string }) => {
+            let sockets = [...this.UserConnections.values()];
+            sockets.forEach((socket) => { socket.send(JSON.stringify(message)) });
         }
     }
 }

@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
     // OCS.connect('ws://localhost:8081');
-    OCS.connect('wss://chat.ocs.local');
+    OCS.connect('wss://chat.ocs.local/?channel=kidnotkin');
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')

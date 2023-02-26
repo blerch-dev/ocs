@@ -44,7 +44,7 @@ const DefaultRoute = new OCRoute({
                 //res.redirect('/session');
             } else if(req.cookies?.ssi) {
                 // Stay Signed In
-                console.log("Creating Session from SSI:", req.cookies.ssi);
+                server.logger.debug("Creating Session from SSI:", req.cookies.ssi);
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);
@@ -73,12 +73,14 @@ const DefaultRoute = new OCRoute({
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
+            server.logger.debug(`Hit Twitch Auth: ${site}`);
 
             // Find User
             if(res.locals.twitch.id == undefined)
                 return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
-            let output = await (await fetch(`https://data.${rootURL}/user/twitch/${res.locals.twitch.id}`)).json();
+            // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
+            let output = await (await fetch(`http://data.${rootURL}/user/twitch/${res.locals.twitch.id}`)).json();
             if(output.data instanceof Error) {
                 return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
             }
@@ -96,7 +98,6 @@ const DefaultRoute = new OCRoute({
                 return res.redirect('/session');
             }
 
-            console.log(site, req.session.state);
             return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
         });
 
@@ -120,7 +121,8 @@ const server = new OCServer({
         secure: true,
         domain: `.${rootURL}`,
         sameSite: 'none'
-    }
+    },
+    debug: true
 });
 
 export default server;
