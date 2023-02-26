@@ -2,11 +2,18 @@ import WebSocket from 'ws';
 import { OCUser } from "./user";
 
 export interface OCMessage {
-    value: string;
+    ChatMessage?: {
+        username: string,
+        message: string,
+        roles: { icon: string, name: string }[]
+    }
+    ServerMessage?: { [key: string]: string },
+    ServerEvent?: { [key: string]: string }
 }
 
 export class OCChannel {
     public getName;
+    public toString;
 
     public setBannedIP;
     public clearBannedIP;
@@ -20,9 +27,14 @@ export class OCChannel {
 
     public broadcast;
 
+    public getMessageList: () => OCMessage[];
+
     private BannedIPs: Set<string>;
     private UserConnections = new Map<string, { banned: boolean, muted: boolean, sockets: Set<WebSocket.WebSocket>, send: (msg: string) => void }>();
     private AnonConnections = new Set<WebSocket.WebSocket>();
+
+    private MessageList;
+    private distMessageList: (socket: WebSocket.WebSocket) => void;
 
     constructor(props: {
         name: string,
@@ -32,9 +44,13 @@ export class OCChannel {
             users: any,
             ips: any
         },
-        mutes?: any
+        mutes?: any,
+        messageQueue?: number
     }) {
+        let maxQueueLength = props.messageQueue || 200;
+
         this.getName = () => { return props.name }
+        this.toString = () => { return `Channel: ${this.getName()}` }
 
         this.BannedIPs = new Set<string>();
         this.setBannedIP = (ip: string) => {
@@ -51,10 +67,16 @@ export class OCChannel {
 
         this.addUserConnection = (user: OCUser, socket: WebSocket.WebSocket) => {
             if(this.UserConnections.has(user.getName())) {
-                let sockets = this.UserConnections.get(user.getName());
+                let connections = this.UserConnections.get(user.getName());
+                let sockets = connections?.sockets;
                 if(sockets instanceof Set) {
-                    sockets.add(socket);
-                    return true;
+                    if(sockets.has(socket))
+                        return true;
+
+                    let count = sockets.entries.length;
+                    if(sockets.add(socket).entries.length > count) {
+                        return true;
+                    }
                 }
 
                 return false;
@@ -78,22 +100,26 @@ export class OCChannel {
             if(!this.UserConnections.has(user.getName()))
                 return true;
 
-            let sockets = this.UserConnections.get(user.getName());
+            let sockets = this.UserConnections.get(user.getName())?.sockets;
             if(sockets instanceof Set) {
-                sockets.delete(socket);
+                let deleted = sockets.delete(socket);
                 if(sockets.entries.length === 0)
                     this.UserConnections.delete(user.getName());
 
-                return true;
+                return deleted;
             }
 
             return false;
         }
 
         this.addAnonConnection = (socket: WebSocket.WebSocket) => {
-            let count = this.AnonConnections.entries.length;
-            if(this.AnonConnections.add(socket).entries.length > count)
+            if(this.AnonConnections.has(socket))
                 return true;
+
+            let count = this.AnonConnections.entries.length;
+            if(this.AnonConnections.add(socket).entries.length > count) {
+                return true;
+            }
 
             return false;
         }
@@ -102,9 +128,22 @@ export class OCChannel {
             return this.AnonConnections.delete(socket);
         }
 
-        this.broadcast = (message: { username: string, message: string }) => {
+        this.broadcast = (message: OCMessage) => {
             let sockets = [...this.UserConnections.values()];
             sockets.forEach((socket) => { socket.send(JSON.stringify(message)) });
+            this.MessageList.push(message);
+            if(this.MessageList.length > maxQueueLength)
+                this.MessageList.splice(0, this.MessageList.length - maxQueueLength);
+        }
+
+        this.MessageList = new Array();
+        this.distMessageList = (socket) => {
+            console.log("Dist Message Queue");
+            socket.send(JSON.stringify({ MessageQueue: this.MessageList }));
+        }
+
+        this.getMessageList = () => {
+            return this.MessageList;
         }
     }
 }

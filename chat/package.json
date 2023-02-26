@@ -1,6 +1,6 @@
 {
     "name": "ocs-chat",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "OCS Chat Server",
     "author": {
         "email": "contact@bler.ch",

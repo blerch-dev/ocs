@@ -17,7 +17,7 @@ class OCSocket {
         if(!(this.socket instanceof WebSocket))
             return;
         
-        this.socket.send(JSON.stringify({ value: value }));
+        this.socket.send(JSON.stringify({ message: value }));
         console.log("Send Value:", value);
     };
 
@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     input.addEventListener('keydown', (e) => {
-        console.log(e.code);
         if(e.code == "Enter" || e.code == "NumpadEnter")
             getValue();
     });
@@ -75,31 +74,37 @@ function ConfigureChat(chat, input, submit) {
     const onMessage = (json) => {
         console.log("JSON:", json);
         if(json.ServerMessage)
-            return serverMessage(json);
+            serverMessage(json);
 
         if(json.EventMessage)
-            return eventMessage(json);
+            eventMessage(json);
 
-        chatMessage(json);
+        if(json.MessageQueue)
+            messageQueue(json);
+
+        if(json.ChatMessage)
+            chatMessage(json);
     }
 
     const chatMessage = (json) => {
+        let msg = json.ChatMessage;
         let elem = document.createElement('div');
         elem.classList.add('chat-message', even ? undefined : 'odd');
         even = !even;
         elem.innerHTML = `
-            <p><span class="user-tag">${json.username}</span>: ${json.message}</p>
+            <p><span class="user-tag">${msg.username}</span>: ${msg.message}</p>
         `;
     
         chat.appendChild(elem);
     }
 
     const serverMessage = (json) => {
+        let msg = json.ServerMessage;
         let elem = document.createElement('div');
         elem.classList.add('server-message');
         even = !even;
         elem.innerHTML = `
-            <p>${json.ServerMessage}</p>
+            <p>${msg.icon ? `<span><img src="${msg.icon}"></span> ` : ''}${msg.message}</p>
         `;
 
         chat.appendChild(elem);
@@ -107,5 +112,12 @@ function ConfigureChat(chat, input, submit) {
 
     const eventMessage = (json) => {
 
+    }
+
+    const messageQueue = (json) => {
+        let list = json.MessageQueue;
+        for(let i = 0; i < list.length; i++) {
+            chatMessage(list[i]);
+        }
     }
 }

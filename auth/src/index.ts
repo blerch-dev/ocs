@@ -73,7 +73,6 @@ const DefaultRoute = new OCRoute({
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
-            server.logger.debug(`Hit Twitch Auth: ${site}`);
 
             // Find User
             if(res.locals.twitch.id == undefined)
@@ -120,7 +119,8 @@ const server = new OCServer({
     session: {
         secure: true,
         domain: `.${rootURL}`,
-        sameSite: 'none'
+        sameSite: 'none',
+        rolling: true
     },
     debug: true
 });

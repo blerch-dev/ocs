@@ -133,7 +133,7 @@ export class OCServer {
                     httpOnly: props.session?.httpOnly ?? true,
                     maxAge: props.session?.ttl ?? ttl
                 },
-                rolling: props.session?.rolling ?? true
+                rolling: props.session?.rolling ?? false
             });
 
             this.app.use(sessionParser);

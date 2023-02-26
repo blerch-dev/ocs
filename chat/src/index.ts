@@ -22,7 +22,8 @@ const server = new OCServer({
     session: {
         secure: true,
         domain: `.${rootURL}`,
-        sameSite: 'none'
+        sameSite: 'none',
+        rolling: true
     },
     cors: {
         creds: true,

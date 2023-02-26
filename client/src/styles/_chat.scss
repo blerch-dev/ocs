@@ -45,6 +45,19 @@
             width: 100%;
             position: absolute;
             
+            & p {
+                font-size: 13px;
+
+                & > span {
+
+                    & > img {
+                        width: 16px;
+                        position: relative;
+                        top: 3px;
+                    }
+                }
+            }
+
             & > .chat-message {
                 width: 100%;
                 overflow: hidden;
@@ -63,7 +76,8 @@
             & > .server-message {
                 width: 100%;
                 overflow: hidden;
-                padding: 2px 3px;
+                padding: 4px 6px;
+                background-color: #ffffff16;
 
                 & > p {
                     overflow: hidden;

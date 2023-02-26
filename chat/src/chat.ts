@@ -24,6 +24,8 @@ export default (server: OCServer) => {
         });
     }
 
+    const getHex = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+
     // Load Channels on Start
     const Channels = new Map<string, OCChannel>() // Channel Name -> OCChannel Object
     // Debug
@@ -33,7 +35,7 @@ export default (server: OCServer) => {
         commands: {},
         bans: { ips: [], users: []},
         mutes: []
-    }))
+    }));
     // Debug
     const getChannel = async (name: string) => {
         let channel = Channels.get(name);
@@ -79,48 +81,64 @@ export default (server: OCServer) => {
         }
 
         // Connection Details
+        (socket as any).hexcode = getHex(6);
         let session = await getSession(request) as any;
         let origin = (request as any)?.headers?.origin as string;
         let channel = await getChannel(getQuery(request.url ?? '/')?.channel);
         let user = OCUser.validUserObject((session as any)?.user) ? new OCUser((session as any)?.user) : undefined;
         // Updating User with new User from new session should effect current chatter copium
 
+        server.logger.debug(`${channel.toString()} - ${user?.getName()} | ${(socket as any).hexcode}`)
         if(channel instanceof Error) {
-            return socket.send(JSON.stringify({ ServerMessage: `Couldn't find channel named ${origin}. Try again later.` }));
+            return socket.send(JSON.stringify({ ServerMessage: { message: `Couldn't find channel named ${origin}. Try again later.` } }));
         }
 
+        // Heartbeat Setup
+        (socket as any).isAlive = true;
+        (socket as any).hb = setInterval(() => {
+            server.logger.verbose('Sending Heartbeat');
+            if((socket as any).isAlive !== true) {
+                return deleteSocket('heartbeat');
+            }
+    
+            (socket as any).isAlive = false;
+            socket.send('ping');
+        }, 1000 * 60 * 0.5); // 60 Seconds
+
         // Channel Connection
-        let deleteSocket: () => void;
+        let deleteSocket: (caller?: string) => void;
         let isBanned: () => boolean;
         let isMuted: () => boolean;
         if(user instanceof OCUser) {
             let added = channel.addUserConnection(user, socket);
+            server.logger.debug(`Added: ${added} - ${user.getName()} | ${(socket as any).hexcode}`)
             if(!added) {
                 // Checks Banned
-                return socket.send(JSON.stringify({ ServerMessage: `Sorry, you couldn't join this channel.` }));
+                return socket.send(JSON.stringify({ ServerMessage: { message: `Sorry, you couldn't join this channel.` } }));
             }
 
-            deleteSocket = () => { (channel as OCChannel).deleteUserConnection((user as OCUser), socket); }
+            deleteSocket = (caller: string = 'undefined') => { 
+                let deleted = (channel as OCChannel).deleteUserConnection((user as OCUser), socket);
+                server.logger.debug(`Deleted Socket (${caller}): ${deleted} | ${(socket as any).hexcode}`);
+
+                clearInterval((socket as any).hb);
+                socket.send(JSON.stringify({ ServerMessage: { message: 'You were disconnected from the server.' } }));
+                socket.terminate();
+            }
             isBanned = () => { return !!((channel as OCChannel).getUserConnection((user as OCUser))?.banned); }
             isMuted = () => { return !!((channel as OCChannel).getUserConnection((user as OCUser))?.muted); }
         } else {
             channel.addAnonConnection(socket);
-            deleteSocket = () => { (channel as OCChannel).deleteAnonConnection(socket); }
+            deleteSocket = () => { 
+                (channel as OCChannel).deleteAnonConnection(socket);
+
+                clearInterval((socket as any).hb);
+                socket.send(JSON.stringify({ ServerMessage: { message: 'You were disconnected from the server.' } }));
+                socket.terminate();
+            }
             isBanned = () => { return false; } // IP is checked on connection
             isMuted = () => { return true; } // Anon connections cant type
         }
-
-        // Heartbeat
-        (socket as any).isAlive = true;
-        setInterval(() => {
-            if((socket as any).isAlive !== true) {
-                deleteSocket();
-                socket.terminate();
-            }
-
-            (socket as any).isAlive = false;
-            socket.send('ping');
-        }, 1000 * 60 * 0.5); // 30 Seconds
 
         // Message
         socket.on("message", (message) => {
@@ -135,8 +153,10 @@ export default (server: OCServer) => {
         const onJSON = (json: OCMessage | any) => {
             // Detect Command: Check User Roles/Status
             (channel as OCChannel).broadcast({
-                username: (user as OCUser).getName(),
-                message: json.value
+                ChatMessage: {
+                    username: (user as OCUser).getName(),
+                    message: json.message
+                }
             });
         }
 
@@ -144,13 +164,31 @@ export default (server: OCServer) => {
             console.log(err);
         }
 
+        // Close
+        socket.on('close', (code, reason) => {
+            server.logger.debug(`Socket ${(socket as any).hexcode} Closed: (${code}) - ${reason}`);
+            deleteSocket('on close');
+        });
+
+        // Error
+        socket.on('error', (err) => {
+            server.logger.debug(err.toString());
+        });
+
         if(user instanceof OCUser) {
             socket.send(JSON.stringify({
-                ServerMessage: `Connected to Channel ${channel.getName()} as ${user.getName()}.`
+                ServerMessage: {
+                    message: `Connected to Channel ${channel.getName()} as ${user.getName()}.`,
+                    icon: '/assets/info.svg'
+                },
+                MessageQueue: channel.getMessageList()
             }));
         } else {
             socket.send(JSON.stringify({
-                ServerMessage: 'Sign in to chat...'
+                ServerMessage: {
+                    message: 'Sign in to chat...'
+                },
+                MessageQueue: channel.getMessageList()
             }));
         }
     });
