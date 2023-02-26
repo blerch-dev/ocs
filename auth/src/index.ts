@@ -78,7 +78,7 @@ const DefaultRoute = new OCRoute({
             if(res.locals.twitch.id == undefined)
                 return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
-            let output = await (await fetch(`http://data.${rootURL}/user/twitch/${res.locals.twitch.id}`)).json();
+            let output = await (await fetch(`https://data.${rootURL}/user/twitch/${res.locals.twitch.id}`)).json();
             if(output.data instanceof Error) {
                 return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
             }

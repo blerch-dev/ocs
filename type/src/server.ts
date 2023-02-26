@@ -5,12 +5,17 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { createCipheriv, createDecipheriv } from 'crypto';
+import winston from 'winston';
 
 import { OCRedisStore, OCRedisClient } from './state';
 const config = require('../secrets/server.json');
 
 export interface OCServerProps {
     routes: [OCRoute],
+
+    id?: string | number, // Always exists, undefined will be generated
+    node?: string, // Kubernetes/Docker Info
+    env?: string, // Always exists, set from process.env.NODE_ENV
 
     debug?: boolean
     port?: number,
@@ -46,7 +51,10 @@ declare module "express-session" {
 }
 
 export class OCServer {
+    public logger;
+
     public getServer: () => http.Server;
+    public getRedisClient: () => OCRedisClient;
     public getSessionParser: () => express.RequestHandler | undefined;
     // public encrypt = (value: string) => { 
     //     let d = this.cipher.update(value, 'utf-8', 'hex'); d += this.cipher.final('hex'); return d; 
@@ -59,11 +67,38 @@ export class OCServer {
     // private cipher = createCipheriv('aes-256-cbc', config.redis.secret, 'startmeup');
     // private decipher = createDecipheriv('aes-256-cbc', config.redis.secret, 'startmeup');
 
+    private generateServerID = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+
     constructor(props: OCServerProps) {
+        // ENV
+        props.env = process.env.NODE_ENV ?? 'dev';
+
+        // Logger
+        this.logger = winston.createLogger({
+            level: process.env.NODE_ENV !== 'prod' && props.debug === true ? 'debug' : 'info',
+            levels: {
+                error: 0,
+                warn: 0,
+                info: 2,
+                debug: 3,
+                verbose: 4
+            },
+            format: winston.format.json(),
+            defaultMeta: {
+                server: props.id ?? this.generateServerID(6),
+                node: props.node
+            },
+            transports: process.env.NODE_ENV !== 'prod' ? [
+                new winston.transports.Console({ format: winston.format.simple() })
+            ] : [
+                new winston.transports.File({ filename: 'error.log', level: 'error' })
+            ]
+        });
+
+        // App Middleware
         if(props.static !== undefined)
             props.static.forEach((uri: string) => { this.app.use(express.static(uri)); });
 
-        // App Middleware
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(cookieParser());
@@ -72,6 +107,7 @@ export class OCServer {
         const RedisClient = new OCRedisClient('localhost', undefined, props.debug);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
         
+        // Session
         if(props.session) {
             let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
             let sessionParser = session({
@@ -96,6 +132,7 @@ export class OCServer {
             this.getSessionParser = () => undefined;
         }
 
+        // CORS
         if(props.cors) {
             this.app.use(cors({
                 credentials: props.cors.creds ?? true,
@@ -107,20 +144,19 @@ export class OCServer {
         // Header Checks
         if(props.debug) {
             this.app.use((req, res, next) => {
-                console.log("Req Headers:", JSON.stringify({
+                this.logger.debug(`Req Headers: ${JSON.stringify({
                     host: req.headers.host,
                     origin: req.headers.origin,
                     upgrade: req.headers.upgrade
-                }, null, 2));
+                }, null, 2)}`);
 
                 return next();
             });
         }
 
-        // Find matching domain/regex to route, fallback to default route
+        // Routes
         this.app.use(async (req, res, next) => {
-            if(props.debug)
-                console.log("Router Flow:", req.hostname, req.headers.origin);
+            this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
 
             let options: OCOptions = {};
 
@@ -129,37 +165,36 @@ export class OCServer {
             let setSesh = (obj: string, key: string, value: any) => {
                 if(obj === 'state') s_state(key, value);
                 else if(obj === 'user') s_user(value);
-                else console.log("Session Undefined:", obj, key, value);
+                else this.logger.debug(`Session Undefined: ${obj}, ${key}, ${value}`);
             }
 
             let s_state = (key: string, value: any) => {
                 if(req.session.state) req.session.state[key] = value;
                 else req.session.state = { [key]: value };
             }
+
             let s_user = (value: any) => { req.session.user = value; }
 
             props.routes.forEach((route) => {
                 let matches = route.matchesDomain(req.hostname);
 
-                if(props.debug)
-                    console.log("Router Domain:", matches, req.hostname);
+                this.logger.verbose("Router Domain:", matches, req.hostname);
 
                 if(matches)
                     return route.getHandler(options, setOption, setSesh, RedisClient)(req, res, next);
             });
 
-            if(props.debug)
-                console.log("End of Route Flow");
+            this.logger.verbose("End of Route Flow");
         });
 
-        // http server / chat server, express for debug till reimp
+        // Host/Clients
         let port = props.port ?? 3000;
         const server = this.app.listen(port);
         this.getServer = () => { return server; }
-        if(props.debug === true)
-            console.log(`Listening on Port: ${port}`);
+        this.getRedisClient = () => { return RedisClient }
+        this.logger.verbose(`Listening on Port: ${port}`);
 
-        // App Functions (WSS Upgrade)
+        // App Functions (WSS Upgrade) - Require getServer Function
         props.appFunctions?.forEach((func) => { func(this); });
     }
 }
