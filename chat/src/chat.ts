@@ -29,8 +29,8 @@ export default (server: OCServer) => {
     // Load Channels on Start
     const Channels = new Map<string, OCChannel>() // Channel Name -> OCChannel Object
     // Debug
-    Channels.set('kidnotkin', new OCChannel({
-        name: 'KidNotkin',
+    Channels.set('global', new OCChannel({
+        name: 'Global',
         id: '12345',
         commands: {},
         bans: { ips: [], users: []},
@@ -155,7 +155,8 @@ export default (server: OCServer) => {
             (channel as OCChannel).broadcast({
                 ChatMessage: {
                     username: (user as OCUser).getName(),
-                    message: json.message
+                    message: json.message,
+                    roles: (user as OCUser).getRoles((channel as OCChannel))
                 }
             });
         }
@@ -181,7 +182,8 @@ export default (server: OCServer) => {
                     message: `Connected to Channel ${channel.getName()} as ${user.getName()}.`,
                     icon: '/assets/info.svg'
                 },
-                MessageQueue: channel.getMessageList()
+                MessageQueue: channel.getMessageList(),
+                meta: { user: (user as OCUser).getChatDetails() }
             }));
         } else {
             socket.send(JSON.stringify({

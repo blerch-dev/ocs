@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
-import { OCUser } from "./user";
+import { OCUser, RoleInterface, RoleSheet } from "./user";
 
 export interface OCMessage {
     ChatMessage?: {
         username: string,
         message: string,
-        roles: { icon: string, name: string }[]
+        roles: RoleInterface[]
     }
     ServerMessage?: { [key: string]: string },
     ServerEvent?: { [key: string]: string }
@@ -28,6 +28,7 @@ export class OCChannel {
     public broadcast;
 
     public getMessageList: () => OCMessage[];
+    public getRoleSheet: () => RoleSheet;
 
     private BannedIPs: Set<string>;
     private UserConnections = new Map<string, { banned: boolean, muted: boolean, sockets: Set<WebSocket.WebSocket>, send: (msg: string) => void }>();
@@ -36,10 +37,13 @@ export class OCChannel {
     private MessageList;
     private distMessageList: (socket: WebSocket.WebSocket) => void;
 
+    private roles: RoleSheet;
+
     constructor(props: {
         name: string,
         id: string,
         commands?: any,
+        roles?: RoleInterface[]
         bans?: {
             users: any,
             ips: any
@@ -48,6 +52,8 @@ export class OCChannel {
         messageQueue?: number
     }) {
         let maxQueueLength = props.messageQueue || 200;
+        this.roles = new RoleSheet(props.roles ?? []);
+        this.getRoleSheet = () => { return this.roles; }
 
         this.getName = () => { return props.name }
         this.toString = () => { return `Channel: ${this.getName()}` }

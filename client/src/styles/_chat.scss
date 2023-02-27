@@ -50,10 +50,16 @@
 
                 & > span {
 
+                    &.user-tag {
+                        font-weight: bold;
+                        cursor: pointer;
+                    }
+
                     & > img {
                         width: 16px;
                         position: relative;
                         top: 3px;
+                        
                     }
                 }
             }

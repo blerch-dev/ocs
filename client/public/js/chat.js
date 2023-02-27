@@ -1,13 +1,13 @@
 class OCSocket {
     constructor(loc) {
-        console.log("Loaded:", loc);
+        //console.log("Loaded:", loc);
         this.events = new Map();
     }
 
     connect = (url) => {
         // connect
         this.socket = new WebSocket(url);
-        console.log("Connect:", url);
+        //console.log("Connect:", url);
         for(let [key, value] of this.events) {
             this.socket.on(key, value);
         }
@@ -18,7 +18,7 @@ class OCSocket {
             return;
         
         this.socket.send(JSON.stringify({ message: value }));
-        console.log("Send Value:", value);
+        //console.log("Send Value:", value);
     };
 
     on(event, callback) {
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
     // OCS.connect('ws://localhost:8081');
-    OCS.connect('wss://chat.ocs.local/?channel=kidnotkin');
+    OCS.connect(`wss://chat.ocs.local/?channel=${CHANNEL_NAME ?? 'global'}`);
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')
@@ -72,7 +72,7 @@ function ConfigureChat(chat, input, submit) {
 
     let even = true;
     const onMessage = (json) => {
-        console.log("JSON:", json);
+        //console.log("JSON:", json);
         if(json.ServerMessage)
             serverMessage(json);
 
@@ -92,7 +92,12 @@ function ConfigureChat(chat, input, submit) {
         elem.classList.add('chat-message', even ? undefined : 'odd');
         even = !even;
         elem.innerHTML = `
-            <p><span class="user-tag">${msg.username}</span>: ${msg.message}</p>
+            <p>
+                <span class="user-tag" style="color: ${msg.roles[0].color}">
+                    <img class="user-badge" src="${msg.roles[0].icon}" title="${msg.roles[0].name}">
+                    ${msg.username}</span>:
+                ${msg.message}
+            </p>
         `;
     
         chat.appendChild(elem);

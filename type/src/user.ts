@@ -1,3 +1,5 @@
+import { OCChannel } from "./chat";
+
 // Global - 8 Bytes - Add as needed
 export enum Status {
     VALID = 1 << 0,
@@ -5,20 +7,64 @@ export enum Status {
     MUTED = 1 << 2
 }
 
-// Global - 8 Bytes - Add as needed | Converint 
-export enum GlobalRoles {
-    ADMIN = 1 << 0,
-    MOD = 1 << 2,
-    STREAMER = 1 << 3
+export interface RoleInterface {
+    name: string,
+    icon: string,
+    value: number,
+    color: string
+}
+
+// Global | Role Class Initalizer
+let configGlobalRoles: () => RoleInterface[] = () => {
+    let nameToURL = (str: string) => { return str.toLowerCase().replace(' ', '-'); }
+    let valToRI = (val: number, str: string, hex: string = "#ffffff") => {
+        return { name: str, icon: `/assets/badges/${nameToURL(str)}.svg`, value: val, color: hex };
+    }
+
+    let map = new Map<number, RoleInterface>();
+    // 8 Bytes - Add as needed
+    let roles = [
+        valToRI(1 << 0, 'Admin', '#ff5c00'),
+        valToRI(1 << 1, 'Dev', '#00ff00'),
+        valToRI(1 << 2, 'Mod', '#ffff00'),
+        valToRI(1 << 3, 'Streamer', "#ff0000")
+    ];
+    return roles;
 }
 
 // Channel Based - 8 Bytes - Channel Owner Set
-class Roles {
-    static GlobalRoles = new Map<number, {}>()
-    // Manages Internal Enum
-    constructor(roles: string[]) {
-        roles = roles.slice(0, 64);
-        
+export class RoleSheet {
+    static GlobalRoles = new RoleSheet(configGlobalRoles());
+    public getRoles: (int: number) => RoleInterface[];
+    public getAllRoles: (user: OCUser, channel_name: string) => RoleInterface[];
+
+    // Internal Enum
+    private RoleField: Map<number, RoleInterface>
+    private setRoles: (roles: RoleInterface[]) => void;
+
+    constructor(roles: RoleInterface[]) {
+        this.RoleField = new Map();
+        this.setRoles = (roles) => roles.forEach((r) => this.RoleField.set(r.value, r));
+        this.getRoles = (int) => {
+            let roles = [], fields = [...this.RoleField.entries()];
+            for(let i = 0; i < fields.length; i++) {
+                if(fields[i][0] & int)
+                    roles.push(fields[i][1]);
+            }
+
+            return roles;
+        };
+
+        this.getAllRoles = (user, channel_name) => {
+            let roles = [
+                ...RoleSheet.GlobalRoles.getRoles(user.toJSON().roles),
+                ...this.getRoles(user.channelDetails(channel_name)?.roles ?? 0)
+            ]
+
+            return roles;
+        }
+
+        this.setRoles(roles);
     }
 }
 
@@ -73,18 +119,11 @@ export class OCUser {
     public channelDetails;
     public isBanned;
     public isMuted;
+    public getRoles;
+
+    public getChatDetails;
 
     constructor(data: OCUserProps) {
-        // const UserData = {
-        //     uuid: data.uuid,
-        //     username: data.username,
-        //     roles: data.roles,
-        //     status: data.status,
-        //     created_at: data.created_at,
-        //     email: data.email,
-        //     twitch: data.twitch
-        // }
-
         // If data doesnt include certain fields, return error
         if(!OCUser.validUserObject(data))
             throw new Error("Invalid User Object");
@@ -94,5 +133,8 @@ export class OCUser {
         this.channelDetails = (channel_name: string) => { return data.channels?.[channel_name]; }
         this.isBanned = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.BANNED) }
         this.isMuted = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.MUTED) }
+        this.getRoles = (channel: OCChannel) => { return channel.getRoleSheet().getAllRoles(this, channel.getName()); }
+
+        this.getChatDetails = () => { return {}; }
     }
 }
