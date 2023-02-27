@@ -1,15 +1,4 @@
-:root {
-    --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-
-    --page-bg: #272424;
-    --page-alt: #333131;
-    --header-bg: #363535;
-    --font-color: #f5efef;
-
-    --twitch-purple: #6441a5;
-
-    --lower-shadow: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg) 85%, var(--page-alt) 100%);
-}
+@import "../../node_modules/ocs-type/lib/styles/global.scss";
 
 html {
     font-family: "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif, 
@@ -52,6 +41,7 @@ main {
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    background-color: var(--);
 
     & > .twitch-auth-button {
         width: 100%;
@@ -68,6 +58,14 @@ main {
             font-weight: 800;
             color: white;
         }
+    }
+
+    & .column-spacer {
+        width: 100%;
+        height: 3px;
+        border-radius: 2px;
+        background-color: #ffffff16;
+        margin: 10px 0px;
     }
 }
 

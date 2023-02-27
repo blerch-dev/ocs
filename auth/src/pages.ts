@@ -15,7 +15,7 @@ export const DefaultPage = (title: string, body: string) => `
     </html>
 `;
 
-export const ErrorPage = (code: number, message?: string) => `
+export default (code: number, message?: string) => `
     ${DefaultPage('OCS | Error', `
         <main>
             <h2>OCS.GG Authentication Error: ${code}</h2>
@@ -24,14 +24,21 @@ export const ErrorPage = (code: number, message?: string) => `
     `)}
 `;
 
-export const AuthPage = (login?: boolean) => `
+export const AuthPage = (domain: string, login?: boolean) => `
     ${DefaultPage('OCS | SSO', `
         <main>
             <div class="auth-form">
-                <a class="twitch-auth-button" href="https://auth.${rootURL}/twitch"><h3>Twitch<h3></a>
+                <h1>OCS Auth</h1>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <h4>for</h4>
+                    <pre>${domain}</pre>
+                </span>
+                <span class="column-spacer"></span>
+                <a class="twitch-auth-button" href="https://auth.${rootURL}/twitch"><h3>Twitch</h3></a>
+                <span class="column-spacer"></span>
                 <span style="display: flex; gap: 6px;">
-                    <input type="checkbox" name="ssi" id="ssi">
                     <label for="ssi">Keep Me Signed In?</label>
+                    <input type="checkbox" name="ssi" id="ssi">
                     <script>
                         // Syncs SSI Checkbox
                         document.addEventListener('DOMContentLoaded', () => {
@@ -55,7 +62,14 @@ export const SignUpPage = (currentUserData: any) => `
     ${DefaultPage('OCS | Sign Up', `
         <main>
             <div class="auth-form">
-            
+                <span>
+                    <label for="username">Username:</label>
+                    <input type="username" name="username" id="username" value="${''}">
+                </span>
+                <span>
+                    <label for="username">Username:</label>
+                    <input type="username" name="username" id="username">
+                </span>
             </div>
             <pre>${JSON.stringify(currentUserData, null, 2)}</pre>
         </main>

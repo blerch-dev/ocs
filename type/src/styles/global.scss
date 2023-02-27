@@ -1,13 +1,13 @@
 :root {
-    --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, 
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
-    --page-bg: #1C1F20;
+    --black: #0e0d0d;
+    --page-bg: #272424;
     --page-alt: #333131;
     --header-bg: #363535;
     --font-color: #f5efef;
 
-    --lower-shadow: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg) 85%, var(--page-alt) 100%);
+    --twitch-purple: #6441a5;
 
-    --old-page-bg: #272424;
+    --lower-shadow: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg) 85%, var(--page-alt) 100%);
 }

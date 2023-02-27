@@ -1,13 +1,4 @@
-:root {
-    --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-
-    --page-bg: #272424;
-    --page-alt: #333131;
-    --header-bg: #363535;
-    --font-color: #f5efef;
-
-    --lower-shadow: linear-gradient(180deg, var(--header-bg) 0%, var(--header-bg) 85%, var(--page-alt) 100%);
-}
+@import "../../node_modules/ocs-type/lib/styles/global.scss";
 
 html {
     font-family: "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif, 

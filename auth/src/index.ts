@@ -5,7 +5,7 @@
 import path from 'path';
 import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
 
-import { DefaultPage, AuthPage, ErrorPage, SessionPage, SignUpPage } from './pages';
+import ErrorPage, { DefaultPage, AuthPage, SessionPage, SignUpPage } from './pages';
 
 const rootURL = process.env?.rootURL ?? 'ocs.local';
 
@@ -48,7 +48,7 @@ const DefaultRoute = new OCRoute({
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);
-                res.send(AuthPage());
+                res.send(AuthPage(site));
             }
         });
 
