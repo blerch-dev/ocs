@@ -35,20 +35,21 @@ main {
 }
 
 .auth-form {
-    min-width: 250px;
+    min-width: 40%;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    background-color: var(--);
+    background-color: var(--page-alt);
+    border-radius: 10px;
 
-    & > .twitch-auth-button {
-        width: 100%;
+    & > .auth-button {
+        // width: 100%;
+        min-width: 50%;
+        padding: 5px 15px;
         height: 40px;
         text-decoration: none;
-        background-color: var(--twitch-purple);
-        border: 2px solid white;
         border-radius: 5px;
         display: flex;
         align-items: center;
@@ -58,6 +59,11 @@ main {
             font-weight: 800;
             color: white;
         }
+
+        &.twitch-button {
+            background-color: var(--twitch-purple);
+            border: 2px solid white;
+        }
     }
 
     & .column-spacer {
@@ -66,6 +72,47 @@ main {
         border-radius: 2px;
         background-color: #ffffff16;
         margin: 10px 0px;
+    }
+
+    & #ssi {
+        visibility: hidden;
+        width: 0px;
+        pointer-events: none;
+
+        &:checked + #ssi-control {
+            background-color: var(--good);
+
+            &::after {
+                transform: translateX(18px);
+            }
+        }
+    }
+
+    & #ssi-control {
+        width: 40px;
+        height: 24px;
+        border-radius: 12px;
+        background-color: var(--light-bg);
+        transition: 0.3s all ease;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            width: 19px;
+            height: 19px;
+            background-color: var(--font-color);
+            border-radius: 10px;
+            transform: translateX(3px);
+            transition: 0.2s all ease;
+        }
+    }
+
+    & .options-span {
+        display: flex; 
+        gap: 6px;
+        align-items: center;
+        justify-content: space-between;
     }
 }
 

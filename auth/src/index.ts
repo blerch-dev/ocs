@@ -42,9 +42,9 @@ const DefaultRoute = new OCRoute({
             if(req.session?.user) {
                 return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
                 //res.redirect('/session');
-            } else if(req.cookies?.ssi) {
-                // Stay Signed In
-                server.logger.debug("Creating Session from SSI:", req.cookies.ssi);
+            } else if(req.cookies?.ssi && req.cookies?.keep) {
+                // Stay Signed In - SSI is boolean, keep is json string
+                server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.keep}`,);
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);
@@ -73,6 +73,7 @@ const DefaultRoute = new OCRoute({
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
+            let ssi = req.cookies.ssi;
 
             // Find User
             if(res.locals.twitch.id == undefined)
