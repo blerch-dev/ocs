@@ -11,6 +11,14 @@ export interface OCMessage {
     ServerEvent?: { [key: string]: string }
 }
 
+interface UserConnection { 
+    uuid: string, 
+    banned: boolean, 
+    muted: boolean, 
+    sockets: Set<WebSocket.WebSocket>, 
+    send: (msg: string) => void 
+}
+
 export class OCChannel {
     public getName;
     public toString;
@@ -31,7 +39,7 @@ export class OCChannel {
     public getRoleSheet: () => RoleSheet;
 
     private BannedIPs: Set<string>;
-    private UserConnections = new Map<string, { banned: boolean, muted: boolean, sockets: Set<WebSocket.WebSocket>, send: (msg: string) => void }>();
+    private UserConnections = new Map<string, UserConnection>();
     private AnonConnections = new Set<WebSocket.WebSocket>();
 
     private MessageList;
@@ -90,6 +98,7 @@ export class OCChannel {
 
             let sockets = new Set<WebSocket.WebSocket>([socket]);
             this.UserConnections.set(user.getName(), {
+                uuid: user.getUUID(),
                 banned: user.isBanned(this.getName()),
                 muted: user.isMuted(this.getName()),
                 sockets: sockets,

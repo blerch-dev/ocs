@@ -115,6 +115,7 @@ export class OCUser {
     };
 
     public toJSON;
+    public getUUID;
     public getName;
     public channelDetails;
     public isBanned;
@@ -129,6 +130,7 @@ export class OCUser {
             throw new Error("Invalid User Object");
 
         this.toJSON = () => { return data; }
+        this.getUUID = () => { return data.uuid; }
         this.getName = () => { return data.username; }
         this.channelDetails = (channel_name: string) => { return data.channels?.[channel_name]; }
         this.isBanned = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.BANNED) }
