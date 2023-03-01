@@ -22,6 +22,7 @@
         "passport": "^0.6.0",
         "passport-oauth2": "^1.6.1",
         "passport-twitch-latest": "^1.0.0",
+        "uuid": "^9.0.0",
         "winston": "^3.8.2",
         "ws": "^8.12.1"
     },
@@ -34,9 +35,10 @@
         "@types/passport": "^1.0.11",
         "@types/passport-oauth2": "^1.4.11",
         "@types/passport-twitch-latest": "^1.0.1",
+        "@types/uuid": "^9.0.1",
         "@types/ws": "^8.5.4",
-        "typescript": "^4.9.4",
-        "copyfiles": "^2.4.1"
+        "copyfiles": "^2.4.1",
+        "typescript": "^4.9.4"
     },
     "files": [
         "lib"

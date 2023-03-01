@@ -1,3 +1,5 @@
+import uuid from 'uuid';
+
 import { OCChannel } from "./chat";
 
 // Global - 8 Bytes - Add as needed

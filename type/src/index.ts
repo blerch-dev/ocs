@@ -3,7 +3,7 @@ import { OCAuth, OCAuthProps } from './auth';
 import { OCMessage, OCChannel } from './chat';
 import { OCUser } from './user';
 
-export { 
+export {
     OCServer, OCServerProps, OCOptions, OCRoute, OCRouteProps,
     OCAuth, OCAuthProps,
     OCMessage, OCChannel,

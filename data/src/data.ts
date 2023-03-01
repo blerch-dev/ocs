@@ -20,3 +20,16 @@ export const queryDB = (query: string, values: any[]): Promise<Error | QueryResu
         });
     });
 }
+
+// Hardcoded
+export const formatDB = () => {
+    let query = `CREATE TABLE IF NOT EXISTS "users" (
+        "uuid"          uuid NOT NULL,
+        "username"      varchar(32) NOT NULL,
+        "created_at"    timestamp DEFAULT NOW(),
+        "roles"         bigint DEFAULT 0,
+        "status"        bigint DEFAULT 1,
+    );`
+
+    // query query
+}
