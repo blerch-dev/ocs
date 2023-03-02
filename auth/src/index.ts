@@ -1,6 +1,5 @@
 // Auth Server
-// handles auth for all app domains, renders auth forms
-// still figuring out session logic for everything
+// todo - user tokens (only placed on root domain at auth)
 
 import path from 'path';
 import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
@@ -21,7 +20,7 @@ const DefaultRoute = new OCRoute({
     callback: (router, option, setOption, setSesh, redis) => {
         let passToApp = (res: any, value: string, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
-            let json = JSON.stringify({ cookie: value, ssi: ssi ?? false, uuid: undefined }); // add toggle to ssi, encrypt todo
+            let json = JSON.stringify({ cookie: value, ssi: ssi ?? false });
 
             redis.getClient().set(code, json);
             Auth.clearCode(() => { redis.getClient().del(code); }, 10);
@@ -45,6 +44,7 @@ const DefaultRoute = new OCRoute({
             } else if(req.cookies?.ssi && req.cookies?.keep) {
                 // Stay Signed In - SSI is boolean, keep is json string
                 server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.keep}`,);
+                // Token Flow
             } else {
                 // Login/Auth
                 setSesh('state', 'authing_site', site);

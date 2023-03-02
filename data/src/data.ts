@@ -23,13 +23,43 @@ export const queryDB = (query: string, values: any[]): Promise<Error | QueryResu
 
 // Hardcoded
 export const formatDB = () => {
-    let query = `CREATE TABLE IF NOT EXISTS "users" (
+    let query = `
+    CREATE TABLE IF NOT EXISTS "users" (
         "uuid"          uuid NOT NULL,
         "username"      varchar(32) NOT NULL,
-        "created_at"    timestamp DEFAULT NOW(),
+        "created_at"    timestamp NOT NULL DEFAULT NOW(),
+        "last_login"    timestamp NOT NULL DEFAULT NOW(),
+        "roles"         bigint NOT NULL DEFAULT 0,
+        "status"        smallint NOT NULL DEFAULT 1,
+        PRIMARY KEY ("uuid")
+    );
+
+    CREATE TABLE IF NOT EXISTS "user_connections" (
+        "user_id"       uuid NOT NULL,
+        "twitch_id"     varchar(64),
+        "twitch_name"   varchar(32)
+    );
+
+    CREATE TABLE IF NOT EXISTS "user_tokens" (
+        "user_id"       uuid NOT NULL,
+    );
+    
+    CREATE TABLE IF NOT EXISTS "channels" (
+        "uuid"          uuid NOT NULL,
+        "slug"          varchar(32) NOT NULL,
+        "name"          varchar(32),
+        "domain"        varchar(256),
+        "icon"          varchar(256),
+        PRIMARY KEY ("uuid")
+    );
+
+    CREATE TABLE IF NOT EXISTS "channel_connections" (
+        "channel_id"    uuid NOT NULL,
+        "user_id"       uuid NOT NULL,
         "roles"         bigint DEFAULT 0,
-        "status"        bigint DEFAULT 1,
-    );`
+        "status"        smallint DEFAULT 1
+    );
+    `;
 
     // query query
 }
