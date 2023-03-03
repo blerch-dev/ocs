@@ -8,7 +8,7 @@ export default (server: OCServer) => {
     });
 
     // Get User Session
-    const getSession = async (req: any) => {
+    const getSession = (req: any) => {
         let sessionParser = server.getSessionParser();
         return new Promise((res, rej) => {
             if(sessionParser !== undefined) {
@@ -26,7 +26,11 @@ export default (server: OCServer) => {
 
     const getHex = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 
-    // Load Channels on Start
+    //// Cant use the same redis instance for express-session and sub/pub
+    const redis = server.getRedisClient().getSubscriber();
+    const publisher = server.getRedisClient().getPublisher();
+
+    // Load Channels on Start - Make names lowercase on map
     const Channels = new Map<string, OCChannel>() // Channel Name -> OCChannel Object
     // Debug
     Channels.set('global', new OCChannel({
@@ -39,11 +43,13 @@ export default (server: OCServer) => {
     // Debug
     const getChannel = async (name: string) => {
         let channel = Channels.get(name);
-        if(channel instanceof OCChannel)
+        if(channel instanceof OCChannel) {
+            subChannel(channel);
             return channel;
+        }
 
         return await new Promise<OCChannel | Error>((res, rej) => {
-            server.getRedisClient().getClient().get(`channel|${name}`, (err, result) => {
+            redis.get(`channel|${name}`, (err, result) => {
                 if(err) {
                     server.logger.error('Redis Client Error', err);
                     return res(err);
@@ -53,6 +59,7 @@ export default (server: OCServer) => {
     
                 try {
                     let channel = new OCChannel(JSON.parse(result));
+                    subChannel(channel);
                     return res(channel);
                 } catch(err) {
                     return res(err instanceof Error ? err : new Error("Invalid Error"));
@@ -61,7 +68,30 @@ export default (server: OCServer) => {
         });
     }
 
-    //console.log(server, server.getServer);
+    // Sub
+    const subChannel = (channel: OCChannel) => {
+        redis.subscribe(`chat|${channel.getSlug()}`, (err, count) => {
+            if(err)
+                return server.logger.error(err);
+    
+            // Count is number of channels subbed
+            //server.logger.debug(`Subbed to ${channel.getSlug()} - Sub Count: ${count}`);
+        });
+    }
+
+    redis.on("message", async (channel, message) => {
+        let channel_name = channel.split('|')[1];
+        let c = await getChannel(channel_name);
+        if(c instanceof OCChannel) {
+            try {
+                let json = JSON.parse(message);
+                c.broadcast(json as OCMessage);
+            } catch(err) {
+                server.logger.error(err);
+            }
+        }
+    });
+
     server.getServer().on("upgrade", async (request, socket, head) => {
         //console.log("Request Headers:", request.headers);
         wss.handleUpgrade(request, socket, head, (ws) => {
@@ -84,14 +114,16 @@ export default (server: OCServer) => {
         (socket as any).hexcode = getHex(6);
         let session = await getSession(request) as any;
         let origin = (request as any)?.headers?.origin as string;
-        let channel = await getChannel(getQuery(request.url ?? '/')?.channel);
+        let channel_data = await getChannel(getQuery(request.url ?? '/')?.channel);
         let user = OCUser.validUserObject((session as any)?.user) ? new OCUser((session as any)?.user) : undefined;
         // Updating User with new User from new session should effect current chatter copium
 
-        server.logger.debug(`${channel.toString()} - ${user?.getName()} | ${(socket as any).hexcode}`)
-        if(channel instanceof Error) {
+        server.logger.debug(`${channel_data.toString()} - ${user?.getName()} | ${(socket as any).hexcode}`)
+        if(channel_data instanceof Error) {
             return socket.send(JSON.stringify({ ServerMessage: { message: `Couldn't find channel named ${origin}. Try again later.` } }));
         }
+
+        let channel = (channel_data as OCChannel);
 
         // Heartbeat Setup
         (socket as any).isAlive = true;
@@ -118,19 +150,19 @@ export default (server: OCServer) => {
             }
 
             deleteSocket = (caller: string = 'undefined') => { 
-                let deleted = (channel as OCChannel).deleteUserConnection((user as OCUser), socket);
+                let deleted = channel.deleteUserConnection((user as OCUser), socket);
                 server.logger.debug(`Deleted Socket (${caller}): ${deleted} | ${(socket as any).hexcode}`);
 
                 clearInterval((socket as any).hb);
                 socket.send(JSON.stringify({ ServerMessage: { message: 'You were disconnected from the server.' } }));
                 socket.terminate();
             }
-            isBanned = () => { return !!((channel as OCChannel).getUserConnection((user as OCUser))?.banned); }
-            isMuted = () => { return !!((channel as OCChannel).getUserConnection((user as OCUser))?.muted); }
+            isBanned = () => { return !!(channel.getUserConnection((user as OCUser))?.banned); }
+            isMuted = () => { return !!(channel.getUserConnection((user as OCUser))?.muted); }
         } else {
             channel.addAnonConnection(socket);
             deleteSocket = () => { 
-                (channel as OCChannel).deleteAnonConnection(socket);
+                channel.deleteAnonConnection(socket);
 
                 clearInterval((socket as any).hb);
                 socket.send(JSON.stringify({ ServerMessage: { message: 'You were disconnected from the server.' } }));
@@ -152,13 +184,15 @@ export default (server: OCServer) => {
         // Add OCMessage as a class type.
         const onJSON = (json: OCMessage | any) => {
             // Detect Command: Check User Roles/Status
-            (channel as OCChannel).broadcast({
+            const msg = JSON.stringify({
                 ChatMessage: {
                     username: (user as OCUser).getName(),
                     message: json.message,
-                    roles: (user as OCUser).getRoles((channel as OCChannel))
+                    roles: (user as OCUser).getRoles(channel)
                 }
             });
+
+            publisher.publish(`chat|${channel.getSlug()}`, msg);
         }
 
         const onError = (err: unknown) => {

@@ -17,6 +17,8 @@ export class OCRedisStore {
 
 export class OCRedisClient {
     public getClient;
+    public getSubscriber;
+    public getPublisher;
 
     private client;
 
@@ -39,5 +41,7 @@ export class OCRedisClient {
         });
 
         this.getClient = () => { return this.client; }
+        this.getSubscriber = () => { return new Redis({ host: host, port: port }); }
+        this.getPublisher = () => { return new Redis({ host: host, port: port }); }
     }
 }

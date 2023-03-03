@@ -21,6 +21,7 @@ interface UserConnection {
 
 export class OCChannel {
     public getName;
+    public getSlug;
     public toString;
 
     public setBannedIP;
@@ -64,6 +65,7 @@ export class OCChannel {
         this.getRoleSheet = () => { return this.roles; }
 
         this.getName = () => { return props.name }
+        this.getSlug = () => { return props.name.toLowerCase() }
         this.toString = () => { return `Channel: ${this.getName()}` }
 
         this.BannedIPs = new Set<string>();

@@ -88,7 +88,7 @@ export class OCServer {
             level: process.env.NODE_ENV !== 'prod' && props.debug === true ? 'debug' : 'info',
             levels: {
                 error: 0,
-                warn: 0,
+                warn: 1,
                 info: 2,
                 debug: 3,
                 verbose: 4

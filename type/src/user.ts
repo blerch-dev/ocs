@@ -126,6 +126,8 @@ export class OCUser {
 
     public getChatDetails;
 
+    public toString;
+
     constructor(data: OCUserProps) {
         // If data doesnt include certain fields, return error
         if(!OCUser.validUserObject(data))
@@ -140,5 +142,7 @@ export class OCUser {
         this.getRoles = (channel: OCChannel) => { return channel.getRoleSheet().getAllRoles(this, channel.getName()); }
 
         this.getChatDetails = () => { return {}; }
+
+        this.toString = () => { return `${this.getName()} (${this.getUUID()})`; }
     }
 }
