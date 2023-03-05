@@ -6,7 +6,7 @@ const rootURL = process.env?.rootURL ?? 'ocs.local';
 // Chat Route
 const ChatRoute = new OCRoute({
     domain: `chat.${rootURL}`,
-    callback: (router, options, setOption) => {
+    callback: (router, server, session) => {
         router.get('/session', (req, res) => {
             res.send(`<pre>${JSON.stringify(req.session, null, 2)}</pre>`);
         });

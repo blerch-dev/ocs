@@ -39,14 +39,11 @@ export interface OCServerProps {
     }
 }
 
-export interface OCOptions {
-    [key: string]: any;
-}
-
 declare module "express-session" {
     interface SessionData {
-        state: { [key: string]: any }
-        user: { [key: string]: any }
+        // state: { [key: string]: any }
+        // user: { [key: string]: any }
+        [key: string]: { [key: string]: any }
     }
 }
 
@@ -168,22 +165,13 @@ export class OCServer {
         this.app.use(async (req, res, next) => {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
 
-            let options: OCOptions = {};
-
-            let setOption = (key: string, value: any) => { options[key] = value; }
-
-            let setSesh = (obj: string, key: string, value: any) => {
-                if(obj === 'state') s_state(key, value);
-                else if(obj === 'user') s_user(value);
-                else this.logger.debug(`Session Undefined: ${obj}, ${key}, ${value}`);
-            }
-
-            let s_state = (key: string, value: any) => {
-                if(req.session.state) req.session.state[key] = value;
-                else req.session.state = { [key]: value };
-            }
-
-            let s_user = (value: any) => { req.session.user = value; }
+            let sesh = new OCSession((obj, key, value) => {
+                let o = req.session[obj];
+                if(o === undefined) { o = { key: value }; return;}
+                o[key] = value;
+            }, (user) => {
+                req.session.user = user;
+            });
 
             props.routes.forEach((route) => {
                 let matches = route.matchesDomain(req.hostname);
@@ -191,7 +179,7 @@ export class OCServer {
                 this.logger.verbose("Router Domain:", matches, req.hostname);
 
                 if(matches)
-                    return route.getHandler(options, setOption, setSesh, RedisClient)(req, res, next);
+                    return route.getHandler(this, sesh)(req, res, next);
             });
 
             this.logger.verbose("End of Route Flow");
@@ -213,10 +201,8 @@ export interface OCRouteProps {
     domain: string,
     callback: (
         router: express.Router, 
-        opt: OCOptions, 
-        sOpt: Function, 
-        sSesh: Function, 
-        redis: OCRedisClient
+        server: OCServer,
+        session: OCSession
     ) => express.Router
 }
 
@@ -230,8 +216,25 @@ export class OCRoute {
             if(domain.match(props.domain)) return true;
             return false; 
         }
-        this.getHandler = (opt: OCOptions, sOpt: Function, sSesh: Function, redis: OCRedisClient) => {
-            return props.callback(express.Router(), opt, sOpt, sSesh, redis);
+        this.getHandler = (server: OCServer, session: OCSession) => {
+            return props.callback(express.Router(), server, session);
         }
+    }
+}
+
+export class OCSession {
+    public setSesh;
+    public setUser;
+    public setOption;
+    public getOptions;
+
+    private option: {[key: string]: any} = {};
+
+    constructor(cb: (obj: string, key: string, value: any) => void, su: (user: any) => void) {
+        this.setSesh = cb;
+        this.setUser = su;
+
+        this.setOption = (name: string, data: any) => { this.option[name] = data; }
+        this.getOptions = () => { return this.option; }
     }
 }

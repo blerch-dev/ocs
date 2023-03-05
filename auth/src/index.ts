@@ -17,13 +17,13 @@ const Auth = new OCAuth({ callbackURL: `auth.${rootURL}`, twitch: true });
 
 const DefaultRoute = new OCRoute({
     domain: `auth.${rootURL}`,
-    callback: (router, option, setOption, setSesh, redis) => {
+    callback: (router, server, session) => {
         let passToApp = (res: any, value: string, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
             let json = JSON.stringify({ cookie: value, ssi: ssi ?? false });
 
-            redis.getClient().set(code, json);
-            Auth.clearCode(() => { redis.getClient().del(code); }, 10);
+            server.getRedisClient().getClient().set(code, json);
+            Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
             res.redirect(`http://${site}/auth?authcode=${code}`);
         }
@@ -47,7 +47,7 @@ const DefaultRoute = new OCRoute({
                 // Token Flow
             } else {
                 // Login/Auth
-                setSesh('state', 'authing_site', site);
+                session.setSesh('state', 'authing_site', site);
                 res.send(AuthPage(site));
             }
         });
@@ -88,7 +88,7 @@ const DefaultRoute = new OCRoute({
             let user = new OCUser(output.data);
             // Add ways to select stay signed in here
             if(user instanceof OCUser) {
-                setSesh('user', null, user.toJSON());
+                session.setUser(user.toJSON());
             } else {
                 // Create User - remember to normalize usernames on creation
                 return res.send(SignUpPage(res.locals));

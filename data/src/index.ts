@@ -11,7 +11,7 @@ const Whitelist = [
 
 const DefaultRoute = new OCRoute({
     domain: `data.${rootURL}`,
-    callback: (router, option, setOption, setSesh, redis) => {
+    callback: (router, server, session) => {
         router.get('/user/twitch/:id', async (req, res) => {
             let user = await getFullUserFromTwitch(req.params.id);
             if(user instanceof Error) { 

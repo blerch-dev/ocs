@@ -6,7 +6,7 @@ const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
-    callback: (router, options, setOption, setSesh, redis) => {
+    callback: (router, server, session) => {
         const isAuthed = (req: any, res: any, next: any) => {
             if(req?.session?.user == undefined) 
                 return res.redirect(`https://auth.${rootURL}/sso?site=${req.hostname}`);
@@ -49,7 +49,7 @@ const DefaultRoute = new OCRoute({
 
         router.get('/auth', async (req, res) => {
             let code = req.query.authcode as string;
-            redis.getClient().get(code, (err, result) => {
+            server.getRedisClient().getClient().get(code, (err, result) => {
                 if(err || typeof(result) !== 'string') {
                     return res.redirect('/error');
                 }
@@ -72,9 +72,9 @@ const DefaultRoute = new OCRoute({
                     </div>
                     <h3>Dev/Session Data</h3>
                     <p>Session</p>
-                    <pre>${JSON.stringify(options?.session ?? req.session ?? { error: 'No Session' }, null, 2)}</pre>
+                    <pre>${JSON.stringify(session.getOptions()?.session ?? req.session ?? { error: 'No Session' }, null, 2)}</pre>
                     <p>Cookies:</p>
-                    <pre>${JSON.stringify(options?.cookies ?? req.cookies ?? { error: 'No Cookies' }, null, 2)}</pre>
+                    <pre>${JSON.stringify(session.getOptions()?.cookies ?? req.cookies ?? { error: 'No Cookies' }, null, 2)}</pre>
                     <style>
                         pre {
                             margin-bottom: 10px;
