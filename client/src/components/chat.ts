@@ -1,8 +1,19 @@
-export const chatComponent = (title: string, embed?: string, directLink?: string) => {
+interface chatOptions {
+    embed?: string,
+    directLink?: string,
+    transparent?: boolean,
+    flex?: boolean
+}
+
+export const chatComponent = (title: string, options?: chatOptions) => {
     let cv = 0;
     const getNV = (sv?: number) => { if(sv != undefined) { cv = 0; } return ('0' + cv++).slice(-2) }
     return `
-    <div id="OCS-Chat" data-embed="${embed ?? ''}" data-link="${directLink ?? ''}">
+    <div id="OCS-Chat" 
+        class="${options?.transparent ?? false ? 'embed-chat' : ''} ${options?.flex ?? false ? 'fill-space' : ''}" 
+        data-embed="${options?.embed ?? ''}" 
+        data-link="${options?.directLink ?? ''}"
+    >
         <header>
             <h4>${title}</h4>
             <div>

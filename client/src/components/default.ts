@@ -1,9 +1,13 @@
-export const defaultLayout = (head: string, body: string) => `
+interface bodyOptions {
+    transparent?: boolean
+}
+
+export const defaultLayout = (head: string, body: string, options?: bodyOptions) => `
     <!DOCTYPE html>
     <html lang="en">
         <script> var exports = {}; </script>
         <head>${head}</head>
-        <body>${body}</body>
+        <body ${options?.transparent ?? false ? 'style="background-color: transparent;"' : ''}>${body}</body>
     </html>
 `;
 

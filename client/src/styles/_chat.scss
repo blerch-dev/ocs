@@ -4,6 +4,21 @@
     display: flex;
     flex-direction: column;
 
+    &.fill-space {
+        flex: 1;
+        max-width: unset;
+    }
+
+    &.embed-chat {
+        * {
+            background-color: transparent !important;
+        }
+
+        & > header, & > footer, & > span {
+            display: none;
+        }
+    }
+
     header, footer {
         min-height: 30px;
         background-color: var(--header-bg);

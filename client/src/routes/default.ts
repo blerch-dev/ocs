@@ -26,13 +26,20 @@ const DefaultRoute = new OCRoute({
             res.send(defaultLayout(head, body));
         });
 
+        router.get('/chat/embed', (req, res) => {
+            let head = defaultHead('OCS | Embed Chat');
+            let chat = chatComponent('Global Chat', { transparent: true, flex: true });
+            let body = `<main class="live">${chat}</main>`;
+
+            res.send(defaultLayout(head, body, { transparent: true }));
+        });
+
         router.get('/chat', (req, res, next) => {
             let head = defaultHead('OCS | Chat');
-            let embed = embedComponent();
-            let chat = chatComponent('Global Chat');
+            let chat = chatComponent('Global Chat', { flex: true });
             let body = `
                 ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
-                <main class="live">${embed}${chat}</main>
+                <main class="live">${chat}</main>
             `;
 
             res.send(defaultLayout(head, body));
