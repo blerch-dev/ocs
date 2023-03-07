@@ -40,14 +40,15 @@ export class OCAuth {
                     let validate = await fetch(validate_url, { method: 'POST', headers: { 
                         'Content-Type': 'application/vnd.twitchtv.v3+json' 
                     } });
-                    let json = await validate.json();
 
+                    let json = await validate.json();
                     let result = await fetch('https://api.twitch.tv/helix/users', {
                         headers: {
                             'Authorization': `Bearer ${json.access_token}`,
                             'Client-Id': `${twitch.id}`
                         }
                     });
+
                     json = await result.json();
                     if(json?.data[0]?.id !== undefined) {
                         res.locals.twitch = json.data[0];

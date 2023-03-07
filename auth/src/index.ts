@@ -70,6 +70,17 @@ const DefaultRoute = new OCRoute({
             return res.send(SessionPage(req.session));
         });
 
+        router.post('/user/create', (req, res) => {
+            // console.log("State:", req.session.state);
+            // console.log("User:", req.session.user);
+            // console.log("Body:", req.body);
+            res.json({
+                state: req.session.state,
+                user: req.session.user,
+                body: req.body
+            });
+        });
+
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
@@ -91,6 +102,7 @@ const DefaultRoute = new OCRoute({
                 session.setUser(user.toJSON());
             } else {
                 // Create User - remember to normalize usernames on creation
+                session.setSesh('state', 'twitch', res.locals.twitch);
                 return res.send(SignUpPage(res.locals));
             }
 

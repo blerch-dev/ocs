@@ -33,3 +33,11 @@ export const getFullUserFromTwitch = async (twitch_id: string): Promise<Error | 
     let user = new OCUser(query.rows[0]);
     return user;
 }
+
+export const createUser = async (user: OCUser) => {
+    let query_str = `
+        WITH one as (
+            INSERT INTO users()
+        )
+    `;
+}

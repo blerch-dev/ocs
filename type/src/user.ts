@@ -116,6 +116,8 @@ export class OCUser {
         return true;
     };
 
+    public static generateId = () => { return uuid.v4(); }
+
     public toJSON;
     public getUUID;
     public getName;

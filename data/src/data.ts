@@ -36,12 +36,9 @@ export const formatDB = () => {
 
     CREATE TABLE IF NOT EXISTS "user_connections" (
         "user_id"       uuid NOT NULL,
+        "created_for"   varchar(256),
         "twitch_id"     varchar(64),
         "twitch_name"   varchar(32)
-    );
-
-    CREATE TABLE IF NOT EXISTS "user_tokens" (
-        "user_id"       uuid NOT NULL,
     );
     
     CREATE TABLE IF NOT EXISTS "channels" (
@@ -60,6 +57,10 @@ export const formatDB = () => {
         "status"        smallint DEFAULT 1
     );
     `;
+
+    // CREATE TABLE IF NOT EXISTS "user_tokens" (
+    //     "user_id"       uuid NOT NULL,
+    // );
 
     // query query
 }

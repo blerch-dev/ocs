@@ -64,20 +64,20 @@ export const AuthPage = (domain: string, login?: boolean) => `
     `)}
 `;
 
-export const SignUpPage = (currentUserData: any) => `
+export const SignUpPage = (data: any) => `
     ${DefaultPage('OCS | Sign Up', `
         <main>
             <div class="auth-form">
                 <span>
                     <label for="username">Username:</label>
-                    <input type="username" name="username" id="username" value="${''}">
+                    <input required type="username" name="username" id="username" value="${data?.login ?? ''}">
                 </span>
                 <span>
-                    <label for="username">Username:</label>
-                    <input type="username" name="username" id="username">
+                    <label for="username">Code:</label>
+                    <input type="username" name="username" id="username" placeholder="Optional">
                 </span>
             </div>
-            <pre>${JSON.stringify(currentUserData, null, 2)}</pre>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
         </main>
     `)}
 `;
