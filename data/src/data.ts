@@ -16,7 +16,7 @@ pg.connect();
 export const queryDB = (query: string, values: any[]): Promise<Error | QueryResult> => {
     return new Promise((res, rej) => {
         pg.query(query, values, (err, result) => {
-            if(err) { rej(err); } res(result);
+            if(err) { return rej(err); } res(result);
         });
     });
 }
@@ -62,5 +62,9 @@ export const formatDB = () => {
     //     "user_id"       uuid NOT NULL,
     // );
 
-    // query query
+    return new Promise((res, rej) => {
+        pg.query(query, (err, results) => {
+            if(err) { return rej(err); } res(results);
+        });
+    });
 }
