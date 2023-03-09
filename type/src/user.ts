@@ -118,6 +118,7 @@ export class OCUser {
 
     public static generateId = () => { return uuid.v4(); }
 
+    public validUserObject;
     public toJSON;
     public getUUID;
     public getName;
@@ -130,10 +131,16 @@ export class OCUser {
 
     public toString;
 
-    constructor(data: OCUserProps) {
+    constructor(data: OCUserProps, options?: { noError?: boolean }) {
         // If data doesnt include certain fields, return error
-        if(!OCUser.validUserObject(data))
-            throw new Error("Invalid User Object");
+        if(!OCUser.validUserObject(data)) {
+            if(options?.noError !== true)
+                throw new Error(`Invalid User Object`);
+
+            this.validUserObject = () => false;
+        } else {
+            this.validUserObject = () => true;
+        }
 
         this.toJSON = () => { return data; }
         this.getUUID = () => { return data.uuid; }

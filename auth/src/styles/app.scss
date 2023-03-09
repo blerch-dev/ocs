@@ -44,6 +44,15 @@ main {
     background-color: var(--page-alt);
     border-radius: 10px;
 
+    & .auth-input {
+        display: flex;
+        flex-direction: column;
+
+        & input {
+            background-color: var(--page-bg);
+        }
+    }
+
     & > .auth-button {
         // width: 100%;
         min-width: 50%;
@@ -54,6 +63,7 @@ main {
         display: flex;
         align-items: center;
         justify-content: center;
+        background-color: var(--page-bg);
 
         & > * {
             font-weight: 800;

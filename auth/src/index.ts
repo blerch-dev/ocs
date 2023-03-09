@@ -96,14 +96,15 @@ const DefaultRoute = new OCRoute({
                 return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
             }
 
-            let user = new OCUser(output.data);
+            let user = new OCUser(output.data, { noError: true });
             // Add ways to select stay signed in here
-            if(user instanceof OCUser) {
+            if(user instanceof OCUser && user.validUserObject()) {
                 session.setUser(user.toJSON());
             } else {
                 // Create User - remember to normalize usernames on creation
+                server.logger.debug("State: " + JSON.stringify(req.session));
                 session.setSesh('state', 'twitch', res.locals.twitch);
-                return res.send(SignUpPage(res.locals));
+                return res.send(SignUpPage(site, res.locals));
             }
 
             if(req.sessionID == undefined) {

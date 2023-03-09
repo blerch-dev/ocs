@@ -64,20 +64,35 @@ export const AuthPage = (domain: string, login?: boolean) => `
     `)}
 `;
 
-export const SignUpPage = (data: any) => `
+export const SignUpPage = (domain: string, data: any) => `
     ${DefaultPage('OCS | Sign Up', `
         <main>
-            <div class="auth-form">
-                <span>
-                    <label for="username">Username:</label>
-                    <input required type="username" name="username" id="username" value="${data?.login ?? ''}">
+            <form class="auth-form" action="/">
+                <h1>OCS Auth</h1>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <h4>for</h4>
+                    <pre>${domain}</pre>
                 </span>
-                <span>
+                <span class="column-spacer"></span>
+                <span class="auth-input">
+                    <label for="username">Username:</label>
+                    <input 
+                    required 
+                    min
+                    maxlength="32" 
+                    type="username" 
+                    name="username" 
+                    id="username" 
+                    value="${data?.login ?? ''}">
+                </span>
+                <span class="auth-input">
                     <label for="username">Code:</label>
                     <input type="username" name="username" id="username" placeholder="Optional">
                 </span>
-            </div>
-            <pre>${JSON.stringify(data, null, 2)}</pre>
+                <input type="hidden" name="data" value='${JSON.stringify(data)}'>
+                <span class="column-spacer"></span>
+                <button class="auth-button" type="submit">Create Account</button>
+            </form>
         </main>
     `)}
 `;
