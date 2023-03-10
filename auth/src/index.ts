@@ -135,8 +135,7 @@ const server = new OCServer({
         secure: true,
         domain: `.${rootURL}`,
         sameSite: 'none',
-        rolling: true,
-        saveUninitialized: true
+        rolling: true
     },
     debug: true
 });
