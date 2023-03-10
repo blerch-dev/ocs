@@ -71,9 +71,11 @@ const DefaultRoute = new OCRoute({
         });
 
         router.post('/user/create', (req, res) => {
-            // console.log("State:", req.session.state);
-            // console.log("User:", req.session.user);
-            // console.log("Body:", req.body);
+            // Validate Data
+            // Sync Connections/Subs/Roles
+            // Forward to Profile
+
+            // Here for Debug
             res.json({
                 state: req.session.state,
                 user: req.session.user,
@@ -102,7 +104,6 @@ const DefaultRoute = new OCRoute({
                 session.setUser(user.toJSON());
             } else {
                 // Create User - remember to normalize usernames on creation
-                server.logger.debug("State: " + JSON.stringify(req.session));
                 session.setSesh('state', 'twitch', res.locals.twitch);
                 return res.send(SignUpPage(site, res.locals));
             }
@@ -134,7 +135,8 @@ const server = new OCServer({
         secure: true,
         domain: `.${rootURL}`,
         sameSite: 'none',
-        rolling: true
+        rolling: true,
+        saveUninitialized: true
     },
     debug: true
 });

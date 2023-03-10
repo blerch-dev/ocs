@@ -10,6 +10,7 @@ export const DefaultPage = (title: string, body: string) => `
             <link rel="icon" href="/assets/favicon.ico" />
             <title>${title}</title>
             <link rel="stylesheet" href="/css/style.css">
+            <script src="/js/main.js"></script>
         </head>
         <body>${body}</body>
     </html>
@@ -41,11 +42,11 @@ export const AuthPage = (domain: string, login?: boolean) => `
                     <input type="checkbox" name="ssi" id="ssi">
                     <span id="ssi-control" ></span>
                     <script>
-                        // Syncs SSI Checkbox
+                        /* Syncs SSI Checkbox */
                         document.addEventListener('DOMContentLoaded', () => {
                             let elem = document.getElementById('ssi');
                             let button = document.getElementById('ssi-control')
-                            elem.check = document.cookie.includes('ssi=true');
+                            elem.checked = document.cookie.includes('ssi=true');
                             elem.addEventListener('change', function() {
                                 if(this.checked)
                                     document.cookie = "ssi=true";
@@ -67,7 +68,7 @@ export const AuthPage = (domain: string, login?: boolean) => `
 export const SignUpPage = (domain: string, data: any) => `
     ${DefaultPage('OCS | Sign Up', `
         <main>
-            <form class="auth-form" action="/">
+            <form class="auth-form" action="/user/create" method="POST">
                 <h1>OCS Auth</h1>
                 <span style="display: flex; align-items: center; gap: 8px;">
                     <h4>for</h4>
@@ -83,13 +84,13 @@ export const SignUpPage = (domain: string, data: any) => `
                     type="username" 
                     name="username" 
                     id="username" 
-                    value="${data?.login ?? ''}">
+                    value="${data?.twitch?.login ?? ''}">
                 </span>
                 <span class="auth-input">
-                    <label for="username">Code:</label>
-                    <input type="username" name="username" id="username" placeholder="Optional">
+                    <label for="code">Code:</label>
+                    <input type="text" name="code" id="code" placeholder="Optional">
                 </span>
-                <input type="hidden" name="data" value='${JSON.stringify(data)}'>
+                <input type="hidden" name="data" value="${JSON.stringify(data).replace(/"/g, '\'')}">
                 <span class="column-spacer"></span>
                 <button class="auth-button" type="submit">Create Account</button>
             </form>

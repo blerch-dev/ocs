@@ -166,10 +166,7 @@ export class OCServer {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
 
             let sesh = new OCSession((obj, key, value) => {
-                this.logger.debug(`DEBUG: ${obj} - ${key} - ${value}`);
-                let o = req.session[obj];
-                if(o === undefined) { o = { key: value }; return;}
-                o[key] = value;
+                req.session[obj] = { ...req.session[obj], [key]: value };
             }, (user) => {
                 req.session.user = user;
             });
