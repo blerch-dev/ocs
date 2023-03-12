@@ -1,4 +1,5 @@
 import { Pool, QueryResult } from 'pg';
+import {} from 'ocs-type';
 const supabase = require('../secrets/supabase.json');
 
 export const pg = new Pool({
@@ -39,6 +40,14 @@ export const formatDB = () => {
         "created_for"   varchar(256),
         "twitch_id"     varchar(64),
         "twitch_name"   varchar(32)
+    );
+
+    CREATE TABLE IF NOT EXISTS "user_tokens" (
+        "user_id"               uuid NOT NULL,
+        "selector"              varchar(12) NOT NULL,
+        "hashed_validator"      varchar(64) NOT NULL,
+        "expires"               timestamp NOT NULL,
+        PRIMARY KEY ("selector")
     );
     
     CREATE TABLE IF NOT EXISTS "channels" (
