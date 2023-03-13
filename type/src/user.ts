@@ -1,4 +1,4 @@
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import { OCChannel } from "./chat";
 
@@ -59,7 +59,7 @@ export class RoleSheet {
 
         this.getAllRoles = (user, channel_name) => {
             let roles = [
-                ...RoleSheet.GlobalRoles.getRoles(user.toJSON().roles),
+                ...RoleSheet.GlobalRoles.getRoles(user.toJSON()?.roles ?? 0),
                 ...this.getRoles(user.channelDetails(channel_name)?.roles ?? 0)
             ]
 
@@ -73,20 +73,9 @@ export class RoleSheet {
 interface OCUserProps {
     uuid: string,
     username: string,
-    roles: number,
-    created_at: string,
-    email: string,
-    status: number,
-    user_connections?: {
-        uuid: string,
-        id: string,
-        username: string
-    },
-    channel_roles?: {
-        uuid: string,
-        channel_id: string,
-        roles: number
-    },
+    roles?: number,
+    status?: number,
+    created_at?: string | number,
 
     connections: {
         twitch?: {
@@ -104,9 +93,13 @@ interface OCUserProps {
 }
 
 export class OCUser {
-    public static validUserObject = (data: object) => {
+    public static validUserObject = (data: OCUserProps) => {
         if(typeof(data) !== 'object')
             return false;
+
+        data.roles = data.roles ? data.roles : 0;
+        data.status = data.status ? data.status : 0;
+        data.created_at = data.created_at ? data.created_at : Date.now();
 
         let required_keys = ['uuid', 'username', 'roles', 'status'];
         required_keys.forEach(key => {
@@ -116,7 +109,7 @@ export class OCUser {
         return true;
     };
 
-    public static generateId = () => { return uuid.v4(); }
+    public static generateId = () => { return uuidv4(); }
 
     public validUserObject;
     public toJSON;

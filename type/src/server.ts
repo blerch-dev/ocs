@@ -4,8 +4,8 @@ import http from "http";
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { createCipheriv, createDecipheriv } from 'crypto';
 import winston from 'winston';
+import monitor from 'express-status-monitor';
 
 import { OCRedisStore, OCRedisClient } from './state';
 const config = require('../secrets/server.json');
@@ -36,7 +36,8 @@ export interface OCServerProps {
         resave?: boolean,
         saveUninitialized?: boolean,
         rolling?: boolean
-    }
+    },
+    monitor?: { [key: string]: any }
 }
 
 declare module "express-session" {
@@ -53,18 +54,11 @@ export class OCServer {
     public getServer: () => http.Server;
     public getRedisClient: () => OCRedisClient;
     public getSessionParser: () => express.RequestHandler | undefined;
-    // public encrypt = (value: string) => { 
-    //     let d = this.cipher.update(value, 'utf-8', 'hex'); d += this.cipher.final('hex'); return d; 
-    // }
-    // public decrypt = (value: string) => { 
-    //     let d = this.decipher.update(value, 'hex', 'utf-8'); d += this.decipher.final('utf-8'); return d; 
-    // }
 
     private app = express();
-    // private cipher = createCipheriv('aes-256-cbc', config.redis.secret, 'startmeup');
-    // private decipher = createDecipheriv('aes-256-cbc', config.redis.secret, 'startmeup');
 
-    private generateServerID = (size: number) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+    private generateServerID = (size: number) => [
+        ...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
 
     constructor(props: OCServerProps) {
         // ENV
@@ -79,17 +73,16 @@ export class OCServer {
             return str;
         });
         
-        let format = winston.format.combine(winston.format.timestamp(), winston.format.splat(), winston.format.json(), formatter);
+        let format = winston.format.combine(
+            winston.format.timestamp(), 
+            winston.format.splat(), 
+            winston.format.json(), 
+            formatter
+        );
 
         this.logger = winston.createLogger({
             level: process.env.NODE_ENV !== 'prod' && props.debug === true ? 'debug' : 'info',
-            levels: {
-                error: 0,
-                warn: 1,
-                info: 2,
-                debug: 3,
-                verbose: 4
-            },
+            levels: { error: 0, warn: 1, info: 2, debug: 3, verbose: 4 },
             format: format,
             defaultMeta: {
                 server: props.id ?? this.generateServerID(6),
@@ -103,6 +96,9 @@ export class OCServer {
         }); 
 
         // App Middleware
+        // Decent Status Page - Custom would be better, integrated into dev page
+        if(props.monitor) { this.app.use(monitor(props.monitor)); }
+
         if(props.static !== undefined)
             props.static.forEach((uri: string) => { this.app.use(express.static(uri)); });
 

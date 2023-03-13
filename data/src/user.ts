@@ -1,5 +1,5 @@
 import { QueryResult } from 'pg';
-import { OCUser } from 'ocs-type';
+import { generateSelectorAndValidator, hashValidator, daysToTimestamp, OCUser } from 'ocs-type';
 import { queryDB } from './data';
 
 // #region Users
@@ -38,12 +38,17 @@ export const getFullUserFromToken = async (token: string) => {
     //let query = await queryDB(query_str, )
 }
 
-export const createUser = async (user: OCUser, extras?: { [key: string]: any }) => {
-    let query_str = `
-        WITH one as (
-            INSERT INTO users()
-        )
-    `;
+export const createUser = async (user: OCUser) => {
+    let query_str = `SELECT 1 FROM users WHERE uuid = $1 OR LOWER(username) = $2`;
+
+    let query = await queryDB(query_str, [user.getUUID(), user.getName().toLowerCase()]);
+    if(query instanceof Error)
+        return query;
+
+    if(query.rowCount > 0)
+        return new Error("Username/UUID already taken. Try again with a different username.");
+
+    // Insert into all tables required for full user data (users, user_connections, channel_connections)
 }
 
 const getUserFromResults = (query: Error | QueryResult<any>) => {
@@ -54,20 +59,41 @@ const getUserFromResults = (query: Error | QueryResult<any>) => {
 // #endregion
 
 // #region User Tokens
-export const createUserToken = async () => {
-    // selector(12 charcters)-validator(64 characters)
-    // returns selector(12 charcters)-hashed_validator(64 characters)
+export const createUserToken = async (user: OCUser): Promise<Error | string> => {
+    let data = generateSelectorAndValidator();
+    let hashed_validator = await hashValidator(data.validator);
+    if(hashed_validator instanceof Error)
+        return hashed_validator;
+
+    let query_str = `INSERT INTO user_tokens (user_id, selector, hashed_validator, expires) 
+        VALUES($1, $2, $3, $4)
+    `;
+
+    let expires = (daysToTimestamp(7 * 4)/1000);
+    let query = await queryDB(query_str, [user.getUUID(), data.selector, hashed_validator, `to_timestamp(${expires})`]);
+    if(query instanceof Error)
+        return query;
+
+    return `${data.selector}-${data.validator}`;
 }
 
-export const getTokenFromSelector = async (token: string) => {
-    // return uuid/hashed_validator/exp
+export const getTokenFromSelector = async (token: string): 
+    Promise<Error | { user_id: string, expires: string, hashed_validator: string }> => {
     let selector = token.split('-')[0];
     let query_str = `SELECT user_id, hashed_validator, expires FROM user_tokens WHERE selector = $1`;
 
-    let query = queryDB(query_str, [selector]);
-}
+    let query = await queryDB(query_str, [selector]);
+    if(query instanceof Error)
+        return query;
 
-export const hashValidater = async () => {
+    let data = query.rows?.[0];
+    if(data === undefined)
+        return new Error("No Token Found");
 
+    return {
+        user_id: data.user_id,
+        expires: data.expires,
+        hashed_validator: data.hashed_validator
+    }
 }
 // #endregion

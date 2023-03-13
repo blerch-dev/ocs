@@ -1,5 +1,5 @@
 import { OCServer, OCRoute, OCUser } from 'ocs-type';
-import { getFullUser, getFullUserFromTwitch } from './user';
+import { getFullUser, getFullUserFromTwitch, createUser } from './user';
 import { pg, queryDB } from './data';
 
 const rootURL = process.env?.rootURL ?? 'ocs.local';
@@ -12,6 +12,22 @@ const Whitelist = [
 const DefaultRoute = new OCRoute({
     domain: `data.${rootURL}`,
     callback: (router, server, session) => {
+        router.post('/user/create', async (req, res) => {
+            const { user_data } = req.body;
+            let user = new OCUser(user_data, { noError: true });
+            if(user instanceof Error) {
+                return res.json({
+                    Error: {
+                        Code: 401,
+                        Message: "Invalid user object"
+                    }
+                });
+            }
+
+            let output = await createUser(user);
+            res.json({ Error: { Code: 404, Message: "TODO" } });
+        });
+
         router.get('/user/twitch/:id', async (req, res) => {
             let user = await getFullUserFromTwitch(req.params.id);
             if(user instanceof Error) { 

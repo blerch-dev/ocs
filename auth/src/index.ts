@@ -7,6 +7,7 @@ import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
 import ErrorPage, { DefaultPage, AuthPage, SessionPage, SignUpPage } from './pages';
 
 const rootURL = process.env?.rootURL ?? 'ocs.local';
+const beta = process.env.NODE_ENV === 'beta' ?? true;
 
 const Whitelist = [
     'app.local',
@@ -70,16 +71,45 @@ const DefaultRoute = new OCRoute({
             return res.send(SessionPage(req.session));
         });
 
-        router.post('/user/create', (req, res) => {
+        router.post('/user/create', async (req, res) => {
             // Validate Data
             // Sync Connections/Subs/Roles
             // Forward to Profile
+
+            if(beta) {
+                if(req.body.code !== 'dev-mode') {
+                    res.json({
+                        Error: {
+                            Code: 401,
+                            Message: "Beta access requires valid code."
+                        }
+                    });
+                }
+            }
+
+            let data = JSON.parse(req.body.data.replace(/'/g, '"'));
+            let username: string = req.body.username ?? data.username ?? 'undefined';
+            let user = new OCUser({
+                uuid: OCUser.generateId(),
+                username: username,
+                connections: data.connections ?? {},
+                channels: data.channels ?? {}
+            });
+
+            let output = await (await fetch(`http://data.${rootURL}/user/create`, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_data: user.toJSON() })
+            })).json();
+
+            //console.log("Create User Output (at auth)", output);
 
             // Here for Debug
             res.json({
                 state: req.session.state,
                 user: req.session.user,
-                body: req.body
+                body: req.body,
+                output: output
             });
         });
 
@@ -105,7 +135,15 @@ const DefaultRoute = new OCRoute({
             } else {
                 // Create User - remember to normalize usernames on creation
                 session.setSesh('state', 'twitch', res.locals.twitch);
-                return res.send(SignUpPage(site, res.locals));
+                return res.send(SignUpPage(site, { 
+                    username: res.locals.twitch.login,
+                    connections: {
+                        twitch: {
+                            id: res.locals.twitch.id,
+                            username: res.locals.twitch.login
+                        }
+                    }
+                }));
             }
 
             if(req.sessionID == undefined) {
@@ -136,6 +174,9 @@ const server = new OCServer({
         domain: `.${rootURL}`,
         sameSite: 'none',
         rolling: true
+    },
+    monitor: {
+        title: 'OCS Status'
     },
     debug: true
 });

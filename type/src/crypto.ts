@@ -31,3 +31,7 @@ export const generateSelectorAndValidator = () => {
         validator: Crypto.randomBytes(32).toString('hex')
     }
 }
+
+export const daysToTimestamp = (days: number) => {
+    return Date.now() + 1000 * 60 * 60 * 24 * days;
+}

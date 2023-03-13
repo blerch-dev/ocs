@@ -84,7 +84,7 @@ export const SignUpPage = (domain: string, data: any) => `
                     type="username" 
                     name="username" 
                     id="username" 
-                    value="${data?.twitch?.login ?? ''}">
+                    value="${data?.username ?? ''}">
                 </span>
                 <span class="auth-input">
                     <label for="code">Code:</label>
