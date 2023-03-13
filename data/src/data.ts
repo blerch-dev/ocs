@@ -56,6 +56,8 @@ export const formatDB = () => {
         "name"          varchar(32),
         "domain"        varchar(256),
         "icon"          varchar(256),
+        "twitch_id"     varchar(64),
+        "youtube_id"    varchar(64),
         PRIMARY KEY ("uuid")
     );
 
@@ -67,9 +69,15 @@ export const formatDB = () => {
     );
     `;
 
-    // CREATE TABLE IF NOT EXISTS "user_tokens" (
-    //     "user_id"       uuid NOT NULL,
-    // );
+    return new Promise((res, rej) => {
+        pg.query(query, (err, results) => {
+            if(err) { return rej(err); } res(results);
+        });
+    });
+}
+
+export const alterDB = () => {
+    let query = `ALTER TABLE channels ADD COLUMN twitch_id varchar(64) ADD COLUMN youtube_id varchar(64)`;
 
     return new Promise((res, rej) => {
         pg.query(query, (err, results) => {

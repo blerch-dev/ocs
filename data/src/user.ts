@@ -38,7 +38,7 @@ export const getFullUserFromToken = async (token: string) => {
     //let query = await queryDB(query_str, )
 }
 
-export const createUser = async (user: OCUser) => {
+export const createUser = async (user: OCUser): Promise<Error | OCUser> => {
     let query_str = `SELECT 1 FROM users WHERE uuid = $1 OR LOWER(username) = $2`;
 
     let query = await queryDB(query_str, [user.getUUID(), user.getName().toLowerCase()]);
@@ -48,7 +48,30 @@ export const createUser = async (user: OCUser) => {
     if(query.rowCount > 0)
         return new Error("Username/UUID already taken. Try again with a different username.");
 
+    query_str = `INSERT INTO users (uuid, username, created_at, last_login, roles, status) 
+        VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+
+    let ts = user.getCreatedAtTimestamp(), r = user.toJSON().roles ?? 0, s = user.toJSON().status ?? 1;
+    query = await queryDB(query_str, [user.getUUID(), user.getName(), ts, ts, r, s]);
+    if(query instanceof Error)
+        return query;
+
+    // Insert Optional Data
+    if(user.toJSON().connections.twitch) {
+        addUserConnection({ twitch: user.toJSON().connections.twitch });
+    }
+
+    return user;
     // Insert into all tables required for full user data (users, user_connections, channel_connections)
+}
+
+const addUserConnection = (data: { 
+    created_for?: string, 
+    twitch?: { id: string, username: string } 
+}) => {
+    // check if data exists
+    let query_str = `INSERT INTO user_connections (user_id, created_for)`;
 }
 
 const getUserFromResults = (query: Error | QueryResult<any>) => {
@@ -66,7 +89,7 @@ export const createUserToken = async (user: OCUser): Promise<Error | string> => 
         return hashed_validator;
 
     let query_str = `INSERT INTO user_tokens (user_id, selector, hashed_validator, expires) 
-        VALUES($1, $2, $3, $4)
+        VALUES ($1, $2, $3, $4)
     `;
 
     let expires = (daysToTimestamp(7 * 4)/1000);

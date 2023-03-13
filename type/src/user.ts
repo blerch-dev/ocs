@@ -120,6 +120,8 @@ export class OCUser {
     public isMuted;
     public getRoles;
 
+    public getCreatedAtTimestamp;
+
     public getChatDetails;
 
     public toString;
@@ -142,6 +144,16 @@ export class OCUser {
         this.isBanned = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.BANNED) }
         this.isMuted = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.MUTED) }
         this.getRoles = (channel: OCChannel) => { return channel.getRoleSheet().getAllRoles(this, channel.getName()); }
+
+        this.getCreatedAtTimestamp = () => {
+            if(typeof(data.created_at) === 'string')
+                return data.created_at;
+
+            if(typeof(data.created_at) === 'number')
+                return new Date(data.created_at).toISOString();
+
+            return undefined;
+        }
 
         this.getChatDetails = () => { return {}; }
 

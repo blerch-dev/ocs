@@ -101,8 +101,10 @@ const DefaultRoute = new OCRoute({
                 headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_data: user.toJSON() })
             })).json();
-
-            //console.log("Create User Output (at auth)", output);
+            
+            // Output is Error | OCUser
+            // if error, error response
+            // if user, forward to original site
 
             // Here for Debug
             res.json({
@@ -113,6 +115,7 @@ const DefaultRoute = new OCRoute({
             });
         });
 
+        // #region Twitch
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
             let site = req.session.state?.authing_site ?? 'no site';
@@ -153,12 +156,18 @@ const DefaultRoute = new OCRoute({
             return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
         });
 
+        router.post('/user/twitch/sync', (req, res) => {
+            // load subscriptions, match for existing channels
+        });
+        // #endregion
+
         router.get('*', (req, res) => {
             res.send(ErrorPage(404, "Resources missing at this location."));
         });
 
         return router;
     }
+    
 });
 
 // Secure/SameSite with nginx requires this in rp: proxy_set_header X-Forwarded-Proto $scheme;
