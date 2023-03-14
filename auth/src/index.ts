@@ -26,6 +26,7 @@ const DefaultRoute = new OCRoute({
             server.getRedisClient().getClient().set(code, json);
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
+            console.log("Reidrecting...");
             res.redirect(`http://${site}/auth?authcode=${code}`);
         }
 
@@ -72,10 +73,6 @@ const DefaultRoute = new OCRoute({
         });
 
         router.post('/user/create', async (req, res) => {
-            // Validate Data
-            // Sync Connections/Subs/Roles
-            // Forward to Profile
-
             if(beta) {
                 if(req.body.code !== 'dev-mode') {
                     res.json({
@@ -99,20 +96,18 @@ const DefaultRoute = new OCRoute({
             let output = await (await fetch(`http://data.${rootURL}/user/create`, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_data: user.toJSON() })
+                body: JSON.stringify({ user_data: user.toJSON(), extras: { site: req.session.state?.authing_site } })
             })).json();
             
             // Output is Error | OCUser
-            // if error, error response
-            // if user, forward to original site
+            if(output.Error)
+                return res.json({ Error: output.Error });
 
-            // Here for Debug
-            res.json({
-                state: req.session.state,
-                user: req.session.user,
-                body: req.body,
-                output: output
-            });
+            if(output instanceof OCUser)
+                session.setUser(output);
+
+            // Loading mixed content error, needs https on original url
+            passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, req.session.state?.authing_site);
         });
 
         // #region Twitch

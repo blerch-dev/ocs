@@ -38,7 +38,7 @@ export const getFullUserFromToken = async (token: string) => {
     //let query = await queryDB(query_str, )
 }
 
-export const createUser = async (user: OCUser): Promise<Error | OCUser> => {
+export const createUser = async (user: OCUser, extras?: { [key: string]: any }): Promise<Error | OCUser> => {
     let query_str = `SELECT 1 FROM users WHERE uuid = $1 OR LOWER(username) = $2`;
 
     let query = await queryDB(query_str, [user.getUUID(), user.getName().toLowerCase()]);
@@ -59,19 +59,32 @@ export const createUser = async (user: OCUser): Promise<Error | OCUser> => {
 
     // Insert Optional Data
     if(user.toJSON().connections.twitch) {
-        addUserConnection({ twitch: user.toJSON().connections.twitch });
+        await addUserConnection({ 
+            user_id: user.getUUID(), 
+            created_for: extras?.site, 
+            twitch: user.toJSON().connections.twitch });
     }
 
     return user;
     // Insert into all tables required for full user data (users, user_connections, channel_connections)
 }
 
-const addUserConnection = (data: { 
+const addUserConnection = async (data: { 
+    user_id: string,
     created_for?: string, 
     twitch?: { id: string, username: string } 
 }) => {
     // check if data exists
-    let query_str = `INSERT INTO user_connections (user_id, created_for)`;
+    let query_str = `INSERT INTO user_connections (user_id, created_for, twitch_id, twitch_name)
+        VALUES ($1, $2, $3, $4)
+    `;
+
+    await queryDB(query_str, [
+        data.user_id, 
+        data.created_for ?? null, 
+        data.twitch?.id ?? null, 
+        data.twitch?.username ?? null
+    ]);
 }
 
 const getUserFromResults = (query: Error | QueryResult<any>) => {

@@ -13,7 +13,7 @@ const DefaultRoute = new OCRoute({
     domain: `data.${rootURL}`,
     callback: (router, server, session) => {
         router.post('/user/create', async (req, res) => {
-            const { user_data } = req.body;
+            const { user_data, extras } = req.body;
             let user = new OCUser(user_data, { noError: true });
             if(user instanceof Error) {
                 return res.json({
@@ -24,8 +24,11 @@ const DefaultRoute = new OCRoute({
                 });
             }
 
-            let output = await createUser(user);
-            res.json({ Error: { Code: 404, Message: "TODO" } });
+            let output = await createUser(user, extras);
+            if(output instanceof Error)
+                return res.json({ Error: output });
+
+            res.json({ ...output.toJSON() });
         });
 
         router.get('/user/twitch/:id', async (req, res) => {
