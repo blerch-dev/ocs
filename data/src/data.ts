@@ -76,8 +76,8 @@ export const formatDB = () => {
     });
 }
 
-export const alterDB = () => {
-    let query = `ALTER TABLE channels ADD COLUMN twitch_id varchar(64) ADD COLUMN youtube_id varchar(64)`;
+export const alterDB = async () => {
+    let query = `ALTER TABLE channels ADD COLUMN twitch_id varchar(64), ADD COLUMN youtube_id varchar(64)`;
 
     return new Promise((res, rej) => {
         pg.query(query, (err, results) => {

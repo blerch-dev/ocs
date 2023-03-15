@@ -1,5 +1,5 @@
-import { formatDB } from "./data";
+import { formatDB, alterDB } from "./data";
 
-formatDB().then((output) => {
+alterDB().then((output) => {
     console.log(output);
 });
