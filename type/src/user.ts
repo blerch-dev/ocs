@@ -4,7 +4,7 @@ import { OCChannel } from "./chat";
 
 // Global - 8 Bytes - Add as needed
 export enum Status {
-    VALID = 1 << 0,
+    VALID = 1 << 0, // also works as "follows" per channel
     BANNED = 1 << 1,
     MUTED = 1 << 2
 }
@@ -24,7 +24,7 @@ let configGlobalRoles: () => RoleInterface[] = () => {
     }
 
     let map = new Map<number, RoleInterface>();
-    // 8 Bytes - Add as needed
+    // 8 Bytes - Add as needed - Top Roles get colors, after streamer you just get an icon
     let roles = [
         valToRI(1 << 0, 'Admin', '#ff5c00'),
         valToRI(1 << 1, 'Dev', '#00ff00'),
