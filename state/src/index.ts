@@ -1,4 +1,4 @@
-import { OCServer, OCRoute } from 'ocs-type';
+import { OCServer, OCRoute, OCAuth } from 'ocs-type';
 
 const rootURL = process.env?.rootURL ?? 'ocs.local';
 
@@ -7,9 +7,16 @@ const Whitelist = [
     'client.local'
 ];
 
+// Here for testing, load from db
+const Channels = [
+
+];
+
 const DefaultRoute = new OCRoute({
     domain: `state.${rootURL}`,
-    callback: (router, option, setOption, setSesh, redis) => {
+    callback: (router, server, session) => {
+        // User OCAuth for Twitch App Access
+
         return router;
     }
 });

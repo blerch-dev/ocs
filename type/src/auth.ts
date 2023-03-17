@@ -10,7 +10,15 @@ export interface OCAuthProps {
 export class OCAuth {
     public twitch = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
-        verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); }
+        verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
+        appAuth: () => {},
+        appVerify: () => {}
+    }
+
+    public youtube = {
+        // Token Auth/Verify
+        // Get User Data
+        // Get Channel Status/Data
     }
 
     public clearCode = (cb: Function, seconds: number) => { setTimeout(cb, seconds * 1000); }
@@ -55,6 +63,12 @@ export class OCAuth {
                     }
 
                     next();
+                },
+                appAuth: () => {
+
+                },
+                appVerify: () => {
+
                 }
             }
         }
