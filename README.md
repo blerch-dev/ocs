@@ -10,7 +10,8 @@
 * ~~State functionaly, auto deploy redis DOI on deploy~~
 * ~~Auth/Data server, intergrated to both chat and client.~~
 * ~~Pub/Sub server, further development of chat.~~
-* Internal service authentication, more auth features.
+* ~~Internal service authentication, more auth features.~~
+* Deployment Testing and Automation.
 * Mod view, along side a development overview app.
 * Additional chat features.
 * Custom CMS for channel maintainers.
