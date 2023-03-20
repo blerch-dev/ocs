@@ -10,6 +10,9 @@ RUN npm install
 # Bundle App
 COPY . .
 
+# Build App
+RUN npm run build
+
 # Configure
 EXPOSE 8080
 CMD [ "node", "build/index.js" ]
