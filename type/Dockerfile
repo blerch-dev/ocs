@@ -1,11 +1,11 @@
-FROM node:18.13.0-alpine
+FROM node:18.13.0-alpine as build
 
 # App Directory
 WORKDIR /usr/src/type
 
 # Install Dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install && npm run build
 
 # Bundle App
 COPY . .
