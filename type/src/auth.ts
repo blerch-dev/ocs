@@ -1,4 +1,10 @@
-const twitch = require('../secrets/twitch.json');
+import * as dotenv from 'dotenv'
+dotenv.config()
+
+const twitch = {
+    id: process.env.TWITCH_ID ?? '',
+    secret: process.env.TWITCH_SECRET ?? ''
+}
 
 // Will hold all auth logic, pulled in per server required to auth something
 // will probably remove passportjs and do this manually

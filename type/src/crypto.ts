@@ -1,6 +1,7 @@
 import Crypto from 'crypto';
 
-const config = require('../secrets/server.json');
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 const hashValue = (
     value: string, 
@@ -20,7 +21,7 @@ const hashValue = (
 }
 
 export const hashValidator = async (validator: string) => {
-    let output = await hashValue(validator, config.salt);
+    let output = await hashValue(validator, process.env.BASE_SALT ?? 'SALT');
     if(output instanceof Error) return output;
     return output.hash;
 }

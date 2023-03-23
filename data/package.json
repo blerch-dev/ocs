@@ -14,6 +14,7 @@
         "config": "npm run build && node build/config.js"
     },
     "dependencies": {
+        "dotenv": "^16.0.3",
         "ocs-type": "file:../type/",
         "pg": "^8.9.0"
     },
