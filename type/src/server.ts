@@ -7,8 +7,8 @@ import cors from 'cors';
 import winston from 'winston';
 import monitor from 'express-status-monitor';
 
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 import { OCRedisStore, OCRedisClient } from './state';
 

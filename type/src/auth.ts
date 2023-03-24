@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const twitch = {
     id: process.env.TWITCH_ID ?? '',

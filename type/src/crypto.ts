@@ -1,7 +1,7 @@
 import Crypto from 'crypto';
 
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const hashValue = (
     value: string, 
