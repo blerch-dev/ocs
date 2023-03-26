@@ -1,13 +1,15 @@
 import { Pool, QueryResult } from 'pg';
 import {} from 'ocs-type';
-const supabase = require('../secrets/supabase.json');
+
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 export const pg = new Pool({
-    host: supabase.host,
-    user: supabase.user,
-    database: supabase.database,
-    password: supabase.password,
-    port: supabase.port,
+    host: process.env.SUPABASE_HOST,
+    user: process.env.SUPABASE_USER,
+    database: process.env.SUPABASE_DATA,
+    password: process.env.SUPABASE_PASS,
+    port: Number(process.env.SUPABASE_PORT),
     // max: 20,
     // idleTimeoutMillis: 30000,
     // connectionTimeoutMillis: 2000

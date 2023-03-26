@@ -7,8 +7,10 @@ import cors from 'cors';
 import winston from 'winston';
 import monitor from 'express-status-monitor';
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { OCRedisStore, OCRedisClient } from './state';
-const config = require('../secrets/server.json');
 
 export interface OCServerProps {
     routes: [OCRoute],
@@ -115,7 +117,7 @@ export class OCServer {
             let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
             let sessionParser = session({
                 store: RedisStore.getStore(props.session?.ttl ?? ttl),
-                secret: config.redis.secret,
+                secret: process.env.REDIS_HASH ?? '',
                 resave: props.session?.resave ?? false,
                 saveUninitialized: props.session?.saveUninitialized ?? false,
                 cookie: {
