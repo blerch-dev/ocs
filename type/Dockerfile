@@ -1,4 +1,4 @@
-FROM node:18.13.0-alpine as build
+FROM node:18.13-slim as build
 
 # App Directory
 WORKDIR /usr/src/type
