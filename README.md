@@ -17,3 +17,6 @@
 * Additional chat features.
 * Custom CMS for channel maintainers.
 * Paid subscription integration.
+* More channel/website customization.
+
+* Pay per use livestream service.
