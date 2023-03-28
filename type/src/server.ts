@@ -117,7 +117,7 @@ export class OCServer {
             let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
             let sessionParser = session({
                 store: RedisStore.getStore(props.session?.ttl ?? ttl),
-                secret: process.env.REDIS_HASH ?? '',
+                secret: process.env.REDIS_HASH || 'redis-hash',
                 resave: props.session?.resave ?? false,
                 saveUninitialized: props.session?.saveUninitialized ?? false,
                 cookie: {
