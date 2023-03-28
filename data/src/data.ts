@@ -1,8 +1,9 @@
 import { Pool, QueryResult } from 'pg';
 import {} from 'ocs-type';
 
-import * as dotenv from 'dotenv'
-dotenv.config()
+import path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 export const pg = new Pool({
     host: process.env.SUPABASE_HOST,
@@ -14,7 +15,7 @@ export const pg = new Pool({
     // idleTimeoutMillis: 30000,
     // connectionTimeoutMillis: 2000
 });
-pg.connect();
+pg.connect().catch((reason) => { console.log("DB Connection -", reason); });
 
 export const queryDB = (query: string, values: any[]): Promise<Error | QueryResult> => {
     return new Promise((res, rej) => {

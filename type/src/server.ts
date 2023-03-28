@@ -7,8 +7,9 @@ import cors from 'cors';
 import winston from 'winston';
 import monitor from 'express-status-monitor';
 
+import path from 'path';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import { OCRedisStore, OCRedisClient } from './state';
 
@@ -117,7 +118,7 @@ export class OCServer {
             let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
             let sessionParser = session({
                 store: RedisStore.getStore(props.session?.ttl ?? ttl),
-                secret: process.env.REDIS_HASH || 'redis-hash',
+                secret: process.env.REDIS_HASH ?? 'redis-hash',
                 resave: props.session?.resave ?? false,
                 saveUninitialized: props.session?.saveUninitialized ?? false,
                 cookie: {

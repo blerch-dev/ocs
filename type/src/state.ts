@@ -11,7 +11,7 @@ export class OCRedisStore {
         this.getStore = (ttl = (60 * 60 * 24)) => { return new store({ 
             client: client,
             ttl: ttl
-        }) }
+        }); }
     }
 }
 
