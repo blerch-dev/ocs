@@ -110,7 +110,7 @@ export class OCServer {
         this.app.use(cookieParser());
         this.app.enable('trust proxy');
 
-        const RedisClient = new OCRedisClient('localhost', undefined, this);
+        const RedisClient = new OCRedisClient(OCServices.Redis, undefined, this);
         const RedisStore = new OCRedisStore(session, RedisClient.getClient());
         
         // Session
@@ -234,4 +234,29 @@ export class OCSession {
         this.setOption = (name: string, data: any) => { this.option[name] = data; }
         this.getOptions = () => { return this.option; }
     }
+}
+
+export class OCServices {
+    static Auth: string = process.env.NODE_ENV === 'prod' ? 'auth.ocs.gg' : 'auth.ocs.local';
+    static Client: string = process.env.NODE_ENV === 'prod' ? 'client.ocs.gg' : 'client.ocs.local';
+
+    static Chat: string = `${
+        process.env.CHAT_OCS_SERVICE_HOST ?? 'chat.ocs.local'
+    }${
+        process.env.CHAT_OCS_SERVICE_PORT ? ':' + process.env.CHAT_OCS_SERVICE_PORT : ''
+    }`;
+
+    static Data: string = `${
+        process.env.DATA_OCS_SERVICE_HOST ?? 'data.ocs.local'
+    }${
+        process.env.DATA_OCS_SERVICE_PORT ? ':' + process.env.DATA_OCS_SERVICE_PORT : ''
+    }`;
+
+    static State: string = `${
+        process.env.STATE_OCS_SERVICE_HOST ?? 'state.ocs.local'
+    }${
+        process.env.STATE_OCS_SERVICE_PORT ? ':' + process.env.STATE_OCS_SERVICE_PORT : ''
+    }`;
+
+    static Redis: string = `${process.env.NODE_ENV === 'prod' ? OCServices.State : 'localhost'}`;
 }
