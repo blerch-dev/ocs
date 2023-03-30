@@ -55,8 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
-    // OCS.connect('ws://localhost:8081');
-    OCS.connect(`wss://chat.ocs.local/?channel=${CHANNEL_NAME ?? 'global'}`);
+    const url = window.location.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
+    OCS.connect(`wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`);
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')

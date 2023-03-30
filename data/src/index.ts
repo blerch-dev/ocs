@@ -1,8 +1,6 @@
-import { OCServer, OCRoute, OCUser } from 'ocs-type';
+import { OCServer, OCRoute, OCUser, OCServices } from 'ocs-type';
 import { getFullUser, getFullUserFromTwitch, createUser } from './user';
 import { pg, queryDB } from './data';
-
-const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 const Whitelist = [
     'app.local',
@@ -10,7 +8,7 @@ const Whitelist = [
 ];
 
 const DefaultRoute = new OCRoute({
-    domain: `data.${rootURL}`,
+    domain: `${OCServices.Data}`,
     callback: (router, server, session) => {
         router.post('/user/create', async (req, res) => {
             const { user_data, extras } = req.body;
@@ -50,7 +48,7 @@ const DefaultRoute = new OCRoute({
         });
 
         router.all('*', (req, res) => {
-            res.json({ code: 404, message: 'data.ocs.gg catch all' })
+            res.json({ code: 404, message: 'data catch all' });
         });
 
         return router;
@@ -62,9 +60,6 @@ const server = new OCServer({
     port: 8083,
     cors: {
         creds: true
-    },
-    session: {
-        domain: `*.${rootURL}`
     }
 });
 

@@ -96,7 +96,7 @@ export class OCServer {
             ] : [
                 new winston.transports.File({ filename: 'error.log', level: 'error' })
             ]
-        }); 
+        });
 
         // App Middleware
         // Decent Status Page - Custom would be better, integrated into dev page
@@ -236,15 +236,14 @@ export class OCSession {
     }
 }
 
+// Express Session requires root url, need to rework that for local/minikube/prod
+// cant rely on ips for session
 export class OCServices {
-    static Auth: string = process.env.NODE_ENV === 'prod' ? 'auth.ocs.gg' : 'auth.ocs.local';
-    static Client: string = process.env.NODE_ENV === 'prod' ? 'client.ocs.gg' : 'client.ocs.local';
+    static RootURL: string = process.env.NODE_ENV === 'prod' ? 'ocs.gg' : 'ocs.local';
 
-    static Chat: string = `${
-        process.env.CHAT_OCS_SERVICE_HOST ?? 'chat.ocs.local'
-    }${
-        process.env.CHAT_OCS_SERVICE_PORT ? ':' + process.env.CHAT_OCS_SERVICE_PORT : ''
-    }`;
+    static Auth: string = `auth.${OCServices.RootURL}`;
+    static Chat: string = `chat.${OCServices.RootURL}`;
+    static Client: string = `client.${OCServices.RootURL}`;
 
     static Data: string = `${
         process.env.DATA_OCS_SERVICE_HOST ?? 'data.ocs.local'

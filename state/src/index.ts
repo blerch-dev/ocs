@@ -1,8 +1,6 @@
-import { OCServer, OCRoute, OCAuth } from 'ocs-type';
+import { OCServer, OCRoute, OCAuth, OCServices } from 'ocs-type';
 import { Streams } from './streams';
 // Some form of user oauth access for syncing subs is required
-
-const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 const Whitelist = [
     'app.local',
@@ -10,7 +8,7 @@ const Whitelist = [
 ];
 
 const DefaultRoute = new OCRoute({
-    domain: `state.${rootURL}`,
+    domain: `${OCServices.State}`,
     callback: (router, server, session) => {
         // User OCAuth for Twitch App Access
 
@@ -27,9 +25,6 @@ const server = new OCServer({
     port: 8084,
     cors: {
         creds: true
-    },
-    session: {
-        domain: `*.${rootURL}`
     }
 });
 

@@ -1,15 +1,13 @@
 // Default Layout/Route for ocs.gg
-import { OCRoute } from "ocs-type";
+import { OCRoute, OCServices } from "ocs-type";
 import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
-
-const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
     callback: (router, server, session) => {
         const isAuthed = (req: any, res: any, next: any) => {
             if(req?.session?.user == undefined) 
-                return res.redirect(`https://auth.${rootURL}/sso?site=${req.hostname}`);
+                return res.redirect(`https://${OCServices.Auth}/sso?site=${req.hostname}`);
 
             next();
         }
@@ -51,7 +49,7 @@ const DefaultRoute = new OCRoute({
 
         router.get('/logout', (req, res) => {
             res.clearCookie('connect.sid');
-            res.redirect(`https://auth.${rootURL}/logout?site=${req.hostname}`);
+            res.redirect(`https://${OCServices.Auth}/logout?site=${req.hostname}`);
         });
 
         router.get('/auth', async (req, res) => {

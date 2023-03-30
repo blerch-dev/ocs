@@ -23,7 +23,7 @@ export class OCRedisClient {
     private client;
 
     constructor(host: string, port = 6379, server: OCServer) {
-        let url = `redis://${host}:${port}`;
+        // let url = `redis://${host}:${port}`;
         this.client = new Redis({
             host: host,
             port: port

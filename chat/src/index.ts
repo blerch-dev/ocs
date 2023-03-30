@@ -1,11 +1,9 @@
-import { OCServer, OCRoute } from "ocs-type";
+import { OCServer, OCRoute, OCServices } from "ocs-type";
 import WSS from "./chat";
-
-const rootURL = process.env?.rootURL ?? 'ocs.local';
 
 // Chat Route
 const ChatRoute = new OCRoute({
-    domain: `chat.${rootURL}`,
+    domain: `${OCServices.Chat}`,
     callback: (router, server, session) => {
         router.get('/session', (req, res) => {
             res.send(`<pre>${JSON.stringify(req.session, null, 2)}</pre>`);
@@ -21,7 +19,7 @@ const server = new OCServer({
     appFunctions: [WSS],
     session: {
         secure: true,
-        domain: `.${rootURL}`,
+        domain: `.${OCServices.RootURL}`,
         sameSite: 'none',
         rolling: true
     },

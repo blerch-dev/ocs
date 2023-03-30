@@ -2,22 +2,25 @@
 // todo - user tokens (only placed on root domain at auth)
 
 import path from 'path';
-import { OCServer, OCAuth, OCRoute, OCUser } from 'ocs-type';
+import { OCServer, OCAuth, OCRoute, OCUser, OCServices } from 'ocs-type';
 
 import ErrorPage, { DefaultPage, AuthPage, SessionPage, SignUpPage } from './pages';
 
-const rootURL = process.env?.rootURL ?? 'ocs.local';
 const beta = process.env.NODE_ENV === 'beta' ?? true;
 
+// Should load domains from db eventually, can hardcode for now
 const Whitelist = [
     'app.local',
-    'client.local'
+    'client.local',
+
+    'kidnotkin.tv',
+    'chudlogic.com'
 ];
 
-const Auth = new OCAuth({ callbackURL: `auth.${rootURL}`, twitch: true });
+const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true });
 
 const DefaultRoute = new OCRoute({
-    domain: `auth.${rootURL}`,
+    domain: `${OCServices.Auth}`,
     callback: (router, server, session) => {
         let passToApp = (res: any, value: string, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
@@ -27,7 +30,7 @@ const DefaultRoute = new OCRoute({
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
             console.log("Reidrecting...");
-            res.redirect(`http://${site}/auth?authcode=${code}`);
+            res.redirect(`https://${site}/auth?authcode=${code}`);
         }
 
         // routes for authentication (login, signup, auth)
@@ -62,7 +65,7 @@ const DefaultRoute = new OCRoute({
 
                 res.clearCookie('connect.sid');
                 if(site)
-                    return res.redirect(`http://${site}/`);
+                    return res.redirect(`https://${site}/`);
                 
                 res.send(`${DefaultPage('OCS | Logout', '<main><h3>Logged Out</h3></main>')}`)
             });
@@ -93,7 +96,7 @@ const DefaultRoute = new OCRoute({
                 channels: data.channels ?? {}
             });
 
-            let output = await (await fetch(`http://data.${rootURL}/user/create`, {
+            let output: any = await (await fetch(`https://${OCServices.Data}/user/create`, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_data: user.toJSON(), extras: { site: req.session.state?.authing_site } })
@@ -121,7 +124,7 @@ const DefaultRoute = new OCRoute({
                 return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
             // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
-            let output = await (await fetch(`http://data.${rootURL}/user/twitch/${res.locals.twitch.id}`)).json();
+            let output = await (await fetch(`https://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)).json();
             if(output.data instanceof Error) {
                 return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
             }
@@ -175,7 +178,7 @@ const server = new OCServer({
     cors: {},
     session: {
         secure: true,
-        domain: `.${rootURL}`,
+        domain: `.${OCServices.RootURL}`,
         sameSite: 'none',
         rolling: true
     },

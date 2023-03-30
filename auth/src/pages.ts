@@ -1,4 +1,4 @@
-const rootURL = process.env?.rootURL ?? 'ocs.local';
+import { OCServices } from 'ocs-type';
 
 export const DefaultPage = (title: string, body: string) => `
     <!DOCTYPE html>
@@ -35,7 +35,7 @@ export const AuthPage = (domain: string, login?: boolean) => `
                     <pre>${domain}</pre>
                 </span>
                 <span class="column-spacer"></span>
-                <a class="twitch-button auth-button" href="https://auth.${rootURL}/twitch"><h3>Twitch</h3></a>
+                <a class="twitch-button auth-button" href="https://${OCServices.Auth}/twitch"><h3>Twitch</h3></a>
                 <span class="column-spacer"></span>
                 <span class="options-span">
                     <label for="ssi">Keep Me Signed In?</label>
