@@ -240,6 +240,12 @@ export class OCSession {
 // cant rely on ips for session
 export class OCServices {
     static RootURL: string = process.env.NODE_ENV === 'prod' ? 'ocs.gg' : 'ocs.local';
+    static WhitelistedSites: string[] = [
+        'app.local',
+        'client.local',
+    
+        'kidnotkin.tv'
+    ];
 
     static Auth: string = `auth.${OCServices.RootURL}`;
     static Chat: string = `chat.${OCServices.RootURL}`;

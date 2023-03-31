@@ -8,15 +8,6 @@ import ErrorPage, { DefaultPage, AuthPage, SessionPage, SignUpPage } from './pag
 
 const beta = process.env.NODE_ENV === 'beta' ?? true;
 
-// Should load domains from db eventually, can hardcode for now
-const Whitelist = [
-    'app.local',
-    'client.local',
-
-    'kidnotkin.tv',
-    'chudlogic.com'
-];
-
 const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true });
 
 const DefaultRoute = new OCRoute({
@@ -40,7 +31,7 @@ const DefaultRoute = new OCRoute({
             if(site == undefined)
                 return res.send(ErrorPage(404, "Did not specify an app domain."));
 
-            if(Whitelist.indexOf(site) < 0)
+            if(OCServices.WhitelistedSites.indexOf(site) < 0)
                 return res.send(ErrorPage(403, "This domain is not authorized to use OCS.GG SSO."));
 
             if(req.session?.user) {

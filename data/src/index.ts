@@ -2,11 +2,6 @@ import { OCServer, OCRoute, OCUser, OCServices } from 'ocs-type';
 import { getFullUser, getFullUserFromTwitch, createUser } from './user';
 import { pg, queryDB } from './data';
 
-const Whitelist = [
-    'app.local',
-    'client.local'
-];
-
 const DefaultRoute = new OCRoute({
     domain: `${OCServices.Data}`,
     callback: (router, server, session) => {
@@ -26,7 +21,7 @@ const DefaultRoute = new OCRoute({
             if(output instanceof Error)
                 return res.json({ Error: output });
 
-            res.json({ ...output.toJSON() });
+            res.json({ code: 200, data: { ...output.toJSON() } });
         });
 
         router.get('/user/twitch/:id', async (req, res) => {
@@ -35,12 +30,12 @@ const DefaultRoute = new OCRoute({
                 return res.json({ code: 500, message: 'User Error', error: user });
             }
 
-            res.send(JSON.stringify({ code: 200, data: user }));
+            res.json({ code: 200, data: user });
         });
 
         router.get('/users', async (req, res) => {
             let result = await pg.query('SELECT * FROM users');
-            res.send(JSON.stringify({ code: 200, data: result.rows }));
+            res.json({ code: 200, data: result.rows });
         });
 
         router.get('/ping', (req, res) => {

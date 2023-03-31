@@ -2,11 +2,6 @@ import { OCServer, OCRoute, OCAuth, OCServices } from 'ocs-type';
 import { Streams } from './streams';
 // Some form of user oauth access for syncing subs is required
 
-const Whitelist = [
-    'app.local',
-    'client.local'
-];
-
 const DefaultRoute = new OCRoute({
     domain: `${OCServices.State}`,
     callback: (router, server, session) => {
