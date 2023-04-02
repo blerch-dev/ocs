@@ -59,6 +59,7 @@ export class OCServer {
     public getSessionParser: () => express.RequestHandler | undefined;
 
     private app = express();
+    private routes: OCRoute[];
 
     private generateServerID = (size: number) => [
         ...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
@@ -161,6 +162,7 @@ export class OCServer {
         }
 
         // Routes
+        this.routes = props.routes;
         this.app.use(async (req, res, next) => {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
 
@@ -170,7 +172,7 @@ export class OCServer {
                 req.session.user = user;
             });
 
-            props.routes.forEach((route) => {
+            this.routes.forEach((route) => {
                 let matches = route.matchesDomain(req.hostname);
 
                 this.logger.verbose("Router Domain:", matches, req.hostname);
@@ -191,6 +193,10 @@ export class OCServer {
 
         // App Functions (WSS Upgrade) - Require getServer Function
         props.appFunctions?.forEach((func) => { func(this); });
+    }
+
+    AddRoutes(...routes: OCRoute[]) {
+        return this.routes.unshift(...routes);
     }
 }
 
@@ -239,7 +245,9 @@ export class OCSession {
 // Express Session requires root url, need to rework that for local/minikube/prod
 // cant rely on ips for session
 export class OCServices {
-    static RootURL: string = process.env.NODE_ENV === 'prod' ? 'ocs.gg' : 'ocs.local';
+    static Production: boolean = process.env.NODE_ENV === 'prod';
+    static IMP: string = OCServices.Production ? 'https' : 'http';
+    static RootURL: string = OCServices.Production ? 'ocs.gg' : 'ocs.local';
     static WhitelistedSites: string[] = [
         'app.local',
         'client.local',

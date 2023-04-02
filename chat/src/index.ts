@@ -18,7 +18,7 @@ const server = new OCServer({
     port: 8081,
     appFunctions: [WSS],
     session: {
-        secure: true,
+        secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,
         sameSite: 'none',
         rolling: true

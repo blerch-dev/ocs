@@ -19,19 +19,22 @@ const exe = (cmd) => {
 let type = exe('cd type && npm run build');
 
 const start = async () => {
+    console.log("Building Library...");
     await type;
 
+    console.log("Building Services...");
     await exe('cd client && npm run build');
     await exe('cd chat && npm run build');
     await exe('cd auth && npm run build');
     await exe('cd data && npm run build');
     
+    console.log("Running Services...")
     const Client = require('./client/build');
     const Chat = require('./chat/build');
     const Auth = require('./auth/build');
     const Data = require('./data/build');
 
-    console.log("Services Running...");
+    console.log("App Ready");
 }
 
 start();

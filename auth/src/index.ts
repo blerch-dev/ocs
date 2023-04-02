@@ -20,7 +20,7 @@ const DefaultRoute = new OCRoute({
             server.getRedisClient().getClient().set(code, json);
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
-            console.log("Reidrecting...");
+            console.log("Redirecting...");
             res.redirect(`https://${site}/auth?authcode=${code}`);
         }
 
@@ -87,7 +87,7 @@ const DefaultRoute = new OCRoute({
                 channels: data.channels ?? {}
             });
 
-            let output: any = await (await fetch(`https://${OCServices.Data}/user/create`, {
+            let output: any = await (await fetch(`${OCServices.IMP}://${OCServices.Data}/user/create`, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_data: user.toJSON(), extras: { site: req.session.state?.authing_site } })
@@ -115,7 +115,10 @@ const DefaultRoute = new OCRoute({
                 return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
             // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
-            let output = await (await fetch(`https://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)).json();
+            let output = await (
+                await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
+            ).json();
+
             if(output.data instanceof Error) {
                 return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
             }
@@ -126,6 +129,7 @@ const DefaultRoute = new OCRoute({
                 session.setUser(user.toJSON());
             } else {
                 // Create User - remember to normalize usernames on creation
+                console.log("User:", user, user.validUserObject(true));
                 session.setSesh('state', 'twitch', res.locals.twitch);
                 return res.send(SignUpPage(site, { 
                     username: res.locals.twitch.login,
@@ -168,13 +172,10 @@ const server = new OCServer({
     static: [path.resolve(__dirname, './public/')],
     cors: {},
     session: {
-        secure: true,
+        secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,
         sameSite: 'none',
         rolling: true
-    },
-    monitor: {
-        title: 'OCS Status'
     },
     debug: true
 });

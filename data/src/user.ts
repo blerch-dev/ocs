@@ -18,6 +18,8 @@ export const getFullUser = async (uuid: string): Promise<Error | OCUser> => {
     return getUserFromResults(query);
 }
 
+// This is returning an empty user list, when it shouldnt
+// can combine all full user functions with last line being a parameter
 export const getFullUserFromTwitch = async (twitch_id: string): Promise<Error | OCUser> => {
     let query_str = `SELECT users.*,
         to_json(user_connections.*) as connections,
@@ -67,6 +69,11 @@ export const createUser = async (user: OCUser, extras?: { [key: string]: any }):
 
     return user;
     // Insert into all tables required for full user data (users, user_connections, channel_connections)
+}
+
+export const getUserConnection = async (twitch_id: string) => {
+    let query_str = `SELECT * FROM user_connections WHERE twitch_id = $1`;
+    return await queryDB(query_str, [twitch_id]);
 }
 
 const addUserConnection = async (data: { 

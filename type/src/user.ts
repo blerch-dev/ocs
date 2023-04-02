@@ -93,18 +93,13 @@ interface OCUserProps {
 }
 
 export class OCUser {
-    public static validUserObject = (data: OCUserProps) => {
-        if(typeof(data) !== 'object')
-            return false;
-
-        data.roles = data.roles ? data.roles : 0;
-        data.status = data.status ? data.status : 0;
-        data.created_at = data.created_at ? data.created_at : Date.now();
-
-        let required_keys = ['uuid', 'username', 'roles', 'status'];
+    public static validUserObject = (data: OCUserProps, debug = false) => {
+        let required_keys = ['uuid', 'username'];
         required_keys.forEach(key => {
-            if((data as any)[key] === undefined)
+            if((data as any)[key] === undefined) {
+                if(debug) { console.log(key, (data as any)[key]) }
                 return false;
+            }
         });
         return true;
     };
@@ -132,9 +127,23 @@ export class OCUser {
             if(options?.noError !== true)
                 throw new Error(`Invalid User Object`);
 
-            this.validUserObject = () => false;
+            this.validUserObject = (debug?: boolean) => { 
+                if(debug) { OCUser.validUserObject(data, debug); } return false
+            };
         } else {
-            this.validUserObject = () => true;
+            this.validUserObject = (debug?: boolean) => { 
+                if(debug) { OCUser.validUserObject(data, debug); } return true
+            };
+        }
+
+        data = {
+            uuid: data.uuid,
+            username: data.username,
+            roles: data.roles ?? 0,
+            status: data.status ?? 0,
+            created_at: data.created_at ?? Date.now(),
+            connections: data.connections,
+            channels: data.channels
         }
 
         this.toJSON = () => { return data; }
