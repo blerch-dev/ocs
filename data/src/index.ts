@@ -1,5 +1,5 @@
 import { OCServer, OCRoute, OCUser, OCServices } from 'ocs-type';
-import { getFullUser, getFullUserFromTwitch, createUser, getUserConnection } from './user';
+import { getFullUser, getFullUserFromTwitch, createUser, getUserConnection, fullUserTest } from './user';
 import { pg, queryDB } from './data';
 import { QueryResult } from 'pg';
 
@@ -39,8 +39,8 @@ const DefaultRoute = new OCRoute({
             res.json({ code: 200, data: result.rows });
         });
 
-        router.get('/connections/twitch/:id', async (req, res) => {
-            let result = await getUserConnection(req.params.id);
+        router.get('/connections/:platform/:id', async (req, res) => {
+            let result = await getUserConnection(req.params.platform, req.params.id);
             res.json({ code: 200, data: (result as QueryResult).rows });
         });
 

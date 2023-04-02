@@ -1,6 +1,6 @@
 class OCSocket {
     constructor(loc) {
-        //console.log("Loaded:", loc);
+        //console.log("Loaded:", loc); // Should do maps here
         this.events = new Map();
     }
 
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
-    const url = window.location.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
+    const url = window.location.host.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
     OCS.connect(`wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`);
     OCS.on('message', (event) => {
         let msg = event.data;
@@ -65,7 +65,7 @@ function ConfigureChat(chat, input, submit) {
         try {
             onMessage(JSON.parse(msg));
         } catch(err) {
-            console.log("Error:", err);
+            console.log("Error:", err, msg, event);
             console.log("Message Event:", event);
         }
     });
@@ -87,14 +87,20 @@ function ConfigureChat(chat, input, submit) {
     }
 
     const chatMessage = (json) => {
+        const badges = () => {
+            //<img class="user-badge" src="${msg.roles[0].icon}" title="${msg.roles[0].name}">
+            // for each badge ^
+            return '';
+        }
+
         let msg = json.ChatMessage;
         let elem = document.createElement('div');
         elem.classList.add('chat-message', even ? undefined : 'odd');
         even = !even;
         elem.innerHTML = `
             <p>
-                <span class="user-tag" style="color: ${msg.roles[0].color}">
-                    <img class="user-badge" src="${msg.roles[0].icon}" title="${msg.roles[0].name}">
+                <span class="user-tag" style="color: ${msg.roles[0]?.color ?? '#ffffff'}">
+                    ${badges()}
                     ${msg.username}</span>:
                 ${msg.message}
             </p>

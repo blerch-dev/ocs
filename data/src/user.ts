@@ -4,33 +4,18 @@ import { queryDB } from './data';
 
 // #region Users
 export const getFullUser = async (uuid: string): Promise<Error | OCUser> => {
-    // Gets all user info from multiple tables
-    let query_str = `SELECT users.*,
-        to_json(user_connections.*) as connections,
-        to_json(channel_connections.*) as channels
-        FROM users
-        INNER JOIN user_connections ON users.uuid = user_connections.user_id
-        INNER JOIN channel_connections on users.uuid = channel_connections.user_id
-        WHERE users.uuid = $1
-    `;
-
-    let query = await queryDB(query_str, [uuid]);
+    let query = await fullUserSearch('WHERE users.uuid = $1', uuid);
     return getUserFromResults(query);
+}
+
+export const fullUserTest = async (qstr: string, ...values: any[]) => {
+    return await fullUserSearch(qstr, ...values);
 }
 
 // This is returning an empty user list, when it shouldnt
 // can combine all full user functions with last line being a parameter
 export const getFullUserFromTwitch = async (twitch_id: string): Promise<Error | OCUser> => {
-    let query_str = `SELECT users.*,
-        to_json(user_connections.*) as connections,
-        to_json(channel_connections.*) as channels
-        FROM users
-        INNER JOIN user_connections ON users.uuid = user_connections.user_id
-        INNER JOIN channel_connections on users.uuid = channel_connections.user_id
-        WHERE user_connections.twitch_id = $1
-    `;
-
-    let query = await queryDB(query_str, [twitch_id]);
+    let query = await fullUserSearch('WHERE user_connections.twitch_id = $1', twitch_id);
     return getUserFromResults(query);
 }
 
@@ -71,9 +56,9 @@ export const createUser = async (user: OCUser, extras?: { [key: string]: any }):
     // Insert into all tables required for full user data (users, user_connections, channel_connections)
 }
 
-export const getUserConnection = async (twitch_id: string) => {
-    let query_str = `SELECT * FROM user_connections WHERE twitch_id = $1`;
-    return await queryDB(query_str, [twitch_id]);
+export const getUserConnection = async (platform: string, id: string) => {
+    let query_str = `SELECT * FROM user_connections WHERE ${platform.toLowerCase()}_id = $1`;
+    return await queryDB(query_str, [id]);
 }
 
 const addUserConnection = async (data: { 
@@ -92,6 +77,20 @@ const addUserConnection = async (data: {
         data.twitch?.id ?? null, 
         data.twitch?.username ?? null
     ]);
+}
+
+const fullUserSearch = async (qstr: string, ...values: any[]) => {
+    // Gets all user info from multiple tables
+    let query_str = `SELECT users.*,
+        to_json(user_connections.*) as connections,
+        to_json(channel_connections.*) as channels
+        FROM users
+        LEFT OUTER JOIN user_connections ON users.uuid = user_connections.user_id
+        LEFT OUTER JOIN channel_connections on users.uuid = channel_connections.user_id
+        ${qstr}
+    `;
+    
+    return await queryDB(query_str, values);
 }
 
 const getUserFromResults = (query: Error | QueryResult<any>) => {

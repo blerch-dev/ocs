@@ -20,8 +20,7 @@ const DefaultRoute = new OCRoute({
             server.getRedisClient().getClient().set(code, json);
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
-            console.log("Redirecting...");
-            res.redirect(`https://${site}/auth?authcode=${code}`);
+            res.redirect(`${OCServices.IMP}://${site}/auth?authcode=${code}`);
         }
 
         // routes for authentication (login, signup, auth)
