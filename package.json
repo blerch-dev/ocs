@@ -4,7 +4,8 @@
   "description": "Open Chat Software",
   "main": "index.js",
   "scripts": {
-    "dev": "node dev.js"
+    "dev": "node dev.js",
+    "docker-build": "node build.js"
   },
   "repository": {
     "type": "git",
