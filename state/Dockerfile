@@ -1,4 +1,4 @@
-FROM blerch/ocs/type:v0.0.1
+FROM blerch-dev/ocs-type:latest
 
 # App Directory
 WORKDIR /usr/src/app
