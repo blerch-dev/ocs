@@ -33,19 +33,24 @@ const exe = (cmd) => {
     }
  */
 const start = async () => {
-    console.log("Building Type Library Image...")
+    console.log("Clearing Old Images...")
     let tp = require('./type/package.json');
-    await exe(`docker image rm blerch-dev/${tp.name}:latest`).catch((err) => { console.log("Image RM -", err); })
+    await exe(`docker rmi $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => { 
+        console.log("Image RM -", err); 
+    });
+
+    console.log("Building Type Library Image...")
     await exe(`cd type && docker build -t blerch-dev/${tp.name}:latest .`);
 
     console.log("Building Images...");
     const images = Object.keys(pkg).map((key) => { 
-        return { folder: key.toLowerCase(), image_name: `blerch-dev/${pkg[key].name}:${pkg[key].version}` }
+        return { folder: key.toLowerCase(), img_nme: `blerch-dev/${pkg[key].name}`, img_ver: `${pkg[key].version}` }
     });
 
     for(let i = 0; i < images.length; i++) {
-        await exe(`cd ${images[i].folder} && docker build -t ${images[i].image_name} .`);
-        console.log(`-- Built Image: ${images[i].image_name}`);
+        let m = images[i];
+        await exe(`cd ${m.folder} && docker build -t ${m.img_nme}:${m.img_ver} -t ${m.img_nme}:latest .`);
+        console.log(`-- Built Image: ${m.img_nme}`);
     }
 
     console.log("Finished Building Images...");

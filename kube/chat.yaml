@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocs-chat
+spec:
+  selector:
+    app: ocs-chat
+  ports:
+    - port: 80
+      targetPort: 8081
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocs-chat
+  labels:
+    app: ocs-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocs-chat
+  template:
+    metadata:
+      labels:
+        app: ocs-chat
+    spec:
+      containers:
+      - name: ocs-chat
+        image: blerch-dev/ocs-chat:latest
+        ports:
+          - containerPort: 8081
+        # env:
+        #   - name: DB_URL
+        #     value: db-url.local
+        imagePullPolicy: Never
+        # resources:
+        #   requests:
+        #     memory: "64Mi"
+        #     cpu: "250m"
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"

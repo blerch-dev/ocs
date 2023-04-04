@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocs-data
+spec:
+  selector:
+    app: ocs-data
+  ports:
+    - port: 80
+      targetPort: 8083
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocs-data
+  labels:
+    app: ocs-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocs-data
+  template:
+    metadata:
+      labels:
+        app: ocs-data
+    spec:
+      containers:
+      - name: ocs-data
+        image: blerch-dev/ocs-data:latest
+        ports:
+          - containerPort: 8083
+        # env:
+        #   - name: DB_URL
+        #     value: db-url.local
+        imagePullPolicy: Never
+        # resources:
+        #   requests:
+        #     memory: "64Mi"
+        #     cpu: "250m"
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"

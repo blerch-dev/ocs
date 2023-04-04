@@ -12,12 +12,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+logs.txt
 
 # environment variables
 .env
 .env.production
 secrets.yaml
-kube/info.txt
+kube/_info.txt
 
 # macOS-specific files
 .DS_Store

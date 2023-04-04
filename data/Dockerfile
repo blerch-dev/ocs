@@ -14,5 +14,5 @@ COPY . .
 RUN npm run build
 
 # Configure
-EXPOSE 8080
+EXPOSE 8083
 CMD [ "node", "build/index.js" ]
