@@ -247,6 +247,7 @@ export class OCSession {
 export class OCServices {
     static Production: boolean = process.env.NODE_ENV === 'prod';
     static IMP: string = OCServices.Production ? 'https' : 'http';
+    // needs a check for minikube state
     static RootURL: string = OCServices.Production ? 'ocs.gg' : 'ocs.local';
     static WhitelistedSites: string[] = [
         'app.local',
