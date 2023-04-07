@@ -247,30 +247,33 @@ export class OCSession {
 export class OCServices {
     static Production: boolean = process.env.NODE_ENV === 'prod';
     static IMP: string = OCServices.Production ? 'https' : 'http';
-    // needs a check for minikube state
-    static RootURL: string = OCServices.Production ? 'ocs.gg' : 'ocs.local';
-    static WhitelistedSites: string[] = [
-        'app.local',
-        'client.local',
-    
+
+    static RootURL: string = OCServices.Production ? 'ocs.gg' : 
+        process.env.KUBERNETES_SERVICE_HOST != undefined ? 'ocs.cluster' : 'ocs.local';
+
+    static WhitelistedSites: string[] = OCServices.Production ? [
+        'client.ocs.gg',
         'kidnotkin.tv'
-    ];
+    ] : [
+        'client.ocs.local',
+        'client.ocs.cluster'
+    ]
 
     static Auth: string = `auth.${OCServices.RootURL}`;
     static Chat: string = `chat.${OCServices.RootURL}`;
     static Client: string = `client.${OCServices.RootURL}`;
 
     static Data: string = `${
-        process.env.DATA_OCS_SERVICE_HOST ?? 'data.ocs.local'
+        process.env.DATA_OCS_SERVICE_HOST ?? `data.${OCServices.RootURL}`
     }${
         process.env.DATA_OCS_SERVICE_PORT ? ':' + process.env.DATA_OCS_SERVICE_PORT : ''
     }`;
 
     static State: string = `${
-        process.env.STATE_OCS_SERVICE_HOST ?? 'state.ocs.local'
+        process.env.STATE_OCS_SERVICE_HOST ?? `state.${OCServices.RootURL}`
     }${
         process.env.STATE_OCS_SERVICE_PORT ? ':' + process.env.STATE_OCS_SERVICE_PORT : ''
     }`;
 
-    static Redis: string = `${process.env.NODE_ENV === 'prod' ? OCServices.State : 'localhost'}`;
+    static Redis: string = `${OCServices.Production ? OCServices.State : 'localhost'}`;
 }
