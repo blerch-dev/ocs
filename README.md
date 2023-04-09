@@ -11,7 +11,7 @@
 * ~~Auth/Data server, intergrated to both chat and client.~~
 * ~~Pub/Sub server, further development of chat.~~
 * ~~Internal service authentication, more auth features.~~
-* Build Automation.
+* ~~Build Automation.~~
 * Deployment Testing and Automation.
 * Mod view, along side a development overview app.
 * Additional chat features.
