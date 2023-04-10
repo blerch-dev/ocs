@@ -35,7 +35,7 @@ const exe = (cmd) => {
 const start = async () => {
     console.log("Clearing Old Images...")
     let tp = require('./type/package.json');
-    await exe(`docker rmi $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => { 
+    await exe(`docker rmi -f $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => { 
         console.log("Image RM -", err); 
     });
 
