@@ -192,6 +192,8 @@ export default (server: OCServer) => {
                 }
             });
 
+            // Filter Messages/Commands Here
+
             publisher.publish(`chat|${channel.getSlug()}`, msg);
         }
 
