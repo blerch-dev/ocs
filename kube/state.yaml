@@ -11,6 +11,18 @@ spec:
   type: ClusterIP
 ---
 apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: NodePort
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: redis-config
@@ -68,9 +80,10 @@ spec:
       value: "true"
     ports:
     - containerPort: 6379
-    # resources:
-    #   limits:
-    #     cpu: "0.1"
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "0.1"
     volumeMounts:
     - mountPath: /redis-master-data
       name: data

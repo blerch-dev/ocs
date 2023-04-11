@@ -14,7 +14,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 import { OCRedisStore, OCRedisClient } from './state';
 
 export interface OCServerProps {
-    routes: [OCRoute],
+    routes: OCRoute[],
 
     id?: string | number, // Always exists, undefined will be generated
     node?: string, // Kubernetes/Docker Info
@@ -275,5 +275,7 @@ export class OCServices {
         process.env.STATE_OCS_SERVICE_PORT ? ':' + process.env.STATE_OCS_SERVICE_PORT : ''
     }`;
 
-    static Redis: string = `${OCServices.Production ? OCServices.State : 'localhost'}`;
+    static Redis: string = `${
+        process.env.REDIS_SERVICE_HOST ? process.env.REDIS_SERVICE_HOST : 'localhost'
+    }`;
 }
