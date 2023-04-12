@@ -16,6 +16,23 @@ const DevRoute = new OCRoute({
             res.send(defaultLayout(head, body));
         });
 
+        router.get('/users', async (req, res) => {
+            try {
+                let json = await (await fetch(OCServices.Data)).json();
+                res.json(json);
+            } catch(err) {
+                res.json(err);
+            }
+        });
+
+        router.get('/services', (req, res) => {
+            res.json({ ...OCServices });
+        });
+
+        router.get('/test', (req, res) => {
+            res.json({ test: true });
+        });
+
         return router;
     }
 });

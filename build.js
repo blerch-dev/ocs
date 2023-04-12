@@ -37,7 +37,7 @@ const images = Object.keys(pkg).map((key) => {
     return { folder: key.toLowerCase(), img_nme: `blerch-dev/${pkg[key].name}`, img_ver: `${pkg[key].version}` }
 });
 
-const start = async () => {
+const build_images = async () => {
     console.log("Clearing Old Images...")
     let tp = require('./type/package.json');
     await exe(`docker rmi -f $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => { 
@@ -57,23 +57,44 @@ const start = async () => {
     console.log("Finished Building Images.\n");
 }
 
+const load_images_to_minikube = async () => {
+    console.log("Loading Images...");
+    for(let i = 0; i < images.length; i++) {
+        let m = images[i];
+        await exe(`minikube image load blerch-dev/${m.img_nme}:latest`);
+        console.log(`-- Loaded Image: ${m.img_nme}`);
+    }
+    console.log("Finished loading Images.")
+}
+
 const minikube_config = async () => {
+    console.log("Minikube Configuring...\n");
+
+    console.log("Deleteing Deployments...");
+    await exe('kubectl delete --all deployments');
+
     console.log("Removing Images...");
     for(let i = 0; i < images.length; i++) {
         let m = images[i];
         await exe(`minikube image rm blerch-dev/${m.img_nme}`);
     }
 
-    console.log("Loading Images...");
-    for(let i = 0; i < images.length; i++) {
-        let m = images[i];
-        await exe(`minikube image load blerch-dev/${m.img_nme}:latest`);
-        console.log(`-- Uploaded Image: ${m.img_nme}`);
-    }
+    await load_images_to_minikube();
 
-    console.log("Finished Uploading Images.\n")
+    console.log("Applying Yaml Files...");
+    await exe('kubectl apply -f kube/');
+    console.log("Environment Configured.\n");
 }
 
-start().then(() => {
-    if(process.argv[2] && process.argv[2] === '-m') { minikube_config(); }
-});
+const run = async () => {
+    if(!process.argv.includes('-c'))
+        await build_images();
+
+    if(process.argv.includes('-m'))
+        await minikube_config();
+
+    if(process.argv.includes('-l'))
+        await load_images_to_minikube();
+}
+
+run();

@@ -1,3 +1,25 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/data"
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,11 +38,12 @@ metadata:
   name: redis
 spec:
   selector:
-    app: redis
+    app: redis-pod
   ports:
     - port: 6379
+      protocol: TCP
       targetPort: 6379
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -67,7 +90,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: redis
+  name: redis-pod
 spec:
   containers:
   - name: redis
