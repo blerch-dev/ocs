@@ -65,7 +65,12 @@ export class OCAuth {
                     });
 
                     json = await result.json();
-                    if(json?.data[0]?.id !== undefined) {
+                    if(json.error) {
+                        res.locals.twitch = { ...json };
+                        return next();
+                    }
+
+                    if(Array.isArray(json?.data) && json?.data[0]?.id !== undefined) {
                         res.locals.twitch = json.data[0];
                     }
 

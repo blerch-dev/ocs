@@ -112,10 +112,11 @@ export class OCServer {
         this.app.enable('trust proxy');
 
         const RedisClient = new OCRedisClient(OCServices.Redis, undefined, this);
-        const RedisStore = new OCRedisStore(session, RedisClient.getClient());
         
         // Session
         if(props.session) {
+            const RedisStore = new OCRedisStore(session, RedisClient.getClient());
+
             let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
             let sessionParser = session({
                 store: RedisStore.getStore(props.session?.ttl ?? ttl),
@@ -264,15 +265,15 @@ export class OCServices {
     static Client: string = `client.${OCServices.RootURL}`;
 
     static Data: string = `${
-        process.env.DATA_OCS_SERVICE_HOST ?? `data.${OCServices.RootURL}`
+        process.env.OCS_DATA_SERVICE_HOST ?? `data.${OCServices.RootURL}`
     }${
-        process.env.DATA_OCS_SERVICE_PORT ? ':' + process.env.DATA_OCS_SERVICE_PORT : ''
+        process.env.OCS_DATA_SERVICE_PORT ? ':' + process.env.OCS_DATA_SERVICE_PORT : ''
     }`;
 
     static State: string = `${
-        process.env.STATE_OCS_SERVICE_HOST ?? `state.${OCServices.RootURL}`
+        process.env.OCS_STATE_SERVICE_HOST ?? `state.${OCServices.RootURL}`
     }${
-        process.env.STATE_OCS_SERVICE_PORT ? ':' + process.env.STATE_OCS_SERVICE_PORT : ''
+        process.env.OCS_STATE_SERVICE_PORT ? ':' + process.env.OCS_STATE_SERVICE_PORT : ''
     }`;
 
     static Redis: string = `${

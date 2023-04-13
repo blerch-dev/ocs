@@ -61,10 +61,10 @@ const load_images_to_minikube = async () => {
     console.log("Loading Images...");
     for(let i = 0; i < images.length; i++) {
         let m = images[i];
-        await exe(`minikube image load blerch-dev/${m.img_nme}:latest`);
+        await exe(`minikube image load ${m.img_nme}:latest`);
         console.log(`-- Loaded Image: ${m.img_nme}`);
     }
-    console.log("Finished loading Images.")
+    console.log("Finished loading Images.");
 }
 
 const minikube_config = async () => {
@@ -76,7 +76,7 @@ const minikube_config = async () => {
     console.log("Removing Images...");
     for(let i = 0; i < images.length; i++) {
         let m = images[i];
-        await exe(`minikube image rm blerch-dev/${m.img_nme}`);
+        await exe(`minikube image rm ${m.img_nme}`);
     }
 
     await load_images_to_minikube();

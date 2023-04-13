@@ -41,7 +41,6 @@ spec:
     app: redis-pod
   ports:
     - port: 6379
-      protocol: TCP
       targetPort: 6379
   type: ClusterIP
 ---
@@ -91,6 +90,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: redis-pod
+  labels:
+    app: redis-pod
 spec:
   containers:
   - name: redis
