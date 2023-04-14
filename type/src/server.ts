@@ -173,16 +173,21 @@ export class OCServer {
                 req.session.user = user;
             });
 
-            this.routes.forEach((route) => {
+            // Goes through each route, if domain matches add to list of available routes, order kept
+            for(let i = 0; i < this.routes.length; i++) {
+                let route = this.routes[i];
                 let matches = route.matchesDomain(req.hostname);
 
-                this.logger.verbose("Router Domain:", matches, req.hostname);
-
-                if(matches)
-                    return route.getHandler(this, sesh)(req, res, next);
-            });
-
-            this.logger.verbose("End of Route Flow");
+                //this.logger.verbose("Router Domain:", matches, req.hostname);
+                
+                if(matches) {
+                    this.app.use(route.getHandler(this, sesh))
+                    //route.getHandler(this, sesh)(req, res, next);
+                }
+            }
+            
+            // Ordering routes finished, run matched routes
+            return next();
         });
 
         // Host/Clients
@@ -213,16 +218,18 @@ export interface OCRouteProps {
 export class OCRoute {
     public matchesDomain;
     public getHandler;
+    public getDomain;
 
     constructor(props: OCRouteProps) {
         this.matchesDomain = (domain: string) => { 
-            if(props.domain === domain) return true; 
+            if(props.domain === '*' || props.domain === domain) return true; 
             if(domain.match(props.domain)) return true;
             return false; 
         }
         this.getHandler = (server: OCServer, session: OCSession) => {
             return props.callback(express.Router(), server, session);
         }
+        this.getDomain = () => { return props.domain };
     }
 }
 
@@ -266,17 +273,27 @@ export class OCServices {
 
     static Data: string = `${
         process.env.OCS_DATA_SERVICE_HOST ?? `data.${OCServices.RootURL}`
-    }${
-        process.env.OCS_DATA_SERVICE_PORT ? ':' + process.env.OCS_DATA_SERVICE_PORT : ''
     }`;
+    // ${process.env.OCS_DATA_SERVICE_PORT ? ':' + process.env.OCS_DATA_SERVICE_PORT : ''}
 
     static State: string = `${
         process.env.OCS_STATE_SERVICE_HOST ?? `state.${OCServices.RootURL}`
-    }${
-        process.env.OCS_STATE_SERVICE_PORT ? ':' + process.env.OCS_STATE_SERVICE_PORT : ''
     }`;
+    //${process.env.OCS_STATE_SERVICE_PORT ? ':' + process.env.OCS_STATE_SERVICE_PORT : ''}
 
     static Redis: string = `${
         process.env.REDIS_SERVICE_HOST ? process.env.REDIS_SERVICE_HOST : 'localhost'
     }`;
+
+    static Fetch = async (srvc: string, resource: string, headers?: {[key: string]: any}) => {
+        let func = (url: string) => `${OCServices.IMP}://${url}`
+        switch(srvc) {
+            case 'Data':
+                return await fetch(func(OCServices.Data + resource), headers);
+            case 'State':
+                return await fetch(func(OCServices.State + resource), headers);
+            default:
+                return await fetch(func(OCServices.Data + resource), headers);
+        }
+    }
 }

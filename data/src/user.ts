@@ -85,8 +85,8 @@ const fullUserSearch = async (qstr: string, ...values: any[]) => {
         to_json(user_connections.*) as connections,
         to_json(channel_connections.*) as channels
         FROM users
-        LEFT OUTER JOIN user_connections ON users.uuid = user_connections.user_id
-        LEFT OUTER JOIN channel_connections on users.uuid = channel_connections.user_id
+        LEFT JOIN user_connections ON users.uuid = user_connections.user_id
+        LEFT JOIN channel_connections on users.uuid = channel_connections.user_id
         ${qstr}
     `;
     
