@@ -66,6 +66,7 @@ export class OCAuth {
 
                     json = await result.json();
                     if(json.error) {
+                        console.log(json);
                         res.locals.twitch = { ...json };
                         return next();
                     }
@@ -76,6 +77,7 @@ export class OCAuth {
 
                     next();
                 },
+                
                 appAuth: () => {
 
                 },

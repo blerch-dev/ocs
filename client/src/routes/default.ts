@@ -7,7 +7,7 @@ const DefaultRoute = new OCRoute({
     callback: (router, server, session) => {
         const isAuthed = (req: any, res: any, next: any) => {
             if(req?.session?.user == undefined) 
-                return res.redirect(`https://${OCServices.Auth}/sso?site=${req.hostname}`);
+                return res.redirect(`${OCServices.IMP}://${OCServices.Auth}/sso?site=${req.hostname}`);
 
             next();
         }
@@ -49,7 +49,7 @@ const DefaultRoute = new OCRoute({
 
         router.get('/logout', (req, res) => {
             res.clearCookie('connect.sid');
-            res.redirect(`https://${OCServices.Auth}/logout?site=${req.hostname}`);
+            res.redirect(`${OCServices.IMP}://${OCServices.Auth}/logout?site=${req.hostname}`);
         });
 
         router.get('/auth', async (req, res) => {
@@ -61,6 +61,7 @@ const DefaultRoute = new OCRoute({
 
                 let json = JSON.parse(result);
                 // get session id from cookie, get session, extract info for ssi cookie here
+                console.log("client auth side:", json);
                 res.cookie('connect.sid', json.cookie);
                 return res.redirect('/profile');
             });
@@ -73,7 +74,7 @@ const DefaultRoute = new OCRoute({
                 <main>
                     <h3>Profile Page</h3>
                     <div>
-                        <a href="http://${req.hostname}/logout">Logout</a>
+                        <a href="${OCServices.IMP}://${req.hostname}/logout">Logout</a>
                     </div>
                     <h3>Dev/Session Data</h3>
                     <p>Session</p>

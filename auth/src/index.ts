@@ -15,12 +15,17 @@ const DefaultRoute = new OCRoute({
     callback: (router, server, session) => {
         let passToApp = (res: any, value: string, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
-            let json = JSON.stringify({ cookie: value, ssi: ssi ?? false });
+            let json = { cookie: value, ssi: ssi ?? false }
 
-            server.getRedisClient().getClient().set(code, json);
+            server.getRedisClient().getClient().set(code, JSON.stringify(json));
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
             res.redirect(`${OCServices.IMP}://${site}/auth?authcode=${code}`);
+        }
+
+        let stayLoggedIn = () => {
+            // create key, set to auth site cookie, month long token, renews every 7 days
+            return '';
         }
 
         // routes for authentication (login, signup, auth)
@@ -96,8 +101,10 @@ const DefaultRoute = new OCRoute({
             if(output.Error)
                 return res.json({ Error: output.Error });
 
-            if(output instanceof OCUser)
+            if(output instanceof OCUser && user.validUserObject()) {
                 session.setUser(output);
+                if(req.cookies.ssi) { stayLoggedIn(); }
+            }
 
             // Loading mixed content error, needs https on original url
             passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, req.session.state?.authing_site);
@@ -115,7 +122,8 @@ const DefaultRoute = new OCRoute({
 
             // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
             let output = await (
-                await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
+                // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
+                await OCServices.Fetch('Data', `/user/twitch/${res.locals.twitch.id}`)
             ).json();
 
             if(output.data instanceof Error) {
@@ -126,9 +134,9 @@ const DefaultRoute = new OCRoute({
             // Add ways to select stay signed in here
             if(user instanceof OCUser && user.validUserObject()) {
                 session.setUser(user.toJSON());
+                if(ssi) { stayLoggedIn(); }
             } else {
                 // Create User - remember to normalize usernames on creation
-                console.log("User:", user, user.validUserObject(true));
                 session.setSesh('state', 'twitch', res.locals.twitch);
                 return res.send(SignUpPage(site, { 
                     username: res.locals.twitch.login,
@@ -141,11 +149,7 @@ const DefaultRoute = new OCRoute({
                 }));
             }
 
-            if(req.sessionID == undefined) {
-                return res.redirect('/session');
-            }
-
-            return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
+            return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site, ssi);
         });
 
         router.post('/user/twitch/sync', (req, res) => {
@@ -173,7 +177,7 @@ const server = new OCServer({
     session: {
         secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,
-        sameSite: 'none',
+        // sameSite: 'none',
         rolling: true
     },
     debug: true

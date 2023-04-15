@@ -168,9 +168,13 @@ export class OCServer {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
 
             let sesh = new OCSession((obj, key, value) => {
-                req.session[obj] = { ...req.session[obj], [key]: value };
+                if(req.session[obj])
+                    req.session[obj] = { ...req.session[obj], [key]: value };
+                else
+                    req.session[obj] = { [key]: value }
             }, (user) => {
                 req.session.user = user;
+                req.session.save(); // was working without, now requires it
             });
 
             // Goes through each route, if domain matches add to list of available routes, order kept
