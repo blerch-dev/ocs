@@ -93,7 +93,8 @@ const DefaultRoute = new OCRoute({
             let result = await (await OCServices.Fetch('Data', `/token/delete/uuid/${user_id}`)).json();
             console.log("Logout DB Result:", result);
 
-            req.session.destroy((err) => {
+            // destroy was not getting replaced on next request
+            req.session.regenerate((err) => {
                 let site = req.query.site as string;
                 if(err)
                     return res.send(ErrorPage(500, "Error logging out from OCS."));

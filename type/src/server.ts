@@ -168,10 +168,12 @@ export class OCServer {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
 
             let sesh = new OCSession((obj, key, value) => {
-                if(req.session[obj])
+                if(req.session?.[obj])
                     req.session[obj] = { ...req.session[obj], [key]: value };
+                else if(req.session)
+                    req.session[obj] = { [key]: value };
                 else
-                    req.session[obj] = { [key]: value }
+                    console.log("No Session Field on Request:", req.session);
             }, (user) => {
                 req.session.user = user;
                 req.session.save(); // was working without, now requires it
