@@ -19,10 +19,14 @@ export const getFullUserFromTwitch = async (twitch_id: string): Promise<Error | 
     return getUserFromResults(query);
 }
 
-export const getFullUserFromToken = async (token: string) => {
-    let token_data = await getTokenFromSelector(token);
+export const getFullUserFromToken = async (token: string): Promise<Error | OCUser> => {
+    let token_data = await getUUIDFromSelector(token);
+    if(token_data instanceof Error) {
+        // add checks for error type
+        return token_data;
+    }
 
-    //let query = await queryDB(query_str, )
+    return await getFullUser(token_data.user_id);
 }
 
 export const createUser = async (user: OCUser, extras?: { [key: string]: any }): Promise<Error | OCUser> => {
@@ -102,25 +106,11 @@ const getUserFromResults = (query: Error | QueryResult<any>) => {
 
 // #region User Tokens
 export const createUserToken = async (user: OCUser): Promise<Error | string> => {
-    let data = generateSelectorAndValidator();
-    let hashed_validator = await hashValidator(data.validator);
-    if(hashed_validator instanceof Error)
-        return hashed_validator;
-
-    let query_str = `INSERT INTO user_tokens (user_id, selector, hashed_validator, expires) 
-        VALUES ($1, $2, $3, $4)
-    `;
-
-    let expires = (daysToTimestamp(7 * 4)/1000);
-    let query = await queryDB(query_str, [user.getUUID(), data.selector, hashed_validator, `to_timestamp(${expires})`]);
-    if(query instanceof Error)
-        return query;
-
-    return `${data.selector}-${data.validator}`;
+    return await createTokenRecordForUUID(user.getUUID());
 }
 
-export const getTokenFromSelector = async (token: string): 
-    Promise<Error | { user_id: string, expires: string, hashed_validator: string }> => {
+export const getUUIDFromSelector = async (token: string): 
+    Promise<Error | { user_id: string, expires: string }> => {
     let selector = token.split('-')[0];
     let query_str = `SELECT user_id, hashed_validator, expires FROM user_tokens WHERE selector = $1`;
 
@@ -132,10 +122,53 @@ export const getTokenFromSelector = async (token: string):
     if(data === undefined)
         return new Error("No Token Found");
 
-    return {
-        user_id: data.user_id,
-        expires: data.expires,
-        hashed_validator: data.hashed_validator
+    let hashed_token = await hashValidator(token.split('-')[1]);
+    if(hashed_token instanceof Error)
+        return hashed_token;
+
+    if(hashed_token === data.hashed_validator) {
+        return {
+            user_id: data.user_id,
+            expires: data.expires
+        }
+    } else {
+        return new Error("Invalid Token");
     }
+}
+
+export const refreshTokenForUser = async (uuid: string): Promise<Error | string> => {
+    let result = await deleteTokenForUser(uuid);
+    if(result instanceof Error)
+        return result;
+
+    return await createTokenRecordForUUID(uuid);
+}
+
+export const deleteTokenForUser = async (uuid: string): Promise<Error | boolean> => {
+    let query_str = `DELETE FROM user_tokens WHERE user_id = $1`;
+    let query = await queryDB(query_str, [uuid]);
+    if(query instanceof Error)
+        return query;
+
+    return true;
+}
+
+const createTokenRecordForUUID = async (uuid: string, expires = 7 * 4) => {
+    let data = generateSelectorAndValidator();
+    let hashed_validator = await hashValidator(data.validator);
+    if(hashed_validator instanceof Error)
+        return hashed_validator;
+
+    let query_str = `INSERT INTO user_tokens (user_id, selector, hashed_validator, expires) 
+        VALUES ($1, $2, $3, $4)
+    `;
+
+    let eto = Math.ceil(daysToTimestamp(expires)/1000);
+    // `TO_TIMESTAMP(${eto})`
+    let query = await queryDB(query_str, [uuid, data.selector, hashed_validator, eto]);
+    if(query instanceof Error)
+        return query;
+
+    return `${data.selector}-${data.validator}`;
 }
 // #endregion

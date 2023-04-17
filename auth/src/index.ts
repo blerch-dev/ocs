@@ -23,9 +23,24 @@ const DefaultRoute = new OCRoute({
             res.redirect(`${OCServices.IMP}://${site}/auth?authcode=${code}`);
         }
 
-        let stayLoggedIn = () => {
+        let stayLoggedIn = async (user: OCUser, res: any) => {
             // create key, set to auth site cookie, month long token, renews every 7 days
-            return '';
+            let resp = await OCServices.Fetch('Data', '/token/create', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_data: user.toJSON() })
+            });
+
+            let json = await resp.json();
+            console.log("SSI Creation:", json);
+            if(json.Error !== undefined || json.token === undefined) {
+                console.log("SSI Error:", json.Error);
+                return;
+            }
+
+            let hour = 3600000;
+            res.cookie('ssi_token', json.token, { maxAge: 30 * 24 * hour, httpOnly: true, secure: OCServices.Production });
+            return;
         }
 
         // routes for authentication (login, signup, auth)
@@ -38,27 +53,53 @@ const DefaultRoute = new OCRoute({
             if(OCServices.WhitelistedSites.indexOf(site) < 0)
                 return res.send(ErrorPage(403, "This domain is not authorized to use OCS.GG SSO."));
 
-            if(req.session?.user) {
-                return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
-                //res.redirect('/session');
-            } else if(req.cookies?.ssi && req.cookies?.keep) {
-                // Stay Signed In - SSI is boolean, keep is json string
-                server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.keep}`,);
-                // Token Flow
-            } else {
-                // Login/Auth
+            const auth_fallback = () => {
                 session.setSesh('state', 'authing_site', site);
                 res.send(AuthPage(site));
             }
+
+            if(req.session?.user) {
+                // Current Session
+                return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
+            } else if(req.cookies?.ssi && req.cookies?.ssi_token) {
+                // Stay Signed In
+                server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.ssi_token}`,);
+                let resp = await OCServices.Fetch('Data', '/token/auth', {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: req.cookies.ssi_token })
+                });
+
+                let json = await resp.json();
+                if(json.Error !== undefined || json.user === undefined) {
+                    return auth_fallback();
+                }
+
+                let user = new OCUser(json.user, { noError: true });
+                if(user instanceof OCUser && user.validUserObject()) {
+                    session.setUser(user.toJSON());
+                    passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site)
+                } else {
+                    auth_fallback();
+                }
+            } else {
+                // Login/Auth
+                auth_fallback();
+            }
         });
 
-        router.get('/logout', (req, res) => {
+        router.get('/logout', async (req, res) => {
+            let user_id = req.session?.user?.uuid ?? 'ignore_request';
+            let result = await (await OCServices.Fetch('Data', `/token/delete/uuid/${user_id}`)).json();
+            console.log("Logout DB Result:", result);
+
             req.session.destroy((err) => {
                 let site = req.query.site as string;
                 if(err)
                     return res.send(ErrorPage(500, "Error logging out from OCS."));
 
                 res.clearCookie('connect.sid');
+                res.clearCookie('ssi_token');
                 if(site)
                     return res.redirect(`https://${site}/`);
                 
@@ -91,20 +132,23 @@ const DefaultRoute = new OCRoute({
                 channels: data.channels ?? {}
             });
 
-            let output: any = await (await fetch(`${OCServices.IMP}://${OCServices.Data}/user/create`, {
+            if(!user.validUserObject()) {
+                return res.json({ Error: { Code: 500, Message: "Failed to create user data." } });
+            }
+
+            let output = await (await fetch(`${OCServices.IMP}://${OCServices.Data}/user/create`, {
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_data: user.toJSON(), extras: { site: req.session.state?.authing_site } })
             })).json();
-            
+
             // Output is Error | OCUser
             if(output.Error)
                 return res.json({ Error: output.Error });
 
-            if(output instanceof OCUser && user.validUserObject()) {
-                session.setUser(output);
-                if(req.cookies.ssi) { stayLoggedIn(); }
-            }
+            // could user OCUser check here
+            session.setUser(output.data);
+            if(req.cookies.ssi) { await stayLoggedIn(output, res); }
 
             // Loading mixed content error, needs https on original url
             passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, req.session.state?.authing_site);
@@ -134,7 +178,7 @@ const DefaultRoute = new OCRoute({
             // Add ways to select stay signed in here
             if(user instanceof OCUser && user.validUserObject()) {
                 session.setUser(user.toJSON());
-                if(ssi) { stayLoggedIn(); }
+                if(ssi) { await stayLoggedIn(user, res); }
             } else {
                 // Create User - remember to normalize usernames on creation
                 session.setSesh('state', 'twitch', res.locals.twitch);

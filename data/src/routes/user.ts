@@ -1,5 +1,5 @@
-import { OCRoute, OCUser, OCServices } from 'ocs-type';
-import { getFullUser, getFullUserFromTwitch, createUser, getUserConnection, fullUserTest } from '../user';
+import { OCRoute, OCUser, OCServices, daysToTimestamp } from 'ocs-type';
+import { getFullUser, getFullUserFromTwitch, createUser, getUserConnection, fullUserTest, createUserToken, getUUIDFromSelector, refreshTokenForUser, deleteTokenForUser } from '../user';
 import { pg, queryDB } from '../data';
 import { QueryResult } from 'pg';
 
@@ -47,11 +47,78 @@ const UserRoute = new OCRoute({
 
         // Tokens
         router.post('/token/create', async (req, res) => {
+            // sends user, returns cookie assignable value
+            const { user_data } = req.body;
+            let user = new OCUser(user_data, { noError: true });
+            if(user instanceof Error) {
+                return res.json({
+                    Error: {
+                        Code: 401,
+                        Message: "Invalid user object"
+                    }
+                });
+            }
 
+            let token = await createUserToken(user);
+            if(token instanceof Error) {
+                return res.json({
+                    Error: {
+                        Code: 500,
+                        Message: "Failed to create token."
+                    }
+                })
+            }
+
+            return res.json({
+                token: token
+            });
         });
 
-        router.get('/token/auth', (req, res) => {
+        router.post('/token/auth', async (req, res) => {
+            const { token } = req.body;
+            let token_data = await getUUIDFromSelector(token);
+            if(token_data instanceof Error) {
+                // Could be invalid token or server error
+                return res.json({
+                    Error: {
+                        Code: 500,
+                        Message: "Failed to auth token."
+                    }
+                });
+            }
 
+            let json: { token?: string, user?: any } = {};
+            let renew = (new Date(token_data.expires)).getTime() - Date.now();
+            console.log("Renew Check:", (new Date(token_data.expires)).getTime(), renew)
+            if(renew < daysToTimestamp(2 * 7)) {
+                let str = await refreshTokenForUser(token_data.user_id);
+                json.token = typeof(str) === 'string' ? str : undefined;
+            }
+
+            let user = await getFullUser(token_data.user_id);
+            if(user instanceof Error) {
+                return res.json({
+                    Error: {
+                        Code: 500,
+                        Message: "Failed to find user for token."
+                    }
+                });
+            } else {
+                json.user = user.toJSON();
+            }
+
+            return res.json(json);
+        });
+
+        router.get('/token/delete/uuid/:id', async (req, res) => {
+            if(req.params.id === 'ignore_request')
+                return res.json({ Okay: true, Deleted: false });
+
+            let result = await deleteTokenForUser(req.params.id);
+            if(result instanceof Error)
+                return res.json({ Error: { Code: 500, Message: "Failed to delete token from database." } });
+
+            return res.json({ Okay: true, Deleted: true });
         });
 
         return router;
