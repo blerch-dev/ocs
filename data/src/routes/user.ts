@@ -76,9 +76,11 @@ const UserRoute = new OCRoute({
 
         router.post('/token/auth', async (req, res) => {
             const { token } = req.body;
+            console.log("Authing Token:", token);
             let token_data = await getUUIDFromSelector(token);
             if(token_data instanceof Error) {
                 // Could be invalid token or server error
+                console.log(token_data);
                 return res.json({
                     Error: {
                         Code: 500,
@@ -89,8 +91,9 @@ const UserRoute = new OCRoute({
 
             let json: { token?: string, user?: any } = {};
             let renew = (new Date(token_data.expires)).getTime() - Date.now();
-            console.log("Renew Check:", (new Date(token_data.expires)).getTime(), renew)
-            if(renew < daysToTimestamp(2 * 7)) {
+            let two_weeks = 1000 * 60 * 60 * 24 * 7 * 2;
+            if(renew < two_weeks) {
+                console.log("Refreshing:", renew, '<', two_weeks);
                 let str = await refreshTokenForUser(token_data.user_id);
                 json.token = typeof(str) === 'string' ? str : undefined;
             }

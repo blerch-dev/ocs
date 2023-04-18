@@ -26,6 +26,10 @@ const DevRoute = new OCRoute({
             res.json({ ...OCServices });
         });
 
+        router.get('/session', (req, res) => {
+            res.json({ ...req.session });
+        });
+
         router.get('/test', (req, res) => {
             res.json({ test: true });
         });

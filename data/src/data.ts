@@ -48,7 +48,7 @@ export const formatDB = () => {
     CREATE TABLE IF NOT EXISTS "user_tokens" (
         "user_id"               uuid NOT NULL,
         "selector"              varchar(12) NOT NULL,
-        "hashed_validator"      varchar(64) NOT NULL,
+        "hashed_validator"      varchar(128) NOT NULL,
         "expires"               timestamp NOT NULL,
         PRIMARY KEY ("selector")
     );

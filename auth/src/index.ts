@@ -63,6 +63,7 @@ const DefaultRoute = new OCRoute({
                 return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
             } else if(req.cookies?.ssi && req.cookies?.ssi_token) {
                 // Stay Signed In
+                // session is not being created correctly, attempts recreate till break
                 server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.ssi_token}`,);
                 let resp = await OCServices.Fetch('Data', '/token/auth', {
                     method: 'POST',
@@ -72,14 +73,16 @@ const DefaultRoute = new OCRoute({
 
                 let json = await resp.json();
                 if(json.Error !== undefined || json.user === undefined) {
+                    console.log("json error - auth fallback", json);
                     return auth_fallback();
                 }
 
                 let user = new OCUser(json.user, { noError: true });
                 if(user instanceof OCUser && user.validUserObject()) {
                     session.setUser(user.toJSON());
-                    passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site)
+                    passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site, req.cookies?.ssi)
                 } else {
+                    console.log("user error - auth fallback", user);
                     auth_fallback();
                 }
             } else {
@@ -99,7 +102,7 @@ const DefaultRoute = new OCRoute({
                 if(err)
                     return res.send(ErrorPage(500, "Error logging out from OCS."));
 
-                res.clearCookie('connect.sid');
+                //res.clearCookie('connect.sid'); // for destroy
                 res.clearCookie('ssi_token');
                 if(site)
                     return res.redirect(`https://${site}/`);
@@ -152,7 +155,7 @@ const DefaultRoute = new OCRoute({
             if(req.cookies.ssi) { await stayLoggedIn(output, res); }
 
             // Loading mixed content error, needs https on original url
-            passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, req.session.state?.authing_site);
+            passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, req.session.state?.authing_site, req.cookies.ssi);
         });
 
         // #region Twitch

@@ -165,7 +165,8 @@ const createTokenRecordForUUID = async (uuid: string, expires = 7 * 4) => {
 
     // let eto = (daysToTimestamp(expires)/1000); // `to_timestamp('${eto}', 'YYYY/MM/DD HH24:MI:SS')`
     let timestamp = new Date(daysToTimestamp(expires)).toUTCString();
-    let query = await queryDB(query_str, [uuid, data.selector, hashed_validator, timestamp]);
+    let args = [uuid, data.selector, hashed_validator, timestamp];
+    let query = await queryDB(query_str, args);
     if(query instanceof Error)
         return query;
 
