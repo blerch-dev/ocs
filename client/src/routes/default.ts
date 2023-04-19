@@ -61,8 +61,19 @@ const DefaultRoute = new OCRoute({
 
                 let json = JSON.parse(result);
                 // get session id from cookie, get session, extract info for ssi cookie here
-                console.log("client auth side:", json);
+                //console.log("client auth side:", json);
                 res.cookie('connect.sid', json.cookie);
+                if(json.ssi) {
+                    res.cookie('ssi', json.ssi, { 
+                        expires: new Date(365 * 24 * 60 * 60 * 1000 + Date.now()),
+                        httpOnly: true 
+                    }) 
+                }
+
+                if(req.session.state?.ssi_forward) {
+                    return res.redirect(req.session.state.ssi_forward);
+                }
+
                 return res.redirect('/profile');
             });
         });

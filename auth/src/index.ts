@@ -13,14 +13,16 @@ const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true });
 const DefaultRoute = new OCRoute({
     domain: `${OCServices.Auth}`,
     callback: (router, server, session) => {
-        let passToApp = (res: any, value: string, site: string, ssi?: boolean) => {
+        let passToApp = (req: any, res: any, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
-            let json = { cookie: value, ssi: ssi ?? false }
+            let json = { cookie: req.cookies['connect.sid'] ?? req.sessionID, ssi: ssi ?? false }
 
             server.getRedisClient().getClient().set(code, JSON.stringify(json));
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
-            res.redirect(`${OCServices.IMP}://${site}/auth?authcode=${code}`);
+            let redirect = `${OCServices.IMP}://${req.session.state?.authing_site ?? site}/auth?authcode=${code}`;
+            //console.log("PTA Cookies:", json, `Redirect: ${redirect}`, req.session);
+            res.redirect(redirect);
         }
 
         let stayLoggedIn = async (user: OCUser, res: any) => {
@@ -60,11 +62,10 @@ const DefaultRoute = new OCRoute({
 
             if(req.session?.user) {
                 // Current Session
-                return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site);
+                return passToApp(req, res, site, req.cookies.ssi);
             } else if(req.cookies?.ssi && req.cookies?.ssi_token) {
                 // Stay Signed In
-                // session is not being created correctly, attempts recreate till break
-                server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.ssi_token}`,);
+                //server.logger.debug(`Creating Session from SSI: ${req.cookies.ssi} - ${req.cookies.ssi_token}`,);
                 let resp = await OCServices.Fetch('Data', '/token/auth', {
                     method: 'POST',
                     headers: { "Content-Type": "application/json" },
@@ -80,7 +81,7 @@ const DefaultRoute = new OCRoute({
                 let user = new OCUser(json.user, { noError: true });
                 if(user instanceof OCUser && user.validUserObject()) {
                     session.setUser(user.toJSON());
-                    passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site, req.cookies?.ssi)
+                    return passToApp(req, res, site, req.cookies?.ssi)
                 } else {
                     console.log("user error - auth fallback", user);
                     auth_fallback();
@@ -155,14 +156,16 @@ const DefaultRoute = new OCRoute({
             if(req.cookies.ssi) { await stayLoggedIn(output, res); }
 
             // Loading mixed content error, needs https on original url
-            passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, req.session.state?.authing_site, req.cookies.ssi);
+            return passToApp(req, res, req.session.state?.authing_site, req.cookies.ssi);
         });
 
         // #region Twitch
         router.get('/twitch', Auth.twitch.authenticate);
         router.get('/auth/twitch', Auth.twitch.verify, async (req, res, next) => {
-            let site = req.session.state?.authing_site ?? 'no site';
+            let site = req.session.state?.authing_site;
             let ssi = req.cookies.ssi;
+
+            console.log("Authing with Twitch:", req.session);
 
             // Find User
             if(res.locals.twitch.id == undefined)
@@ -197,7 +200,7 @@ const DefaultRoute = new OCRoute({
                 }));
             }
 
-            return passToApp(res, req.cookies['connect.sid'] ?? req.sessionID, site, ssi);
+            return passToApp(req, res, site, ssi);
         });
 
         router.post('/user/twitch/sync', (req, res) => {
