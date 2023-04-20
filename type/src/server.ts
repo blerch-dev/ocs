@@ -166,21 +166,29 @@ export class OCServer {
         this.routes = props.routes;
         this.app.use(async (req, res, next) => {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
+            const SaveAndReload = async () => {
+                let promise = new Promise((res, rej) => {
+                    req.session.save((err) => { if(err) { return rej(err); } res(null); })
+                });
 
-            let sesh = new OCSession((obj, key, value) => {
-                console.log("setting session value:", obj, key, value);
+                await promise;
+                return new Promise((res, rej) => {
+                    req.session.reload((err) => { if(err) { return rej(err); } res(null); })
+                });
+            }
+
+            let sesh = new OCSession(async (obj, key, value) => {
                 if(req.session?.[obj]) {
                     req.session[obj] = { ...req.session[obj], [key]: value };
-                    console.log("set on previous object:", req.session, req.session[obj]);
                 } else if(req.session) {
                     req.session[obj] = { [key]: value };
-                    console.log("should have set the object:", req.session, req.session[obj]);
                 } else {
-                    console.log("No Session Field on Request:", req.session);
+                    console.log("No Session Field on Request:", req.session, obj, key, value);
                 }
-            }, (user) => {
+                await SaveAndReload();
+            }, async (user) => {
                 req.session.user = user;
-                req.session.save(); // was working without, now requires it
+                await SaveAndReload();
             });
 
             // Goes through each route, if domain matches add to list of available routes, order kept
@@ -251,7 +259,7 @@ export class OCSession {
 
     private option: {[key: string]: any} = {};
 
-    constructor(cb: (obj: string, key: string, value: any) => void, su: (user: any) => void) {
+    constructor(cb: (obj: string, key: string, value: any) => Promise<void>, su: (user: any) => Promise<void>) {
         this.setSesh = cb;
         this.setUser = su;
 

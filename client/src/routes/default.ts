@@ -47,37 +47,6 @@ const DefaultRoute = new OCRoute({
             return res.redirect('/profile');
         });
 
-        router.get('/logout', (req, res) => {
-            res.clearCookie('connect.sid');
-            res.redirect(`${OCServices.IMP}://${OCServices.Auth}/logout?site=${req.hostname}`);
-        });
-
-        router.get('/auth', async (req, res) => {
-            let code = req.query.authcode as string;
-            server.getRedisClient().getClient().get(code, (err, result) => {
-                if(err || typeof(result) !== 'string') {
-                    return res.redirect('/error');
-                }
-
-                let json = JSON.parse(result);
-                // get session id from cookie, get session, extract info for ssi cookie here
-                //console.log("client auth side:", json);
-                res.cookie('connect.sid', json.cookie);
-                if(json.ssi) {
-                    res.cookie('ssi', json.ssi, { 
-                        expires: new Date(365 * 24 * 60 * 60 * 1000 + Date.now()),
-                        httpOnly: true 
-                    }) 
-                }
-
-                if(req.session.state?.ssi_forward) {
-                    return res.redirect(req.session.state.ssi_forward);
-                }
-
-                return res.redirect('/profile');
-            });
-        });
-
         router.get('/profile', isAuthed, (req, res, next) => {
             let head = defaultHead('OCS | Profile');
             let body = `

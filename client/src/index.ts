@@ -11,10 +11,44 @@ import DefaultRoute from './routes/default';
 const SSIRoute = new OCRoute({
     domain: '*',
     callback: (router, server, session) => {
-        router.all('*', (req, res) => {
-            if(req.session.user === undefined && req.cookies?.ssi === true) {
+        router.get('/auth', async (req, res) => {
+            let code = req.query.authcode as string;
+            server.getRedisClient().getClient().get(code, (err, result) => {
+                if(err || typeof(result) !== 'string') {
+                    return res.redirect('/error');
+                }
+
+                let json = JSON.parse(result);
+                // get session id from cookie, get session, extract info for ssi cookie here
+                //console.log("client auth side:", json);
+                res.cookie('connect.sid', json.cookie);
+                if(json.ssi) {
+                    res.cookie('ssi', json.ssi, { 
+                        expires: new Date(365 * 24 * 60 * 60 * 1000 + Date.now()),
+                        httpOnly: true 
+                    }) 
+                }
+
+                if(req.session.state?.ssi_forward) {
+                    return res.redirect(req.session.state.ssi_forward);
+                }
+
+                return res.redirect('/profile');
+            });
+        });
+
+        router.get('/logout', (req, res) => {
+            res.clearCookie('connect.sid');
+            res.clearCookie('ssi');
+            res.redirect(`${OCServices.IMP}://${OCServices.Auth}/logout?site=${req.hostname}`);
+        });
+
+        router.all('*', (req, res, next) => {
+            if(req.session?.user == undefined && req.cookies.ssi == 'true') {
                 session.setSesh('state', 'ssi_forward', req.protocol + '://' + req.hostname + req.originalUrl);
                 res.redirect(`${OCServices.IMP}://${OCServices.Auth}/sso?site=${req.hostname}`);
+            } else {
+                return next();
             }
         });
 
@@ -23,7 +57,7 @@ const SSIRoute = new OCRoute({
 })
 
 const server = new OCServer({
-    routes: [DevRoute, DefaultRoute],
+    routes: [SSIRoute, DevRoute, DefaultRoute],
     port: 8080,
     static: [path.resolve(__dirname, './public/')],
     session: {}

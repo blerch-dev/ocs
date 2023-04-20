@@ -15,13 +15,18 @@ const DefaultRoute = new OCRoute({
     callback: (router, server, session) => {
         let passToApp = (req: any, res: any, site: string, ssi?: boolean) => {
             let code = require('crypto').randomBytes(16).toString('hex');
-            let json = { cookie: req.cookies['connect.sid'] ?? req.sessionID, ssi: ssi ?? false }
+            let json = { cookie: req.cookies['connect.sid'], ssi: ssi ?? false }
+
+            if(json.cookie == undefined) {
+                //console.log("No Cookie Value:", json.cookie, req.session);
+                return res.redirect(`/pta?site=${site}`);
+            }
 
             server.getRedisClient().getClient().set(code, JSON.stringify(json));
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
             let redirect = `${OCServices.IMP}://${req.session.state?.authing_site ?? site}/auth?authcode=${code}`;
-            //console.log("PTA Cookies:", json, `Redirect: ${redirect}`, req.session);
+            console.log("PTA Cookies:", json);
             res.redirect(redirect);
         }
 
@@ -45,6 +50,11 @@ const DefaultRoute = new OCRoute({
             return;
         }
 
+        router.get('/pta', async (req, res) => {
+            //console.log("Sent to PTA:", req.query.site, req.cookies);
+            return passToApp(req, res, req.query.site ?? req.session?.state?.authing_site, req.cookies?.ssi)
+        });
+
         // routes for authentication (login, signup, auth)
         router.get('/sso', async (req, res, next) => {
             let site = req.query.site as string;
@@ -55,8 +65,8 @@ const DefaultRoute = new OCRoute({
             if(OCServices.WhitelistedSites.indexOf(site) < 0)
                 return res.send(ErrorPage(403, "This domain is not authorized to use OCS.GG SSO."));
 
-            const auth_fallback = () => {
-                session.setSesh('state', 'authing_site', site);
+            const auth_fallback = async () => {
+                await session.setSesh('state', 'authing_site', site);
                 res.send(AuthPage(site));
             }
 
@@ -80,7 +90,8 @@ const DefaultRoute = new OCRoute({
 
                 let user = new OCUser(json.user, { noError: true });
                 if(user instanceof OCUser && user.validUserObject()) {
-                    session.setUser(user.toJSON());
+                    await session.setUser(user.toJSON());
+                    console.log("User should be set on session::", req.session, user.toJSON());
                     return passToApp(req, res, site, req.cookies?.ssi)
                 } else {
                     console.log("user error - auth fallback", user);
@@ -98,12 +109,13 @@ const DefaultRoute = new OCRoute({
             console.log("Logout DB Result:", result);
 
             // destroy was not getting replaced on next request
-            req.session.regenerate((err) => {
+            req.session.destroy((err) => {
                 let site = req.query.site as string;
                 if(err)
                     return res.send(ErrorPage(500, "Error logging out from OCS."));
 
-                //res.clearCookie('connect.sid'); // for destroy
+                //console.log("Deleted Session:", req.session);
+                res.clearCookie('connect.sid'); // for destroy
                 res.clearCookie('ssi_token');
                 if(site)
                     return res.redirect(`https://${site}/`);
@@ -152,7 +164,7 @@ const DefaultRoute = new OCRoute({
                 return res.json({ Error: output.Error });
 
             // could user OCUser check here
-            session.setUser(output.data);
+            await session.setUser(output.data);
             if(req.cookies.ssi) { await stayLoggedIn(output, res); }
 
             // Loading mixed content error, needs https on original url
@@ -184,11 +196,11 @@ const DefaultRoute = new OCRoute({
             let user = new OCUser(output.data, { noError: true });
             // Add ways to select stay signed in here
             if(user instanceof OCUser && user.validUserObject()) {
-                session.setUser(user.toJSON());
+                await session.setUser(user.toJSON());
                 if(ssi) { await stayLoggedIn(user, res); }
             } else {
                 // Create User - remember to normalize usernames on creation
-                session.setSesh('state', 'twitch', res.locals.twitch);
+                await session.setSesh('state', 'twitch', res.locals.twitch);
                 return res.send(SignUpPage(site, { 
                     username: res.locals.twitch.login,
                     connections: {
