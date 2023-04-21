@@ -164,32 +164,23 @@ export class OCServer {
 
         // Routes
         this.routes = props.routes;
+
+        let sesh = new OCSession((req, obj, key, value) => {
+            if(req.session?.[obj]) {
+                req.session[obj] = { ...req.session[obj], [key]: value };
+            } else if(req.session) {
+                req.session[obj] = { [key]: value };
+            } else {
+                console.log("No Session Field on Request:", req.session, obj, key, value);
+            }
+        }, (req, user) => {
+            console.log("SESSION USER BEFORE:", !!req.session.user);
+            req.session.user = user;
+            console.log("SESSION USER AFTER:", !!req.session.user);
+        });
+
         this.app.use(async (req, res, next) => {
             this.logger.verbose(`Router Flow: ${req.hostname} | ${req.headers.origin}`);
-            const SaveAndReload = async () => {
-                let promise = new Promise((res, rej) => {
-                    req.session.save((err) => { if(err) { return rej(err); } res(null); })
-                });
-
-                await promise;
-                return new Promise((res, rej) => {
-                    req.session.reload((err) => { if(err) { return rej(err); } res(null); })
-                });
-            }
-
-            let sesh = new OCSession(async (obj, key, value) => {
-                if(req.session?.[obj]) {
-                    req.session[obj] = { ...req.session[obj], [key]: value };
-                } else if(req.session) {
-                    req.session[obj] = { [key]: value };
-                } else {
-                    console.log("No Session Field on Request:", req.session, obj, key, value);
-                }
-                await SaveAndReload();
-            }, async (user) => {
-                req.session.user = user;
-                await SaveAndReload();
-            });
 
             // Goes through each route, if domain matches add to list of available routes, order kept
             for(let i = 0; i < this.routes.length; i++) {
@@ -259,7 +250,7 @@ export class OCSession {
 
     private option: {[key: string]: any} = {};
 
-    constructor(cb: (obj: string, key: string, value: any) => Promise<void>, su: (user: any) => Promise<void>) {
+    constructor(cb: (req: any, obj: string, key: string, value: any) => void, su: (req: any, user: any) => void) {
         this.setSesh = cb;
         this.setUser = su;
 

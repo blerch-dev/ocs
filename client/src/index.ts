@@ -45,7 +45,7 @@ const SSIRoute = new OCRoute({
 
         router.all('*', (req, res, next) => {
             if(req.session?.user == undefined && req.cookies.ssi == 'true') {
-                session.setSesh('state', 'ssi_forward', req.protocol + '://' + req.hostname + req.originalUrl);
+                session.setSesh(req, 'state', 'ssi_forward', req.protocol + '://' + req.hostname + req.originalUrl);
                 res.redirect(`${OCServices.IMP}://${OCServices.Auth}/sso?site=${req.hostname}`);
             } else {
                 return next();

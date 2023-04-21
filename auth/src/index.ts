@@ -50,6 +50,12 @@ const DefaultRoute = new OCRoute({
             return;
         }
 
+        // router.get('/reqack/:site', (req, res) => {
+        //     res.send(DefaultPage('OCS | Session Forwarding', `
+        //         <script> window.location.href = '/pta?site=${req.params.site}' </script>
+        //     `));
+        // });
+
         router.get('/pta', async (req, res) => {
             //console.log("Sent to PTA:", req.query.site, req.cookies);
             return passToApp(req, res, req.query.site ?? req.session?.state?.authing_site, req.cookies?.ssi)
@@ -66,7 +72,7 @@ const DefaultRoute = new OCRoute({
                 return res.send(ErrorPage(403, "This domain is not authorized to use OCS.GG SSO."));
 
             const auth_fallback = async () => {
-                await session.setSesh('state', 'authing_site', site);
+                session.setSesh(req, 'state', 'authing_site', site);
                 res.send(AuthPage(site));
             }
 
@@ -90,8 +96,9 @@ const DefaultRoute = new OCRoute({
 
                 let user = new OCUser(json.user, { noError: true });
                 if(user instanceof OCUser && user.validUserObject()) {
-                    await session.setUser(user.toJSON());
-                    console.log("User should be set on session::", req.session, user.toJSON());
+                    console.log("SESSION USER IN:", !!req.session.user);
+                    session.setUser(req, user.toJSON());
+                    console.log("SESSION USER OUT:", !!req.session.user);
                     return passToApp(req, res, site, req.cookies?.ssi)
                 } else {
                     console.log("user error - auth fallback", user);
@@ -164,7 +171,7 @@ const DefaultRoute = new OCRoute({
                 return res.json({ Error: output.Error });
 
             // could user OCUser check here
-            await session.setUser(output.data);
+            session.setUser(req, output.data);
             if(req.cookies.ssi) { await stayLoggedIn(output, res); }
 
             // Loading mixed content error, needs https on original url
@@ -196,11 +203,11 @@ const DefaultRoute = new OCRoute({
             let user = new OCUser(output.data, { noError: true });
             // Add ways to select stay signed in here
             if(user instanceof OCUser && user.validUserObject()) {
-                await session.setUser(user.toJSON());
+                session.setUser(req, user.toJSON());
                 if(ssi) { await stayLoggedIn(user, res); }
             } else {
                 // Create User - remember to normalize usernames on creation
-                await session.setSesh('state', 'twitch', res.locals.twitch);
+                session.setSesh(req, 'state', 'twitch', res.locals.twitch);
                 return res.send(SignUpPage(site, { 
                     username: res.locals.twitch.login,
                     connections: {
