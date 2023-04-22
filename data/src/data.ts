@@ -68,7 +68,7 @@ export const formatDB = () => {
         "channel_id"    uuid NOT NULL,
         "user_id"       uuid NOT NULL,
         "roles"         bigint DEFAULT 0,
-        "status"        smallint DEFAULT 1
+        "status"        smallint DEFAULT 0
     );
     `;
 

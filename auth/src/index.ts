@@ -96,9 +96,7 @@ const DefaultRoute = new OCRoute({
 
                 let user = new OCUser(json.user, { noError: true });
                 if(user instanceof OCUser && user.validUserObject()) {
-                    console.log("SESSION USER IN:", !!req.session.user);
                     session.setUser(req, user.toJSON());
-                    console.log("SESSION USER OUT:", !!req.session.user);
                     return passToApp(req, res, site, req.cookies?.ssi)
                 } else {
                     console.log("user error - auth fallback", user);

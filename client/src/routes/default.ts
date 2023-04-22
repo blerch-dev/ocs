@@ -1,5 +1,5 @@
 // Default Layout/Route for ocs.gg
-import { OCRoute, OCServices } from "ocs-type";
+import { OCRoute, OCServices, RoleSheet, Status } from "ocs-type";
 import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
 
 const DefaultRoute = new OCRoute({
@@ -49,23 +49,43 @@ const DefaultRoute = new OCRoute({
 
         router.get('/profile', isAuthed, (req, res, next) => {
             let head = defaultHead('OCS | Profile');
+            let roles = RoleSheet.GlobalRoles.getRoles(req.session?.user?.roles);
+
+            let content = `
+                <div>
+                    <div>
+                        <h2>Account Details</h2>
+                        <span class="user-card">${req.session?.user?.username}</span>
+                        <h4>Roles</h4>
+                        <span class="profile-card">
+                            ${roles.map((ri) => {
+                                `<p style="color: ${ri.color};">${ri.name}</p>`
+                            }).join('<br>')}
+                        </span>
+                        <h4>Status</h4>
+                        <span class="profile-card">
+                            ${Status.VALID & req.session?.user?.status ? '<p>Valid Account</p><br>' : '<p>Invalid Account</p><br>'}
+                            ${Status.BANNED & req.session?.user?.status ? '<p>Global Chat Ban</p><br>' : ''}
+                            ${Status.MUTED & req.session?.user?.status ? '<p>Global Chat Mute</p><br>' : ''}
+                        </span>
+                    <div>
+                </div>
+            `;
+
             let body = `
                 ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
-                <main>
-                    <h3>Profile Page</h3>
-                    <div>
-                        <a href="${OCServices.IMP}://${req.hostname}/logout">Logout</a>
-                    </div>
-                    <h3>Dev/Session Data</h3>
-                    <p>Session</p>
-                    <pre>${JSON.stringify(session.getOptions()?.session ?? req.session ?? { error: 'No Session' }, null, 2)}</pre>
-                    <p>Cookies:</p>
-                    <pre>${JSON.stringify(session.getOptions()?.cookies ?? req.cookies ?? { error: 'No Cookies' }, null, 2)}</pre>
-                    <style>
-                        pre {
-                            margin-bottom: 10px;
-                        }
-                    </style>
+                <main style="flex-direction: row;">
+                    <nav class="section-nav">
+                        <div style="flex: 1;">
+                        
+                        </div>
+                        <div>
+                            <span class="section-link">
+                                <a href="${OCServices.IMP}://${req.hostname}/logout">Logout</a>
+                            </span>
+                        </div>
+                    </nav>
+                    ${content}
                 </main>
             `;
 

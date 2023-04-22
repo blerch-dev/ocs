@@ -37,8 +37,22 @@ let configGlobalRoles: () => RoleInterface[] = () => {
 // Channel Based - 8 Bytes - Channel Owner Set
 export class RoleSheet {
     static GlobalRoles = new RoleSheet(configGlobalRoles());
+    static IsAdmin: (user: OCUser) => boolean = (user) => {
+        let roles = RoleSheet.GlobalRoles.GetRoleValues();
+        return !!(user.getRoleValue() & (roles.Admin));
+    }
+    static IsDev: (user: OCUser) => boolean = (user) => {
+        let roles = RoleSheet.GlobalRoles.GetRoleValues();
+        return !!(user.getRoleValue() & (roles.Admin + roles.Dev));
+    }
+    static IsMod: (user: OCUser) => boolean = (user) => {
+        let roles = RoleSheet.GlobalRoles.GetRoleValues();
+        return !!(user.getRoleValue() & (roles.Admin + roles.Dev + roles.Mod));
+    }
+
     public getRoles: (int: number) => RoleInterface[];
     public getAllRoles: (user: OCUser, channel_name: string) => RoleInterface[];
+    public GetRoleValues: () => {[key: string]: number};
 
     // Internal Enum
     private RoleField: Map<number, RoleInterface>
@@ -56,6 +70,11 @@ export class RoleSheet {
 
             return roles;
         };
+        this.GetRoleValues = () => {
+            let obj: {[key: string]: number} = {};
+            [...this.RoleField.entries()].map((ent) => { obj[ent[1].name] = ent[1].value });
+            return obj;
+        }
 
         this.getAllRoles = (user, channel_name) => {
             let roles = [
@@ -113,6 +132,7 @@ export class OCUser {
     public channelDetails;
     public isBanned;
     public isMuted;
+    public getRoleValue;
     public getRoles;
 
     public getCreatedAtTimestamp;
@@ -121,29 +141,29 @@ export class OCUser {
 
     public toString;
 
-    constructor(data: OCUserProps, options?: { noError?: boolean }) {
+    constructor(user_data: OCUserProps, options?: { noError?: boolean }) {
         // If data doesnt include certain fields, return error
-        if(!OCUser.validUserObject(data)) {
+        if(!OCUser.validUserObject(user_data)) {
             if(options?.noError !== true)
                 throw new Error(`Invalid User Object`);
 
             this.validUserObject = (debug?: boolean) => { 
-                if(debug) { OCUser.validUserObject(data, debug); } return false
+                if(debug) { OCUser.validUserObject(user_data, debug); } return false
             };
         } else {
             this.validUserObject = (debug?: boolean) => { 
-                if(debug) { OCUser.validUserObject(data, debug); } return true
+                if(debug) { OCUser.validUserObject(user_data, debug); } return true
             };
         }
 
-        data = {
-            uuid: data.uuid,
-            username: data.username,
-            roles: data.roles ?? 0,
-            status: data.status ?? 0,
-            created_at: data.created_at ?? Date.now(),
-            connections: data.connections,
-            channels: data.channels
+        const data = {
+            uuid: user_data.uuid,
+            username: user_data.username,
+            roles: user_data.roles ?? 0,
+            status: user_data.status ?? 0,
+            created_at: user_data.created_at ?? Date.now(),
+            connections: user_data.connections,
+            channels: user_data.channels
         }
 
         this.toJSON = () => { return data; }
@@ -152,7 +172,13 @@ export class OCUser {
         this.channelDetails = (channel_name: string) => { return data.channels?.[channel_name]; }
         this.isBanned = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.BANNED) }
         this.isMuted = (channel_name: string) => { return !!(data.channels?.[channel_name].status & Status.MUTED) }
-        this.getRoles = (channel: OCChannel) => { return channel.getRoleSheet().getAllRoles(this, channel.getName()); }
+        this.getRoleValue = () => { return data.roles }
+        this.getRoles = (channel?: OCChannel) => {
+            if(channel instanceof OCChannel)
+                return channel.getRoleSheet().getAllRoles(this, channel.getName());
+
+            return RoleSheet.GlobalRoles.getRoles(data.roles);
+        }
 
         this.getCreatedAtTimestamp = () => {
             if(typeof(data.created_at) === 'string')

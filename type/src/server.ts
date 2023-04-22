@@ -171,12 +171,10 @@ export class OCServer {
             } else if(req.session) {
                 req.session[obj] = { [key]: value };
             } else {
-                console.log("No Session Field on Request:", req.session, obj, key, value);
+                this.logger.debug(`No Session Field on Request: ${obj}`, req.session, obj, key, value);
             }
         }, (req, user) => {
-            console.log("SESSION USER BEFORE:", !!req.session.user);
             req.session.user = user;
-            console.log("SESSION USER AFTER:", !!req.session.user);
         });
 
         this.app.use(async (req, res, next) => {
