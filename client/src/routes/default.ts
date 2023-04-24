@@ -69,9 +69,9 @@ const DefaultRoute = new OCRoute({
                     <div id="Account" class="profile-section">
                         <h2>Account Details</h2>
                         <span class="profile-card">
-                            <span class="profile-card-group" style="flex-direction: row;">
+                            <span class="profile-card-tag">
                                 <h4>Username:</h4>
-                                <p>${req.session?.user?.username}</p>
+                                <p>${user.getName()}</p>
                             </span>
                             <span class="profile-card-group">
                                 <h4>Roles:</h4>
@@ -81,19 +81,28 @@ const DefaultRoute = new OCRoute({
                             </span>
                             <span class="profile-card-group">
                             <h4>Status:</h4>
-                                ${Status.VALID & req.session?.user?.status ? '<p>Valid Account</p>' : '<p>Invalid Account</p>'}
-                                ${Status.BANNED & req.session?.user?.status ? '<p>Global Chat Ban</p>' : ''}
-                                ${Status.MUTED & req.session?.user?.status ? '<p>Global Chat Mute</p>' : ''}
+                                ${Status.VALID & user.toJSON().status ? '<p>Valid Account</p>' : '<p>Invalid Account</p>'}
+                                ${Status.BANNED & user.toJSON().status ? '<p>Global Chat Ban</p>' : ''}
+                                ${Status.MUTED & user.toJSON().status ? '<p>Global Chat Mute</p>' : ''}
                             </span>
                         </span>
                     <div>
                     <div>
                         <h2>Connections</h2>
-                        <span class="profile-card"></span>
+                        <span class="profile-card">
+                            ${user.toJSON().connections?.twitch ? `
+                                <span class="profile-card-tag twitch-tag">
+                                    <img src="/assets/logos/twitch.svg">
+                                    <h4>${user.toJSON().connections.twitch.username}</h4>
+                                </span>
+                            ` : ''}
+                        </span>
                     </div>
                     <div>
                         <h2>Channels</h2>
-                        <span class="profile-card"></span>
+                        <span class="profile-card">
+                                <h4>Channels TODO</h4>
+                        </span>
                     </div>
                 </div>
             `;

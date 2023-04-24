@@ -115,6 +115,8 @@ export default (server: OCServer) => {
         let session = await getSession(request) as any;
         let origin = (request as any)?.headers?.origin as string;
         let channel_data = await getChannel(getQuery(request.url ?? '/')?.channel);
+
+        // session is now empty
         let user = OCUser.validUserObject((session as any)?.user) ? new OCUser((session as any)?.user) : undefined;
         // Updating User with new User from new session should effect current chatter copium
 

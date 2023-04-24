@@ -7,7 +7,7 @@ interface chatOptions {
 
 export const chatComponent = (title: string, options?: chatOptions) => {
     let cv = 0;
-    const getNV = (sv?: number) => { if(sv != undefined) { cv = 0; } return ('0' + cv++).slice(-2) }
+    const getNV = (sv?: number) => { if(sv != undefined) { cv = sv; } return ('0' + cv++).slice(-2) }
     return `
     <div id="OCS-Chat" 
         class="${options?.transparent ?? false ? 'embed-chat' : ''} ${options?.flex ?? false ? 'fill-space' : ''}" 
@@ -17,7 +17,7 @@ export const chatComponent = (title: string, options?: chatOptions) => {
         <header>
             <h4>${title}</h4>
             <div>
-                <span tabindex="2${getNV()}"></span>
+                <span tabindex="2${getNV(0)}" id="Chat-Settings"><img src="/assets/settings.svg"></span>
                 <span tabindex="2${getNV()}"></span>
                 <span tabindex="2${getNV()}"></span>
             </div>

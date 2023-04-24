@@ -115,7 +115,7 @@ export class OCUser {
     public static validUserObject = (data: OCUserProps, debug = false) => {
         let required_keys = ['uuid', 'username'];
         required_keys.forEach(key => {
-            if((data as any)[key] === undefined) {
+            if((data as any)?.[key] === undefined) {
                 if(debug) { console.log(key, (data as any)[key]) }
                 return false;
             }
@@ -141,7 +141,9 @@ export class OCUser {
 
     public toString;
 
-    constructor(user_data: OCUserProps, options?: { noError?: boolean }) {
+    constructor(user_data: OCUserProps, options?: { noError?: boolean, debug?: boolean }) {
+        if(options?.debug) { console.log("User Debug", user_data) }
+
         // If data doesnt include certain fields, return error
         if(!OCUser.validUserObject(user_data)) {
             if(options?.noError !== true)

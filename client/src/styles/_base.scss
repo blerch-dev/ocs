@@ -102,3 +102,16 @@ a {
 input {
     background: var(--page-bg);
 }
+
+.twitch-tag {
+    background-color: var(--twitch-purple);
+    border: 2px solid var(--light-bg);
+    padding: 8px 12px;
+    width: fit-content;
+    border-radius: 5px;
+    gap: 8px !important;
+
+    & > img {
+        width: 20px;
+    }
+}
