@@ -92,7 +92,7 @@ export class RoleSheet {
 interface OCUserProps {
     uuid: string,
     username: string,
-    roles?: number,
+    roles?: number | string,
     status?: number,
     created_at?: string | number,
 
@@ -156,15 +156,24 @@ export class OCUser {
             };
         }
 
+        let udc = user_data.connections as any;
         const data = {
             uuid: user_data.uuid,
             username: user_data.username,
-            roles: user_data.roles ?? 0,
+            roles: Number(user_data.roles) ?? 0,
             status: user_data.status ?? 0,
             created_at: user_data.created_at ?? Date.now(),
-            connections: user_data.connections,
+            connections: {
+                creation: udc.created_for,
+                twitch: udc?.twitch ? udc.twitch : udc?.twitch_id ? {
+                    id: udc.twitch_id,
+                    username: udc.twitch_name
+                } : undefined
+            },
             channels: user_data.channels
         }
+
+        /**/
 
         this.toJSON = () => { return data; }
         this.getUUID = () => { return data.uuid; }

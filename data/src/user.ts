@@ -53,7 +53,8 @@ export const createUser = async (user: OCUser, extras?: { [key: string]: any }):
         await addUserConnection({ 
             user_id: user.getUUID(), 
             created_for: extras?.site, 
-            twitch: user.toJSON().connections.twitch });
+            twitch: user.toJSON().connections.twitch
+        });
     }
 
     return user;

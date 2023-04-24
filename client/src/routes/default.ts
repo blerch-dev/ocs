@@ -1,5 +1,5 @@
 // Default Layout/Route for ocs.gg
-import { OCRoute, OCServices, RoleSheet, Status } from "ocs-type";
+import { OCRoute, OCServices, OCUser, RoleSheet, Status } from "ocs-type";
 import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
 
 const DefaultRoute = new OCRoute({
@@ -50,36 +50,63 @@ const DefaultRoute = new OCRoute({
         router.get('/profile', isAuthed, (req, res, next) => {
             let head = defaultHead('OCS | Profile');
             let roles = RoleSheet.GlobalRoles.getRoles(req.session?.user?.roles);
+            let user = new OCUser(req.session?.user as any, { noError: true });
+            let isDev = user.validUserObject() && RoleSheet.IsDev(user);
+
+            let dev = `
+                <div id="Developer" class="profile-section">
+                    <h2>Developer Info</h2>
+                    <span class="profile-card">
+                        <h4>Full Session</h4>
+                        <pre>${JSON.stringify(req.session.user, null, 2)}</pre>
+                    </span>
+                </div>
+            `;
 
             let content = `
-                <div>
-                    <div>
+                <div class="content-section">
+                    ${isDev ? dev : ''}
+                    <div id="Account" class="profile-section">
                         <h2>Account Details</h2>
-                        <span class="user-card">${req.session?.user?.username}</span>
-                        <h4>Roles</h4>
                         <span class="profile-card">
-                            ${roles.map((ri) => {
-                                `<p style="color: ${ri.color};">${ri.name}</p>`
-                            }).join('<br>')}
-                        </span>
-                        <h4>Status</h4>
-                        <span class="profile-card">
-                            ${Status.VALID & req.session?.user?.status ? '<p>Valid Account</p><br>' : '<p>Invalid Account</p><br>'}
-                            ${Status.BANNED & req.session?.user?.status ? '<p>Global Chat Ban</p><br>' : ''}
-                            ${Status.MUTED & req.session?.user?.status ? '<p>Global Chat Mute</p><br>' : ''}
+                            <span class="profile-card-group" style="flex-direction: row;">
+                                <h4>Username:</h4>
+                                <p>${req.session?.user?.username}</p>
+                            </span>
+                            <span class="profile-card-group">
+                                <h4>Roles:</h4>
+                                ${roles.map((ri) => {
+                                    return `<p style="color: ${ri.color};">${ri.name}</p>`
+                                }).join('<br>')}
+                            </span>
+                            <span class="profile-card-group">
+                            <h4>Status:</h4>
+                                ${Status.VALID & req.session?.user?.status ? '<p>Valid Account</p>' : '<p>Invalid Account</p>'}
+                                ${Status.BANNED & req.session?.user?.status ? '<p>Global Chat Ban</p>' : ''}
+                                ${Status.MUTED & req.session?.user?.status ? '<p>Global Chat Mute</p>' : ''}
+                            </span>
                         </span>
                     <div>
+                    <div>
+                        <h2>Connections</h2>
+                        <span class="profile-card"></span>
+                    </div>
+                    <div>
+                        <h2>Channels</h2>
+                        <span class="profile-card"></span>
+                    </div>
                 </div>
             `;
 
             let body = `
                 ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
-                <main style="flex-direction: row;">
+                <main class="profile-page">
                     <nav class="section-nav">
                         <div style="flex: 1;">
-                        
+                            ${isDev ? '<a href="/profile#Developer">Developer</a>' : ''}
+                            <a href="/profile#Account">Account</a>
                         </div>
-                        <div>
+                        <div style="padding-bottom: 20px;">
                             <span class="section-link">
                                 <a href="${OCServices.IMP}://${req.hostname}/logout">Logout</a>
                             </span>
