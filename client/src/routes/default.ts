@@ -35,10 +35,7 @@ const DefaultRoute = new OCRoute({
         router.get('/chat', (req, res, next) => {
             let head = defaultHead('OCS | Chat');
             let chat = chatComponent('Global Chat', { flex: true });
-            let body = `
-                ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
-                <main class="live">${chat}</main>
-            `;
+            let body = `<main class="live">${chat}</main>`;
 
             res.send(defaultLayout(head, body));
         });

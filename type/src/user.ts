@@ -158,21 +158,21 @@ export class OCUser {
             };
         }
 
-        let udc = user_data.connections as any;
+        let udc = user_data?.connections as any;
         const data = {
-            uuid: user_data.uuid,
-            username: user_data.username,
-            roles: Number(user_data.roles) ?? 0,
-            status: user_data.status ?? 0,
-            created_at: user_data.created_at ?? Date.now(),
+            uuid: user_data?.uuid,
+            username: user_data?.username,
+            roles: Number(user_data?.roles) ?? 0,
+            status: user_data?.status ?? 0,
+            created_at: user_data?.created_at ?? Date.now(),
             connections: {
-                creation: udc.created_for,
+                creation: udc?.created_for,
                 twitch: udc?.twitch ? udc.twitch : udc?.twitch_id ? {
                     id: udc.twitch_id,
                     username: udc.twitch_name
                 } : undefined
             },
-            channels: user_data.channels
+            channels: user_data?.channels
         }
 
         /**/

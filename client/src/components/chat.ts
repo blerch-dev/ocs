@@ -16,10 +16,10 @@ export const chatComponent = (title: string, options?: chatOptions) => {
     >
         <header>
             <h4>${title}</h4>
-            <div>
-                <span tabindex="2${getNV(0)}" id="Chat-Settings"><img src="/assets/settings.svg"></span>
-                <span tabindex="2${getNV()}"></span>
-                <span tabindex="2${getNV()}"></span>
+            <div class="chat-controls">
+                <span tabindex="2${getNV(0)}" id="Chat-Settings"><img style="width: 16px;" src="/assets/settings.svg"></span>
+                <span tabindex="2${getNV()}" id="Chat-Popout"><img src="/assets/popout.svg"></span>
+                <span tabindex="2${getNV()}" id="Chat-Close"><img src="/assets/exit.svg"></span>
             </div>
         </header>
         <span id="InteractList" data-tab="3"></span>

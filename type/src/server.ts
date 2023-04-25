@@ -117,7 +117,7 @@ export class OCServer {
         if(props.session) {
             const RedisStore = new OCRedisStore(session, RedisClient.getClient());
 
-            let ttl = 1000 * 60 * 60 * 12; // 12 Hour Timeout Sessions
+            let ttl = 1000 * 60 * 60 * 18; // 18 Hour Timeout Sessions
             let sessionParser = session({
                 store: RedisStore.getStore(props.session?.ttl ?? ttl),
                 secret: process.env.REDIS_HASH ?? 'redis-hash',

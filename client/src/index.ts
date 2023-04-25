@@ -43,7 +43,7 @@ const SSIRoute = new OCRoute({
             res.redirect(`${OCServices.IMP}://${OCServices.Auth}/logout?site=${req.hostname}`);
         });
 
-        // getting set headers after sent warning after deleting session cookies, somewhere around here
+        // cant set headers after sent issue here
         router.all('*', (req, res, next) => {
             if(req.session?.user == undefined && req.cookies.ssi == 'true') {
                 res.cookie('ssi_forward', req.protocol + '://' + req.hostname + req.originalUrl);

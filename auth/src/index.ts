@@ -26,7 +26,7 @@ const DefaultRoute = new OCRoute({
             Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
             
             let redirect = `${OCServices.IMP}://${req.session.state?.authing_site ?? site}/auth?authcode=${code}`;
-            console.log("PTA Cookies:", json);
+            //console.log("PTA Cookies:", json);
             res.redirect(redirect);
         }
 
@@ -39,7 +39,7 @@ const DefaultRoute = new OCRoute({
             });
 
             let json = await resp.json();
-            console.log("SSI Creation:", json);
+            //console.log("SSI Creation:", json);
             if(json.Error !== undefined || json.token === undefined) {
                 console.log("SSI Error:", json.Error);
                 return;
@@ -182,7 +182,7 @@ const DefaultRoute = new OCRoute({
             let site = req.session.state?.authing_site;
             let ssi = req.cookies.ssi;
 
-            console.log("Authing with Twitch:", req.session);
+            //console.log("Authing with Twitch:", req.session);
 
             // Find User
             if(res.locals.twitch.id == undefined)
@@ -245,7 +245,7 @@ const server = new OCServer({
     session: {
         secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,
-        // sameSite: 'none',
+        sameSite: 'none',
         rolling: true
     },
     debug: true

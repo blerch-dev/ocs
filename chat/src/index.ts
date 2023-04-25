@@ -27,7 +27,7 @@ const server = new OCServer({
         creds: true,
         preflightContinue: true
     },
-    debug: false
+    debug: true
 });
 
 export default server;

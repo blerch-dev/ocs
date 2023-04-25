@@ -139,7 +139,7 @@ export default (server: OCServer) => {
             socket.send('ping');
         }, 1000 * 60 * 0.5); // 60 Seconds
 
-        // Channel Connection
+        // Channel Connection - not adding on popout (sorry you couldnt join)
         let deleteSocket: (caller?: string) => void;
         let isBanned: () => boolean;
         let isMuted: () => boolean;

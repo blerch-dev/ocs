@@ -1,12 +1,17 @@
 class OCSocket {
     constructor(loc) {
         //console.log("Loaded:", loc); // Should do maps here
+        this.loc = loc;
+        console.log(loc);
+
         this.events = new Map();
+        this.channel_name = "";
     }
 
-    connect = (url) => {
+    connect = (url, channel_name) => {
         // connect
         this.socket = new WebSocket(url);
+        this.channel_name = channel_name;
         //console.log("Connect:", url);
         for(let [key, value] of this.events) {
             this.socket.on(key, value);
@@ -50,13 +55,34 @@ document.addEventListener('DOMContentLoaded', () => {
         getValue();
     });
 
-    ConfigureChat(chat, input, submit)
+    ConfigureChat(chat, input, submit);
+
+    document.addEventListener('click', (e) => {
+        switch(e.target.id) {
+            case "Chat-Settings":
+                ToggleSettings(); break;
+            case "Chat-Popout":
+                window.open(OCS.loc.origin + '/chat', '_blank', 'location=yes,height=900,width=300,scrollbars=no,status=yes');
+            case "Chat-Close":
+                RemoveChat(); break;
+            default:
+                break;
+        }
+    });
 });
+
+const ToggleSettings = () => {
+    // show/hide settings
+}
+
+const RemoveChat = () => {
+    // remove element, close socket
+}
 
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
     const url = window.location.host.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
-    OCS.connect(`wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`);
+    OCS.connect(`wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`, CHANNEL_NAME);
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')
