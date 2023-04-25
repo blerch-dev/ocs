@@ -55,6 +55,14 @@
             & > span:hover {
                 background-color: #00000088;
             }
+
+            & > span.negative {
+                background-color: #910000;
+            }
+
+            & > span.negative:hover {
+                background-color: #e40404;
+            }
         }
     }
     
@@ -114,6 +122,16 @@
                     font-weight: 700;
                 }
             }
+        }
+
+        & > form {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--page-bg);
         }
     }
 

@@ -5,17 +5,22 @@ class OCSocket {
         console.log(loc);
 
         this.events = new Map();
-        this.channel_name = "";
+        this.channel_name = undefined;
     }
 
     connect = (url, channel_name) => {
-        // connect
         this.socket = new WebSocket(url);
         this.channel_name = channel_name;
-        //console.log("Connect:", url);
         for(let [key, value] of this.events) {
             this.socket.on(key, value);
         }
+    }
+
+    disconnect = (code) => {
+        // add message to the ui to show disconnect - todo
+        this.socket.close(code ?? 1001, "Closed by user.");
+        this.channel_name = undefined;
+        this.events = new Map();
     }
 
     sendChat = (value) => {
@@ -34,9 +39,11 @@ class OCSocket {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const frame = document.getElementById("OCS-Chat");
     const chat = document.getElementById("OCS-Chat-List");
     const input = document.getElementById("OCS-Chat-Input");
     const submit = document.getElementById("OCS-Chat-Send");
+    const settings = document.getElementById("OCS-Settings");
 
     const getValue = () => {
         let msg = input.value;
@@ -63,21 +70,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 ToggleSettings(); break;
             case "Chat-Popout":
                 window.open(OCS.loc.origin + '/chat', '_blank', 'location=yes,height=900,width=300,scrollbars=no,status=yes');
+                RemoveChat(1000); break;
             case "Chat-Close":
-                RemoveChat(); break;
+                RemoveChat(1001); break;
             default:
                 break;
         }
     });
+
+    const ToggleSettings = () => {
+        if(!(settings instanceof Element))
+            return console.log("No settings element.");
+
+        const settings_button = document.getElementById("Chat-Settings");
+        const open = !settings.classList.contains('hide');
+        let currently_open = settings.classList.toggle('hide', open);
+        settings_button.classList.toggle('negative', !currently_open);
+    }
+
+    const SaveSettings = () => {
+        // configure settings on change
+    }
+    
+    const RemoveChat = (code) => { if(frame instanceof Element) { elem.remove(); } OCS.disconnect(code); }
 });
-
-const ToggleSettings = () => {
-    // show/hide settings
-}
-
-const RemoveChat = () => {
-    // remove element, close socket
-}
 
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {

@@ -2,7 +2,8 @@ interface chatOptions {
     embed?: string,
     directLink?: string,
     transparent?: boolean,
-    flex?: boolean
+    flex?: boolean,
+    controls?: boolean
 }
 
 export const chatComponent = (title: string, options?: chatOptions) => {
@@ -18,13 +19,18 @@ export const chatComponent = (title: string, options?: chatOptions) => {
             <h4>${title}</h4>
             <div class="chat-controls">
                 <span tabindex="2${getNV(0)}" id="Chat-Settings"><img style="width: 16px;" src="/assets/settings.svg"></span>
-                <span tabindex="2${getNV()}" id="Chat-Popout"><img src="/assets/popout.svg"></span>
-                <span tabindex="2${getNV()}" id="Chat-Close"><img src="/assets/exit.svg"></span>
+                ${options?.controls === false ? '' : `
+                    <span tabindex="2${getNV()}" id="Chat-Popout"><img src="/assets/popout.svg"></span>
+                    <span tabindex="2${getNV()}" id="Chat-Close"><img src="/assets/exit.svg"></span>
+                `}
             </div>
         </header>
         <span id="InteractList" data-tab="3"></span>
         <main class="no-scrollbar" style="padding: 0px;">
             <div id="OCS-Chat-List" data-tab="4"></div>
+            <form id="OCS-Settings" class="hide">
+                <h4>Settings Page</h4>
+            </form>
         </main>
         <span id="FillList" class="no-scrollbar" data-tab="5"></span>
         <footer>

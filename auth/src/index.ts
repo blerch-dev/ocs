@@ -10,6 +10,7 @@ const beta = process.env.NODE_ENV === 'beta' ?? true;
 
 const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true });
 
+// Client session remains but chat/auth session is not being renewed, should do some sanity checks after 18 hours
 const DefaultRoute = new OCRoute({
     domain: `${OCServices.Auth}`,
     callback: (router, server, session) => {

@@ -89,8 +89,8 @@ export class OCChannel {
                     if(sockets.has(socket))
                         return true;
 
-                    let count = sockets.entries.length;
-                    if(sockets.add(socket).entries.length > count) {
+                    let count = sockets.size;
+                    if(sockets.add(socket).size > count) {
                         return true;
                     }
                 }
