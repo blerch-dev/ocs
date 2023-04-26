@@ -2,6 +2,7 @@ class OCSocket {
     constructor(loc) {
         //console.log("Loaded:", loc); // Should do maps here
         this.loc = loc;
+        this.embed = loc?.pathname?.indexOf('/embed') >= 0 ?? false;
         console.log(loc);
 
         this.events = new Map();
@@ -92,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // configure settings on change
     }
     
-    const RemoveChat = (code) => { if(frame instanceof Element) { elem.remove(); } OCS.disconnect(code); }
+    const RemoveChat = (code) => { if(frame instanceof Element) { frame.classList.add('hide'); } OCS.disconnect(code); }
 });
 
 const OCS = new OCSocket(window.location);
@@ -115,10 +116,10 @@ function ConfigureChat(chat, input, submit) {
     let even = true;
     const onMessage = (json) => {
         //console.log("JSON:", json);
-        if(json.ServerMessage)
+        if(json.ServerMessage && !OCS.embed)
             serverMessage(json);
 
-        if(json.EventMessage)
+        if(json.EventMessage && !OCS.embed)
             eventMessage(json);
 
         if(json.MessageQueue)

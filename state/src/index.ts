@@ -6,6 +6,9 @@ const DefaultRoute = new OCRoute({
     domain: `${OCServices.State}`,
     callback: (router, server, session) => {
         // User OCAuth for Twitch App Access
+        router.get('/app/status/live', async (req, res) => {
+            // get all channels live status
+        });
 
         // Might want broad status path for all pieces of info
         router.get('/channel/status/live/:channel_id', async (req, res) => {
