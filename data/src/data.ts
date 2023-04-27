@@ -1,9 +1,9 @@
 import { Pool, QueryResult } from 'pg';
 import {} from 'ocs-type';
 
-import path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// import path from 'path';
+// import * as dotenv from 'dotenv';
+// dotenv.config({ path: path.join(__dirname, '../.env') });
 
 export const pg = new Pool({
     host: process.env.SUPABASE_HOST,

@@ -21,6 +21,9 @@ const DefaultRoute = new OCRoute({
             // platforms: ocs, twitch, youtube
         });
 
+        // Twitch Event Listener
+        router.get('/ingress/twitch/event', Streams.getTwitchEventCallback);
+
         return router;
     }
 });

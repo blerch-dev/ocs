@@ -56,6 +56,12 @@ const SSIRoute = new OCRoute({
             return next();
         });
 
+        // Needs to pipe full response to state server (not exposed, needs forwarding)
+        router.all('/ingress/twitch/event', (req, res) => {
+            //const url = ``;
+            //req.pipe(fetch(url)).pipe(res);
+        });
+
         return router;
     }
 })

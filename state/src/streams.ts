@@ -1,5 +1,4 @@
-
-
+import Crypto from 'crypto';
 
 // Here for testing, load from db
 const Channels = [
@@ -40,6 +39,14 @@ class StreamManager {
 
             total: 0
         }
+    }
+
+    getTwitchEventCallback(req: any, res: any, next: any) {
+
+    }
+
+    async verifyTwitchEventMessage() {
+
     }
 }
 

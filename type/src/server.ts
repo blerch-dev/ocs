@@ -1,5 +1,5 @@
 import express = require('express');
-import session, { Cookie } from 'express-session';
+import session from 'express-session';
 import http from "http";
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
