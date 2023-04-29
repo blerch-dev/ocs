@@ -11,7 +11,8 @@ const twitch = {
 // will probably remove passportjs and do this manually
 export interface OCAuthProps {
     callbackURL: string,
-    twitch?: boolean
+    twitch?: boolean,
+    youtube?: boolean,
 }
 
 export class OCAuth {
