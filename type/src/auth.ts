@@ -1,3 +1,5 @@
+import { google } from 'googleapis';
+
 import path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -86,6 +88,11 @@ export class OCAuth {
 
                 }
             }
+        }
+
+        if(props.youtube === true) {
+            // example here
+            // https://stackoverflow.com/questions/54973671/youtube-account-authentication-nodejs
         }
     }
 }
