@@ -100,6 +100,10 @@ interface OCUserProps {
         twitch?: {
             id: string,
             username: string
+        },
+        youtube?: {
+            id: string,
+            username: string
         }
     },
     channels: {
@@ -150,11 +154,11 @@ export class OCUser {
                 throw new Error(`Invalid User Object`);
 
             this.validUserObject = (debug?: boolean) => { 
-                if(debug) { OCUser.validUserObject(user_data, debug); } return false
+                if(debug) { return OCUser.validUserObject(user_data, debug); } return false
             };
         } else {
             this.validUserObject = (debug?: boolean) => { 
-                if(debug) { OCUser.validUserObject(user_data, debug); } return true
+                if(debug) { return OCUser.validUserObject(user_data, debug); } return true
             };
         }
 
@@ -170,6 +174,10 @@ export class OCUser {
                 twitch: udc?.twitch ? udc.twitch : udc?.twitch_id ? {
                     id: udc.twitch_id,
                     username: udc.twitch_name
+                } : undefined,
+                youtube: udc?.youtube ? udc.youtube : udc.youtube_id ? {
+                    id: udc.youtube_id,
+                    username: udc.youtube_name
                 } : undefined
             },
             channels: user_data?.channels

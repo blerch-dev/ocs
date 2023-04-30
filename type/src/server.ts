@@ -20,7 +20,7 @@ export interface OCServerProps {
     node?: string, // Kubernetes/Docker Info
     env?: string, // Always exists, set from process.env.NODE_ENV
 
-    debug?: boolean
+    debug?: boolean,
     port?: number,
     static?: string[],
     appFunctions?: Function[],

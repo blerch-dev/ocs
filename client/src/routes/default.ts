@@ -60,6 +60,18 @@ const DefaultRoute = new OCRoute({
                 </div>
             `;
 
+            /*
+                // Status DOM
+                <span class="profile-card-group">
+                <h4>Status:</h4>
+                    ${Status.VALID & user.toJSON().status ? '<p>Valid Account</p>' : '<p>Invalid Account</p>'}
+                    ${Status.BANNED & user.toJSON().status ? '<p>Global Chat Ban</p>' : ''}
+                    ${Status.MUTED & user.toJSON().status ? '<p>Global Chat Mute</p>' : ''}
+                </span>
+            */
+
+            // add link to add account instead of card at connections section
+            const con = user.toJSON().connections;
             let content = `
                 <div class="content-section">
                     ${isDev ? dev : ''}
@@ -76,18 +88,20 @@ const DefaultRoute = new OCRoute({
                                     return `<p style="color: ${ri.color};">${ri.name}</p>`
                                 }).join('<br>')}
                             </span>
-                            <span class="profile-card-group">
-                            <h4>Status:</h4>
-                                ${Status.VALID & user.toJSON().status ? '<p>Valid Account</p>' : '<p>Invalid Account</p>'}
-                                ${Status.BANNED & user.toJSON().status ? '<p>Global Chat Ban</p>' : ''}
-                                ${Status.MUTED & user.toJSON().status ? '<p>Global Chat Mute</p>' : ''}
-                            </span>
                         </span>
                     <div>
                     <div>
                         <h2>Connections</h2>
                         <span class="profile-card">
-                            ${user.toJSON().connections?.twitch ? `
+                            <span class="profile-card-tag twitch-tag">
+                                <img src="/assets/logos/twitch.svg">
+                                ${user.toJSON().connections?.twitch ? `
+                                    <h4>${user.toJSON().connections.twitch.username}</h4>
+                                ` : `
+                                    <h4>Add Twitch Account</h4>
+                                `}
+                            </span>
+                            ${user.toJSON().connections?.youtube ? `
                                 <span class="profile-card-tag twitch-tag">
                                     <img src="/assets/logos/twitch.svg">
                                     <h4>${user.toJSON().connections.twitch.username}</h4>
