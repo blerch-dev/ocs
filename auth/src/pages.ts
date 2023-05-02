@@ -16,7 +16,7 @@ export const DefaultPage = (title: string, body: string) => `
     </html>
 `;
 
-export default (code: number, message?: string) => `
+export const ErrorPage = (code: number, message?: string) => `
     ${DefaultPage('OCS | Error', `
         <main>
             <h2>OCS.GG Authentication Error: ${code}</h2>
