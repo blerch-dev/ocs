@@ -37,7 +37,7 @@ export default (server: OCServer) => {
         name: 'Global',
         id: '12345',
         commands: {},
-        bans: { ips: [], users: []},
+        bans: { ips: [], users: [] },
         mutes: []
     }));
     // Debug

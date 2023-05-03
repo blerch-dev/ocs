@@ -6,6 +6,7 @@ import { OCServer, OCAuth, OCRoute, OCUser, OCServices } from 'ocs-type';
 
 import { DefaultPage, ErrorPage, AuthPage, SessionPage, SignUpPage } from './pages';
 import { GetTwitchRoute } from './twitch';
+import { GetYoutubeRoute } from './youtube';
 
 const beta = process.env.NODE_ENV === 'beta' ?? true;
 const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true, youtube: true });
@@ -48,6 +49,7 @@ let stayLoggedIn = async (user: OCUser, res: any) => {
 }
 
 const TwitchRoute = GetTwitchRoute(beta, Auth, passToApp, stayLoggedIn);
+const YoutubeRoute = GetYoutubeRoute(beta, Auth, passToApp, stayLoggedIn);
 
 // Client session remains but chat/auth session is not being renewed, should do some sanity checks after 18 hours
 const DefaultRoute = new OCRoute({
@@ -187,7 +189,7 @@ const DefaultRoute = new OCRoute({
 // https://www.digitalocean.com/community/questions/secure-cookies-not-working-despite-successful-https-connection
 
 const server = new OCServer({
-    routes: [TwitchRoute, DefaultRoute],
+    routes: [TwitchRoute, YoutubeRoute, DefaultRoute],
     port: 8082,
     static: [path.resolve(__dirname, './public/')],
     cors: {},
