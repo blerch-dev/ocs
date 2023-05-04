@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { OCServices } from './server';
 
 import path from 'path';
 import * as dotenv from 'dotenv';
@@ -26,9 +27,10 @@ export class OCAuth {
     }
 
     public youtube = {
-        // Token Auth/Verify
-        // Get User Data
-        // Get Channel Status/Data
+        authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
+        verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
+        appAuth: () => {},
+        appVerify: () => {}
     }
 
     public clearCode = (cb: Function, seconds: number) => { setTimeout(cb, seconds * 1000); }
@@ -46,6 +48,7 @@ export class OCAuth {
 
                     res.redirect(twitchAuthURL); 
                 },
+
                 verify: async (req: any, res: any, next: any) => {
                     // res.locals.timing = Date.now();
 
@@ -81,18 +84,38 @@ export class OCAuth {
                     next();
                 },
                 
-                appAuth: () => {
+                appAuth: () => {},
 
-                },
-                appVerify: () => {
-
-                }
+                appVerify: () => {}
             }
         }
 
         if(props.youtube === true) {
             // example here
             // https://stackoverflow.com/questions/54973671/youtube-account-authentication-nodejs
+            this.youtube = {
+                authenticate: (req: any, res: any, next: any) => {
+                    const cid = process.env.YOUTUBE_ID;
+                    const csec = process.env.YOUTUBE_SECRET;
+                    const redirectHost = OCServices.Production ? `https://auth.ocs.gg` : `http://localhost:8083`;
+                    const redirectURL = `${redirectHost}/auth/youtube`;
+                    const authClient = new google.auth.OAuth2(cid, csec, redirectURL);
+
+                    // Previously Stored Token? (stored in cookie probably)
+                        // authClient.credentials = token
+                        // callback(authClient)
+                    // else
+                        // get new token (authClient, callback)
+                },
+
+                verify: (req: any, res: any, next: any) => {
+
+                },
+
+                appAuth: () => {},
+
+                appVerify: () => {}
+            }
         }
     }
 }

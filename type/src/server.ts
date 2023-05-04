@@ -260,7 +260,7 @@ export class OCSession {
 // Express Session requires root url, need to rework that for local/minikube/prod
 // cant rely on ips for session
 export class OCServices {
-    static Production: boolean = process.env.NODE_ENV === 'prod';
+    static Production: boolean = process.env.NODE_ENV === 'prod' ?? false;
     static IMP: string = OCServices.Production ? 'https' : 'http';
 
     static RootURL: string = OCServices.Production ? 'ocs.gg' : 

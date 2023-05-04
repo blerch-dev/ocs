@@ -8,7 +8,8 @@ import { DefaultPage, ErrorPage, AuthPage, SessionPage, SignUpPage } from './pag
 import { GetTwitchRoute } from './twitch';
 import { GetYoutubeRoute } from './youtube';
 
-const beta = process.env.NODE_ENV === 'beta' ?? true;
+
+const beta = !OCServices.Production;
 const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true, youtube: true });
 
 let passToApp = (req: any, res: any, server: OCServer, site: string, ssi?: boolean) => {
