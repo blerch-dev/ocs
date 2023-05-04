@@ -10,6 +10,11 @@ const twitch = {
     secret: process.env.TWITCH_SECRET ?? ''
 }
 
+const youtube = {
+    id: process.env.YOUTUBE_ID ?? '',
+    secret: process.env.YOUTUBE_SECRET ?? ''
+}
+
 // Will hold all auth logic, pulled in per server required to auth something
 // will probably remove passportjs and do this manually
 export interface OCAuthProps {
@@ -94,18 +99,21 @@ export class OCAuth {
             // example here
             // https://stackoverflow.com/questions/54973671/youtube-account-authentication-nodejs
             this.youtube = {
-                authenticate: (req: any, res: any, next: any) => {
-                    const cid = process.env.YOUTUBE_ID;
-                    const csec = process.env.YOUTUBE_SECRET;
+                authenticate: async (req: any, res: any, next: any) => {
+                    const token = req.cookies?.google_token ?? null;
                     const redirectHost = OCServices.Production ? `https://auth.ocs.gg` : `http://localhost:8083`;
                     const redirectURL = `${redirectHost}/auth/youtube`;
-                    const authClient = new google.auth.OAuth2(cid, csec, redirectURL);
+                    const authClient = new google.auth.OAuth2(youtube.id, youtube.secret, redirectURL);
+                    const authUrl = authClient.generateAuthUrl({
+                        access_type: 'offline',
+                        scope: 'https://www.googleapis.com/auth/youtube.readonly'
+                    });
 
-                    // Previously Stored Token? (stored in cookie probably)
-                        // authClient.credentials = token
-                        // callback(authClient)
-                    // else
-                        // get new token (authClient, callback)
+                    // if token, forward to verify
+
+                    const url = 'https://people.googleapis.com/v1/people/me?personFields=names';
+                    const response = await authClient.request({ url });
+                    console.log("GOOGLE API RES:", response.data);
                 },
 
                 verify: (req: any, res: any, next: any) => {
@@ -119,3 +127,42 @@ export class OCAuth {
         }
     }
 }
+
+/*
+const callback = (auth: any) => {
+    const service = google.youtube('v3');
+    service.channels.list({
+        auth: auth,
+        forUsername: 'OCS'
+    }, (err: any, response: any) => {
+        if(err) {
+            console.log("Google API ERR:", err);
+            return;
+        }
+
+        const channels = response.data.items;
+        if(channels.length == 0) {
+            console.log("No Channel Found.");
+            return;
+        }
+
+        console.log(`Channel ID: ${channels[0].id} - Channel Data:`, channels[0]);
+    });
+}
+
+const getNewToken = (auth, cb) => {
+    const authURL = auth.generateAuthUrl({
+        access_type: 'offline',
+        scope: 'https://www.googleapis.com/auth/youtube.readonly'
+    });
+
+    const line = 
+}
+
+if(token) {
+    authClient.credentials = token;
+    callback(authClient);
+} else {
+    getNewToken(authClient, callback);
+}
+*/

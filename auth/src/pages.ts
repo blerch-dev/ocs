@@ -36,6 +36,7 @@ export const AuthPage = (domain: string, login?: boolean) => `
                 </span>
                 <span class="column-spacer"></span>
                 <a class="twitch-button auth-button" href="https://${OCServices.Auth}/twitch"><h3>Twitch</h3></a>
+                <a class="youtube-button auth-button" href="https://${OCServices.Auth}/youtube"><h3>Youtube</h3></a>
                 <span class="column-spacer"></span>
                 <span class="options-span">
                     <label for="ssi">Keep Me Signed In?</label>
