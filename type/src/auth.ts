@@ -110,6 +110,7 @@ export class OCAuth {
                     });
 
                     // if token, forward to verify
+                    // needs method for saving refresh token to cookie
 
                     const url = 'https://people.googleapis.com/v1/people/me?personFields=names';
                     const response = await authClient.request({ url });
