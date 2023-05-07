@@ -12,9 +12,9 @@
 * ~~Pub/Sub server, further development of chat.~~
 * ~~Internal service authentication, more auth features.~~
 * ~~Build Automation.~~
-* Deployment Testing and Automation.
+* ~~Deployment Testing and Automation.~~
+* Additional chat features and auth platforms.
 * Mod view, along side a development overview app.
-* Additional chat features.
 * Custom CMS for channel maintainers.
 * Paid subscription integration.
 * More channel/website customization.
