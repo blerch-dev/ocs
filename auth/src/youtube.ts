@@ -13,9 +13,12 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                 let ssi = req.cookies.ssi;
 
                 //console.log("Authing with Youtube:", req.session);
+                console.log("Youtube Data:", res.locals.youtube);
+                res.send("Done");
+                return;
 
                 // Find User
-                if(res.locals.youtube.id == undefined)
+                if(res.locals.youtube?.id == undefined)
                     return res.send(ErrorPage(500, "Issue authenticating with Youtube. Try again later."));
 
                 // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https

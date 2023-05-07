@@ -98,27 +98,48 @@ export class OCAuth {
         if(props.youtube === true) {
             // example here
             // https://stackoverflow.com/questions/54973671/youtube-account-authentication-nodejs
+            const redirectHost = OCServices.Production ? `https://auth.ocs.gg` : `http://localhost:8082`;
+            const redirectURL = `${redirectHost}/auth/youtube`;
+            const authClient = new google.auth.OAuth2(youtube.id, youtube.secret, redirectURL);
+            const authUrl = authClient.generateAuthUrl({
+                access_type: 'offline',
+                scope: 'https://www.googleapis.com/auth/youtube.readonly'
+            });
+
+            const service = google.youtube({ version: "v3" });
+
             this.youtube = {
                 authenticate: async (req: any, res: any, next: any) => {
                     const token = req.cookies?.google_token ?? null;
-                    const redirectHost = OCServices.Production ? `https://auth.ocs.gg` : `http://localhost:8083`;
-                    const redirectURL = `${redirectHost}/auth/youtube`;
-                    const authClient = new google.auth.OAuth2(youtube.id, youtube.secret, redirectURL);
-                    const authUrl = authClient.generateAuthUrl({
-                        access_type: 'offline',
-                        scope: 'https://www.googleapis.com/auth/youtube.readonly'
-                    });
+                    return res.redirect(authUrl);
 
                     // if token, forward to verify
-                    // needs method for saving refresh token to cookie
+                    // needs method for saving refresh token to cookie / repopulate auth client
 
-                    const url = 'https://people.googleapis.com/v1/people/me?personFields=names';
-                    const response = await authClient.request({ url });
-                    console.log("GOOGLE API RES:", response.data);
+                    // const url = 'https://people.googleapis.com/v1/people/me?personFields=names';
+                    // const response = await authClient.request({ url });
+                    // console.log("GOOGLE API RES:", response.data);
                 },
 
-                verify: (req: any, res: any, next: any) => {
+                verify: async (req: any, res: any, next: any) => {
+                    const { code, scope } = req.query;
+                    const { tokens } = await authClient.getToken(code);
+                    authClient.setCredentials(tokens);
 
+                    // this is CHANNEL data, if user is only on a google account it will be empty
+                    // maybe this only does google data (not youtube)
+                    // need a general google/youtube id I can save to a user,
+                    // can do follow up data fetchs after the creation of the account
+                    service.channels.list({
+                        auth: authClient,
+                        maxResults: 1,
+                        part: ["snippet", "contentDetails", "statistics"],
+                        mine: true
+                    }, (err, resp) => {
+                        if(err) { console.log(err); res.locals.youtube = { error: err }; return next(); }
+                        res.locals.youtube = resp?.data;
+                        return next();
+                    });
                 },
 
                 appAuth: () => {},
@@ -128,42 +149,3 @@ export class OCAuth {
         }
     }
 }
-
-/*
-const callback = (auth: any) => {
-    const service = google.youtube('v3');
-    service.channels.list({
-        auth: auth,
-        forUsername: 'OCS'
-    }, (err: any, response: any) => {
-        if(err) {
-            console.log("Google API ERR:", err);
-            return;
-        }
-
-        const channels = response.data.items;
-        if(channels.length == 0) {
-            console.log("No Channel Found.");
-            return;
-        }
-
-        console.log(`Channel ID: ${channels[0].id} - Channel Data:`, channels[0]);
-    });
-}
-
-const getNewToken = (auth, cb) => {
-    const authURL = auth.generateAuthUrl({
-        access_type: 'offline',
-        scope: 'https://www.googleapis.com/auth/youtube.readonly'
-    });
-
-    const line = 
-}
-
-if(token) {
-    authClient.credentials = token;
-    callback(authClient);
-} else {
-    getNewToken(authClient, callback);
-}
-*/
