@@ -16,6 +16,7 @@
 * Additional chat features and auth platforms.
 * Mod view, along side a development overview app.
 * Custom CMS for channel maintainers.
+* Additional API Data.
 * Paid subscription integration.
 * More channel/website customization.
 
