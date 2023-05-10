@@ -130,6 +130,7 @@ export class OCAuth {
                     // maybe this only does google data (not youtube)
                     // need a general google/youtube id I can save to a user,
                     // can do follow up data fetchs after the creation of the account
+                    // search/channel/google account
                     service.channels.list({
                         auth: authClient,
                         maxResults: 1,
