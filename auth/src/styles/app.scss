@@ -74,6 +74,11 @@ main {
             background-color: var(--twitch-purple);
             border: 2px solid white;
         }
+
+        &.youtube-button {
+            background-color: var(--youtube-red);
+            border: 2px solid white;
+        }
     }
 
     & .column-spacer {

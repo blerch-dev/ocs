@@ -133,7 +133,7 @@ export class OCAuth {
                     // search/channel/google account
                     service.channels.list({
                         auth: authClient,
-                        maxResults: 1,
+                        //maxResults: 1,
                         part: ["snippet", "contentDetails", "statistics"],
                         mine: true
                     }, (err, resp) => {
