@@ -133,12 +133,17 @@ export class OCAuth {
                     // search/channel/google account
                     service.channels.list({
                         auth: authClient,
-                        //maxResults: 1,
+                        maxResults: 1,
                         part: ["snippet", "contentDetails", "statistics"],
                         mine: true
                     }, (err, resp) => {
                         if(err) { console.log(err); res.locals.youtube = { error: err }; return next(); }
-                        res.locals.youtube = resp?.data;
+                        if(resp?.data?.pageInfo?.totalResults == 0) {
+                            res.local.youtube = { error: 1, message: "No Youtube channel for Google account." }
+                            return next();
+                        }
+                        
+                        res.locals.youtube = resp?.data?.items?.[0] ?? null;
                         return next();
                     });
                 },

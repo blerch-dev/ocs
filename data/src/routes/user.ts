@@ -1,5 +1,16 @@
 import { OCRoute, OCUser, OCServices, daysToTimestamp } from 'ocs-type';
-import { getFullUser, getFullUserFromTwitch, createUser, getUserConnection, fullUserTest, createUserToken, getUUIDFromSelector, refreshTokenForUser, deleteTokenForUser } from '../user';
+import { 
+    getFullUser, 
+    getFullUserFromTwitch, 
+    getFullUserFromYoutube,
+    createUser, 
+    getUserConnection, 
+    fullUserTest, 
+    createUserToken, 
+    getUUIDFromSelector, 
+    refreshTokenForUser, 
+    deleteTokenForUser 
+} from '../user';
 import { pg, queryDB } from '../data';
 import { QueryResult } from 'pg';
 
@@ -31,6 +42,15 @@ const UserRoute = new OCRoute({
                 return res.json({ code: 500, message: 'User Error', error: user });
             }
         
+            res.json({ code: 200, data: user.toJSON() });
+        });
+
+        router.get('/user/youtube/:id', async (req, res) => {
+            let user = await getFullUserFromYoutube(req.params.id);
+            if(user instanceof Error) {
+                return res.json({ code: 500, message: 'User Error', error: user });
+            }
+
             res.json({ code: 200, data: user.toJSON() });
         });
         

@@ -19,6 +19,11 @@ export const getFullUserFromTwitch = async (twitch_id: string): Promise<Error | 
     return getUserFromResults(query);
 }
 
+export const getFullUserFromYoutube = async (youtube_id: string): Promise<Error | OCUser> => {
+    let query = await fullUserSearch('WHERE user_connections.youtube_id = $1', youtube_id);
+    return getUserFromResults(query);
+}
+
 export const getFullUserFromToken = async (token: string): Promise<Error | OCUser> => {
     let token_data = await getUUIDFromSelector(token);
     if(token_data instanceof Error) {

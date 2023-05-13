@@ -42,7 +42,9 @@ export const formatDB = () => {
         "user_id"       uuid NOT NULL,
         "created_for"   varchar(256),
         "twitch_id"     varchar(64),
-        "twitch_name"   varchar(32)
+        "twitch_name"   varchar(32),
+        "youtube_id"    varchar(64),
+        "youtube_name"  varchar(32)
     );
 
     CREATE TABLE IF NOT EXISTS "user_tokens" (

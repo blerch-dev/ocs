@@ -13,13 +13,15 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                 let ssi = req.cookies.ssi;
 
                 //console.log("Authing with Youtube:", req.session);
-                console.log("Youtube Data:", res.locals.youtube);
-                res.send("Done");
-                return;
+                //console.log("Youtube Data:", res.locals.youtube);
 
                 // Find User
-                if(res.locals.youtube?.id == undefined)
+                if(res.locals.youtube?.id == undefined) {
+                    if(res.locals.youtube.error === 1)
+                        return res.send(ErrorPage(401, res.locals.youtube.error.message));
+
                     return res.send(ErrorPage(500, "Issue authenticating with Youtube. Try again later."));
+                }
 
                 // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
                 let output = await (
@@ -38,13 +40,15 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                     if(ssi) { await stayLoggedIn(user, res); }
                 } else {
                     // Create User - remember to normalize usernames on creation
+                    let yt = res.locals.youtube;
+                    let name = yt.snippet.customUrl.substring(1) ?? yt.snippet.title ?? "no_username";
                     session.setSesh(req, 'state', 'youtube', res.locals.youtube);
                     return res.send(SignUpPage(site, { 
-                        username: res.locals.youtube.login,
+                        username: name,
                         connections: {
                             youtube: {
-                                id: res.locals.youtube.id,
-                                username: res.locals.youtube.login
+                                id: yt.id,
+                                username: name
                             }
                         }
                     }));

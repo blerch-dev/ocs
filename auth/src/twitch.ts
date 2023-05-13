@@ -13,6 +13,7 @@ export const GetTwitchRoute = (beta: boolean, Auth: OCAuth, passToApp: Function,
                 let ssi = req.cookies.ssi;
 
                 //console.log("Authing with Twitch:", req.session);
+                //console.log("Twitch Data:", res.locals.twitch);
 
                 // Find User
                 if(res.locals.twitch.id == undefined)

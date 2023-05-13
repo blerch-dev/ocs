@@ -71,6 +71,7 @@ const DefaultRoute = new OCRoute({
             */
 
             // add link to add account instead of card at connections section
+            // adding connections now
             const con = user.toJSON().connections;
             let content = `
                 <div class="content-section">
