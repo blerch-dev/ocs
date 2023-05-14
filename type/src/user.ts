@@ -118,12 +118,14 @@ interface OCUserProps {
 export class OCUser {
     public static validUserObject = (data: OCUserProps, debug = false) => {
         let required_keys = ['uuid', 'username'];
-        required_keys.forEach(key => {
-            if((data as any)?.[key] === undefined) {
+        for(let i = 0; i < required_keys.length; i++) {
+            let key = required_keys[i];
+            if((data as any)?.[key] == undefined) {
                 if(debug) { console.log(key, (data as any)[key]) }
                 return false;
             }
-        });
+        }
+
         return true;
     };
 
@@ -175,7 +177,7 @@ export class OCUser {
                     id: udc.twitch_id,
                     username: udc.twitch_name
                 } : undefined,
-                youtube: udc?.youtube ? udc.youtube : udc.youtube_id ? {
+                youtube: udc?.youtube ? udc.youtube : udc?.youtube_id ? {
                     id: udc.youtube_id,
                     username: udc.youtube_name
                 } : undefined

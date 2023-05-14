@@ -25,7 +25,7 @@ let passToApp = (req: any, res: any, server: OCServer, site: string, ssi?: boole
     Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
     
     let redirect = `${OCServices.IMP}://${req.session.state?.authing_site ?? site}/auth?authcode=${code}`;
-    //console.log("PTA Cookies:", json);
+    console.log("PTA Cookies:", json);
     res.redirect(redirect);
 }
 
@@ -169,9 +169,13 @@ const DefaultRoute = new OCRoute({
             if(output.Error)
                 return res.json({ Error: output.Error });
 
-            // could user OCUser check here
-            session.setUser(req, output.data);
-            if(req.cookies.ssi) { await stayLoggedIn(output, res); }
+            user = new OCUser(output.data, { noError: true });
+            if(user.validUserObject()) {
+                session.setUser(req, user.toJSON());
+                if(req.cookies.ssi) { await stayLoggedIn(user, res); }
+            } else {
+                return res.json({ Error: { Message: "Failed creating user object." } });
+            }
 
             // Loading mixed content error, needs https on original url
             return passToApp(req, res, server, req.session.state?.authing_site, req.cookies.ssi);

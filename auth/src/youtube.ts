@@ -7,6 +7,13 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
     return new OCRoute({
         domain: `${OCServices.Auth}`,
         callback: (router, server, session) => {
+            router.get('*', (req, res, next) => {
+                if(req.hostname.includes('localhost'))
+                    return res.redirect(`${OCServices.IMP}://${OCServices.Auth}${req.originalUrl}`);
+
+                return next();
+            });
+
             router.get('/youtube', Auth.youtube.authenticate);
             router.get('/auth/youtube', Auth.youtube.verify, async (req, res, next) => {
                 let site = req.session.state?.authing_site;
@@ -18,7 +25,7 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                 // Find User
                 if(res.locals.youtube?.id == undefined) {
                     if(res.locals.youtube.error === 1)
-                        return res.send(ErrorPage(401, res.locals.youtube.error.message));
+                        return res.send(ErrorPage(401, res.locals.youtube.message));
 
                     return res.send(ErrorPage(500, "Issue authenticating with Youtube. Try again later."));
                 }
@@ -33,6 +40,7 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                     return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
                 }
 
+                //console.log("Output Data:", output.data);
                 let user = new OCUser(output.data, { noError: true });
                 // Add ways to select stay signed in here
                 if(user instanceof OCUser && user.validUserObject()) {
@@ -41,7 +49,7 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                 } else {
                     // Create User - remember to normalize usernames on creation
                     let yt = res.locals.youtube;
-                    let name = yt.snippet.customUrl.substring(1) ?? yt.snippet.title ?? "no_username";
+                    let name = yt?.snippet?.customUrl?.substring(1) ?? yt?.snippet?.title ?? "no_username";
                     session.setSesh(req, 'state', 'youtube', res.locals.youtube);
                     return res.send(SignUpPage(site, { 
                         username: name,
@@ -54,6 +62,7 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                     }));
                 }
 
+                //console.log("YT User:", user.validUserObject(), user.toJSON());
                 return passToApp(req, res, server, site, ssi);
             });
 

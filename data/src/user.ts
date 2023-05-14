@@ -54,11 +54,12 @@ export const createUser = async (user: OCUser, extras?: { [key: string]: any }):
         return query;
 
     // Insert Optional Data
-    if(user.toJSON().connections.twitch) {
+    if(user.toJSON().connections.twitch || user.toJSON().connections.youtube) {
         await addUserConnection({ 
             user_id: user.getUUID(), 
             created_for: extras?.site, 
-            twitch: user.toJSON().connections.twitch
+            twitch: user.toJSON().connections?.twitch,
+            youtube: user.toJSON().connections?.youtube
         });
     }
 
@@ -74,7 +75,9 @@ export const getUserConnection = async (platform: string, id: string) => {
 const addUserConnection = async (data: { 
     user_id: string,
     created_for?: string, 
-    twitch?: { id: string, username: string } 
+    twitch?: { id: string, username: string },
+    youtube?: { id: string, username: string },
+    discord?: { id: string, username: string }
 }) => {
     // check if data exists
     let query_str = `INSERT INTO user_connections (user_id, created_for, twitch_id, twitch_name)
@@ -85,7 +88,11 @@ const addUserConnection = async (data: {
         data.user_id, 
         data.created_for ?? null, 
         data.twitch?.id ?? null, 
-        data.twitch?.username ?? null
+        data.twitch?.username ?? null,
+        data.youtube?.id ?? null,
+        data.youtube?.username ?? null,
+        data.discord?.id ?? null,
+        data.discord?.username ?? null
     ]);
 }
 

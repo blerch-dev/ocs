@@ -1,9 +1,9 @@
 import { Pool, QueryResult } from 'pg';
 import {} from 'ocs-type';
 
-// import path from 'path';
-// import * as dotenv from 'dotenv';
-// dotenv.config({ path: path.join(__dirname, '../.env') });
+import path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 export const pg = new Pool({
     host: process.env.SUPABASE_HOST,
@@ -28,6 +28,7 @@ export const queryDB = (query: string, values: any[]): Promise<Error | QueryResu
 // Hardcoded
 export const formatDB = () => {
     let query = `
+    DROP TABLE users;
     CREATE TABLE IF NOT EXISTS "users" (
         "uuid"          uuid NOT NULL,
         "username"      varchar(32) NOT NULL,
@@ -38,15 +39,20 @@ export const formatDB = () => {
         PRIMARY KEY ("uuid")
     );
 
+    DROP TABLE user_connections;
     CREATE TABLE IF NOT EXISTS "user_connections" (
         "user_id"       uuid NOT NULL,
         "created_for"   varchar(256),
         "twitch_id"     varchar(64),
         "twitch_name"   varchar(32),
         "youtube_id"    varchar(64),
-        "youtube_name"  varchar(32)
+        "youtube_name"  varchar(32),
+        "discord_id"    varchar(64),
+        "discord_name"  varchar(32),
+        PRIMARY KEY ("user_id")
     );
 
+    DROP TABLE user_tokens;
     CREATE TABLE IF NOT EXISTS "user_tokens" (
         "user_id"               uuid NOT NULL,
         "selector"              varchar(12) NOT NULL,
@@ -55,6 +61,7 @@ export const formatDB = () => {
         PRIMARY KEY ("selector")
     );
     
+    DROP TABLE channels;
     CREATE TABLE IF NOT EXISTS "channels" (
         "uuid"          uuid NOT NULL,
         "slug"          varchar(32) NOT NULL,
@@ -66,11 +73,13 @@ export const formatDB = () => {
         PRIMARY KEY ("uuid")
     );
 
+    DROP TABLE channel_connections;
     CREATE TABLE IF NOT EXISTS "channel_connections" (
         "channel_id"    uuid NOT NULL,
         "user_id"       uuid NOT NULL,
         "roles"         bigint DEFAULT 0,
-        "status"        smallint DEFAULT 0
+        "status"        smallint DEFAULT 0,
+        "sub_gained"    timestamp
     );
     `;
 
