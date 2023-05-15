@@ -126,13 +126,7 @@ export class OCAuth {
                     const { tokens } = await authClient.getToken(code);
                     authClient.setCredentials(tokens);
 
-                    // this is CHANNEL data, if user is only on a google account it will be empty
-                    // maybe this only does google data (not youtube)
-                    // need a general google/youtube id I can save to a user,
-                    // can do follow up data fetchs after the creation of the account
-                    // search/channel/google account
-
-                    // might be issue correctly verifiying preventing look up
+                    // Channel Data
                     service.channels.list({
                         auth: authClient,
                         maxResults: 1,
