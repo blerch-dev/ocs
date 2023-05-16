@@ -96,7 +96,6 @@ export class OCAuth {
         }
 
         if(props.youtube === true) {
-            // example here
             // https://stackoverflow.com/questions/54973671/youtube-account-authentication-nodejs
             const redirectHost = OCServices.Production ? `https://auth.ocs.gg` : `http://localhost:8082`;
             const redirectURL = `${redirectHost}/auth/youtube`;
