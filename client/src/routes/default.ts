@@ -73,6 +73,7 @@ const DefaultRoute = new OCRoute({
             // add link to add account instead of card at connections section
             // adding connections now
             const con = user.toJSON().connections;
+            const auth_link = (str: string) => `${OCServices.IMP}://${OCServices.Auth}${str}?site=${req.hostname}`;
             let content = `
                 <div class="content-section">
                     ${isDev ? dev : ''}
@@ -94,20 +95,22 @@ const DefaultRoute = new OCRoute({
                     <div>
                         <h2>Connections</h2>
                         <span class="profile-card">
-                            <span class="profile-card-tag twitch-tag">
-                                <img src="/assets/logos/twitch.svg">
-                                ${user.toJSON().connections?.twitch ? `
-                                    <h4>${user.toJSON().connections.twitch.username}</h4>
-                                ` : `
-                                    <h4>Add Twitch Account</h4>
-                                `}
-                            </span>
-                            ${user.toJSON().connections?.youtube ? `
+                            ${con?.twitch ? `
                                 <span class="profile-card-tag twitch-tag">
                                     <img src="/assets/logos/twitch.svg">
-                                    <h4>${user.toJSON().connections.twitch.username}</h4>
+                                    <h4>${con.twitch.username}</h4>
                                 </span>
-                            ` : ''}
+                            ` : `
+                                <a href="${auth_link('/auth/twitch')}"><h4>Add Twitch Account</h4></a>
+                            `}
+                            ${con?.youtube ? `
+                                <span class="profile-card-tag twitch-tag">
+                                    <img src="/assets/logos/twitch.svg">
+                                    <h4>${con.youtube.username}</h4>
+                                </span>
+                            ` : `
+                                <a href="${auth_link('/auth/youtube')}"><h4>Add Youtube Account</h4></a>
+                            `}
                         </span>
                     </div>
                     <div>

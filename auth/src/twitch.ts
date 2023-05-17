@@ -30,10 +30,13 @@ export const GetTwitchRoute = (beta: boolean, Auth: OCAuth, passToApp: Function,
                 }
 
                 let user = new OCUser(output.data, { noError: true });
+                let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
                 // Add ways to select stay signed in here
                 if(user instanceof OCUser && user.validUserObject()) {
                     session.setUser(req, user.toJSON());
                     if(ssi) { await stayLoggedIn(user, res); }
+                } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
+                    // add twitch to account
                 } else {
                     // Create User - remember to normalize usernames on creation
                     session.setSesh(req, 'state', 'twitch', res.locals.twitch);
