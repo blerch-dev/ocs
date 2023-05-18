@@ -49,6 +49,9 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                     if(ssi) { await stayLoggedIn(user, res); }
                 } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
                     // add youtube to account
+                    await OCServices.Fetch('Data', `/add/connection/youtube`, {
+                        // add user/youtube data here in post body
+                    });
                 } else {
                     // Create User - remember to normalize usernames on creation
                     let yt = res.locals.youtube;

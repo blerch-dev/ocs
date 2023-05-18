@@ -72,7 +72,7 @@ export const getUserConnection = async (platform: string, id: string) => {
     return await queryDB(query_str, [id]);
 }
 
-const addUserConnection = async (data: { 
+export const addUserConnection = async (data: { 
     user_id: string,
     created_for?: string, 
     twitch?: { id: string, username: string },
@@ -80,8 +80,17 @@ const addUserConnection = async (data: {
     discord?: { id: string, username: string }
 }) => {
     // check if data exists
-    let query_str = `INSERT INTO user_connections (user_id, created_for, twitch_id, twitch_name)
-        VALUES ($1, $2, $3, $4)
+    let query_str = `INSERT INTO user_connections 
+        (user_id, created_for, twitch_id, twitch_name, youtube_id, youtube_name, discord_id, discord_name) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        ON CONFLICT (user_id) 
+        DO 
+        ${data.twitch != undefined || data.youtube != undefined || data.discord != undefined ? `
+            UPDATE SET
+            ${data.twitch ? `twitch_id = $3, twitch_name = $4${data.youtube || data.discord ? ',' : ''}` : ''}
+            ${data.twitch ? `youtube_id = $5, youtube_name = $6${data.discord ? ',' : ''}` : ''}
+            ${data.twitch ? `discord_id = $7, discord_name = $8` : ''}
+        ` : 'NOTHING;'}
     `;
 
     await queryDB(query_str, [
