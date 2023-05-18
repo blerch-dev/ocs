@@ -19,11 +19,11 @@ export const GetTwitchRoute = (beta: boolean, Auth: OCAuth, passToApp: Function,
                 if(res.locals.twitch.id == undefined)
                     return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
-                // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
-                let output = await (
-                    // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
-                    await OCServices.Fetch('Data', `/user/twitch/${res.locals.twitch.id}`)
-                ).json();
+                // // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
+                // let output = await (
+                //     // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
+                //     await OCServices.Fetch('Data', `/user/twitch/${res.locals.twitch.id}`)
+                // ).json();
 
                 if(output.data instanceof Error) {
                     return res.send(ErrorPage(500, "Issue reading from database. Try again later."));

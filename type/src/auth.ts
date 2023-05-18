@@ -3,6 +3,7 @@ import { OCServices } from './server';
 
 import path from 'path';
 import * as dotenv from 'dotenv';
+import { OCUser } from './user';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const twitch = {
@@ -82,9 +83,15 @@ export class OCAuth {
                         return next();
                     }
 
+                    const twitch_data = Array.isArray(json?.data) && json?.data[0]?.id !== undefined ? json.data[0] : null;
                     if(Array.isArray(json?.data) && json?.data[0]?.id !== undefined) {
                         res.locals.twitch = json.data[0];
                     }
+
+                    let output = await (
+                        // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
+                        await OCServices.Fetch('Data', `/user/twitch/${res.locals.twitch.id}`)
+                    ).json();
 
                     next();
                 },
@@ -148,5 +155,17 @@ export class OCAuth {
                 appVerify: () => {}
             }
         }
+    }
+
+    async createUser(user: OCUser) {
+        return null;
+    }
+
+    async updateUser(user: OCUser) {
+        return null;
+    }
+
+    async syncUser(user: OCUser) {
+        return null;
     }
 }

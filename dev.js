@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+const { exec } = require(`child_process`);
 
 // Build in all child subdirectories
 // Import default from build folders (where applicable)
@@ -16,23 +16,24 @@ const exe = (cmd) => {
     });
 }
 
-let type = exe('cd type && npm run build');
-
 const start = async () => {
+    const install = process.argv.includes(`-i`) ?? false;
     console.log("Building Library...");
-    await type;
+    await exe(`cd type && ${install ? 'npm install && ' : ''}npm run build`);
 
     console.log("Building Services...");
-    await exe('cd client && npm run build');
-    await exe('cd chat && npm run build');
-    await exe('cd auth && npm run build');
-    await exe('cd data && npm run build');
+    await exe(`cd client && ${install ? 'npm install && ' : ''}npm run build`);
+    await exe(`cd chat && ${install ? 'npm install && ' : ''}npm run build`);
+    await exe(`cd auth && ${install ? 'npm install && ' : ''}npm run build`);
+    await exe(`cd data && ${install ? 'npm install && ' : ''}npm run build`);
+    await exe(`cd state && ${install ? 'npm install && ' : ''}npm run build`);
     
     console.log("Running Services...")
-    const Client = require('./client/build');
-    const Chat = require('./chat/build');
-    const Auth = require('./auth/build');
-    const Data = require('./data/build');
+    const Client = require(`./client/build`);
+    const Chat = require(`./chat/build`);
+    const Auth = require(`./auth/build`);
+    const Data = require(`./data/build`);
+    const State = require(`./state/build`);
 
     console.log("App Ready");
 }
