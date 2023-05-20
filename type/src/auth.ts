@@ -28,6 +28,7 @@ export class OCAuth {
     public twitch = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
         verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
+        finalize: () => {},
         appAuth: () => {},
         appVerify: () => {}
     }
@@ -35,6 +36,7 @@ export class OCAuth {
     public youtube = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
         verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
+        finalize: () => {},
         appAuth: () => {},
         appVerify: () => {}
     }
@@ -79,21 +81,45 @@ export class OCAuth {
                     json = await result.json();
                     if(json.error) {
                         console.log(json);
-                        res.locals.twitch = { ...json };
+                        res.locals.authed = new Error("Error authenticating from twitch servers. Try again later.")
                         return next();
                     }
 
                     const twitch_data = Array.isArray(json?.data) && json?.data[0]?.id !== undefined ? json.data[0] : null;
-                    if(Array.isArray(json?.data) && json?.data[0]?.id !== undefined) {
-                        res.locals.twitch = json.data[0];
+                    if(twitch_data?.id == undefined || twitch_data?.id == null) {
+                        res.locals.authed = new Error("Issue authenticating with Twitch. Try again later.");
+                        return next();
                     }
 
-                    let output = await (
-                        // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
-                        await OCServices.Fetch('Data', `/user/twitch/${res.locals.twitch.id}`)
-                    ).json();
+                    let output = await (await OCServices.Fetch('Data', `/user/twitch/${twitch_data.id}`)).json();
+                    if(output.data instanceof Error) {
+                        res.locals.authed = new Error("Issue authenticating with Twitch. Try again later.");
+                        return next();
+                    }
 
-                    next();
+                    let user = new OCUser(output.data, { noError: true });
+                    let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
+                    if(user instanceof OCUser && user.validUserObject()) {
+                        // syncUser
+                    } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
+                        // updateUser
+                    } else {
+                        // finalize (pass back to route, it will render finalize page that is posted to finalize flow below)
+                        // create filler OCUser Object
+                    }
+    
+                    /*
+                    res.locals.authed = {
+                        user: OCUser -> from sync/update/create.
+                        finish: boolean -> yes render finalize page, no skip
+                    }
+                    */
+
+                    return next();
+                },
+
+                finalize: () => {
+                    // createUser
                 },
                 
                 appAuth: () => {},
@@ -149,6 +175,8 @@ export class OCAuth {
                         return next();
                     });
                 },
+                
+                finalize: () => {},
 
                 appAuth: () => {},
 

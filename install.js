@@ -11,7 +11,7 @@ const exe = (cmd) => {
 
 const start = async () => {
     console.log("Installing Packages...");
-    await exe(`cd type && npm install`);
+    await exe(`cd type && npm install && npm run build`);
     console.log(` - Installed Type Packages`);
     await exe(`cd client && npm install`);
     console.log(` - Installed Client Packages`);

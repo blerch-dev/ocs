@@ -15,41 +15,24 @@ export const GetTwitchRoute = (beta: boolean, Auth: OCAuth, passToApp: Function,
                 //console.log("Authing with Twitch:", req.session);
                 //console.log("Twitch Data:", res.locals.twitch);
 
-                // Find User
-                if(res.locals.twitch.id == undefined)
-                    return res.send(ErrorPage(500, "Issue authenticating with Twitch. Try again later."));
 
-                // // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
-                // let output = await (
-                //     // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/twitch/${res.locals.twitch.id}`)
-                //     await OCServices.Fetch('Data', `/user/twitch/${res.locals.twitch.id}`)
-                // ).json();
-
-                if(output.data instanceof Error) {
-                    return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
+                // New Flow
+                if(res.locals.authed instanceof Error) {
+                    return res.send(ErrorPage(500, res.locals.twitch.message));
                 }
 
-                let user = new OCUser(output.data, { noError: true });
-                let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
-                // Add ways to select stay signed in here
-                if(user instanceof OCUser && user.validUserObject()) {
-                    session.setUser(req, user.toJSON());
-                    if(ssi) { await stayLoggedIn(user, res); }
-                } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
-                    // add twitch to account
-                } else {
-                    // Create User - remember to normalize usernames on creation
-                    session.setSesh(req, 'state', 'twitch', res.locals.twitch);
+                if(res.locals.authed?.finish) {
+                    let user = res.locals.auth.user.toJSON();
                     return res.send(SignUpPage(site, { 
-                        username: res.locals.twitch.login,
-                        connections: {
-                            twitch: {
-                                id: res.locals.twitch.id,
-                                username: res.locals.twitch.login
-                            }
-                        }
+                        username: user.connections.twitch.username,
+                        connections: user.connections
                     }));
                 }
+
+                // Needed replacment with new flow
+                //     session.setUser(req, user.toJSON());
+                //     if(ssi) { await stayLoggedIn(user, res); }
+                //     session.setSesh(req, 'state', 'twitch', res.locals.twitch);
 
                 return passToApp(req, res, server, site, ssi);
             });

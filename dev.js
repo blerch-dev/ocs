@@ -21,7 +21,7 @@ const start = async () => {
     console.log("Building Library...");
     await exe(`cd type && ${install ? 'npm install && ' : ''}npm run build`);
 
-    console.log("Building Services...");
+    console.log(`${install ? 'Installing and ' : ''}Building Services...`);
     await exe(`cd client && ${install ? 'npm install && ' : ''}npm run build`);
     await exe(`cd chat && ${install ? 'npm install && ' : ''}npm run build`);
     await exe(`cd auth && ${install ? 'npm install && ' : ''}npm run build`);
