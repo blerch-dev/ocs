@@ -79,7 +79,7 @@ export class OCAuth {
                     });
 
                     json = await result.json();
-                    if(json.error) {
+                    if(json.error || json instanceof Error) {
                         console.log(json);
                         res.locals.authed = new Error("Error authenticating from twitch servers. Try again later.")
                         return next();
@@ -159,21 +159,55 @@ export class OCAuth {
                     authClient.setCredentials(tokens);
 
                     // Channel Data
-                    service.channels.list({
-                        auth: authClient,
-                        maxResults: 1,
-                        part: ["snippet", "contentDetails", "statistics"],
-                        mine: true
-                    }, (err, resp) => {
-                        if(err) { console.log(err); res.locals.youtube = { error: err }; return next(); }
-                        if(resp?.data?.pageInfo?.totalResults == 0) {
-                            res.local.youtube = { error: 1, message: "No Youtube channel for Google account." }
-                            return next();
-                        }
-                        
-                        res.locals.youtube = resp?.data?.items?.[0] ?? null;
-                        return next();
+                    let promise = new Promise((resv, rej) => {
+                        service.channels.list({
+                            auth: authClient,
+                            maxResults: 1,
+                            part: ["snippet", "contentDetails", "statistics"],
+                            mine: true
+                        }, (err, resp) => {
+                            if(err) { console.log(err); rej(err); }
+                            if(resp?.data?.pageInfo?.totalResults == 0) {
+                                rej(new Error("No Youtube channel for Google account."));
+                            }
+                            
+                            resv(resp?.data?.items?.[0] ?? null);
+                        });
                     });
+
+                    const youtube_data = await promise as any;
+                    if(youtube_data instanceof Error || youtube_data?.id == undefined || youtube_data?.id == null) {
+                        res.locals.authed = youtube_data instanceof Error ? 
+                            youtube_data : new Error("Issue authenticating with Youtube. Try again later.");
+                        
+                        return next();
+                    }
+
+                    let output = await (await OCServices.Fetch('Data', `/user/twitch/${youtube_data.id}`)).json();
+                    if(output.data instanceof Error) {
+                        res.locals.authed = new Error("Issue authenticating with Youtube. Try again later.");
+                        return next();
+                    }
+
+                    let user = new OCUser(output.data, { noError: true });
+                    let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
+                    if(user instanceof OCUser && user.validUserObject()) {
+                        // syncUser
+                    } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
+                        // updateUser
+                    } else {
+                        // finalize (pass back to route, it will render finalize page that is posted to finalize flow below)
+                        // create filler OCUser Object
+                    }
+    
+                    /*
+                    res.locals.authed = {
+                        user: OCUser -> from sync/update/create.
+                        finish: boolean -> yes render finalize page, no skip
+                    }
+                    */
+
+                    return next();
                 },
                 
                 finalize: () => {},

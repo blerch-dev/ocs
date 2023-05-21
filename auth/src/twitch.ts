@@ -15,7 +15,6 @@ export const GetTwitchRoute = (beta: boolean, Auth: OCAuth, passToApp: Function,
                 //console.log("Authing with Twitch:", req.session);
                 //console.log("Twitch Data:", res.locals.twitch);
 
-
                 // New Flow
                 if(res.locals.authed instanceof Error) {
                     return res.send(ErrorPage(500, res.locals.twitch.message));

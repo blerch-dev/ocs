@@ -22,53 +22,24 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                 //console.log("Authing with Youtube:", req.session);
                 //console.log("Youtube Data:", res.locals.youtube);
 
-                // Find User
-                if(res.locals.youtube?.id == undefined) {
-                    if(res.locals.youtube.error === 1)
-                        return res.send(ErrorPage(401, res.locals.youtube.message));
-
-                    return res.send(ErrorPage(500, "Issue authenticating with Youtube. Try again later."));
+                // New Flow
+                if(res.locals.authed instanceof Error) {
+                    return res.send(ErrorPage(500, res.locals.twitch.message));
                 }
 
-                // leaf cert thing https://stackoverflow.com/questions/20082893/unable-to-verify-leaf-signature for https
-                let output = await (
-                    // await fetch(`${OCServices.IMP}://${OCServices.Data}/user/youtube/${res.locals.youtube.id}`)
-                    await OCServices.Fetch('Data', `/user/youtube/${res.locals.youtube.id}`)
-                ).json();
-
-                if(output.data instanceof Error) {
-                    return res.send(ErrorPage(500, "Issue reading from database. Try again later."));
-                }
-
-                //console.log("Output Data:", output.data);
-                let user = new OCUser(output.data, { noError: true });
-                let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
-                // Add ways to select stay signed in here
-                if(user instanceof OCUser && user.validUserObject()) {
-                    session.setUser(req, user.toJSON());
-                    if(ssi) { await stayLoggedIn(user, res); }
-                } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
-                    // add youtube to account
-                    await OCServices.Fetch('Data', `/add/connection/youtube`, {
-                        // add user/youtube data here in post body
-                    });
-                } else {
-                    // Create User - remember to normalize usernames on creation
-                    let yt = res.locals.youtube;
-                    let name = yt?.snippet?.customUrl?.substring(1) ?? yt?.snippet?.title ?? "no_username";
-                    session.setSesh(req, 'state', 'youtube', res.locals.youtube);
+                if(res.locals.authed?.finish) {
+                    let user = res.locals.auth.user.toJSON();
                     return res.send(SignUpPage(site, { 
-                        username: name,
-                        connections: {
-                            youtube: {
-                                id: yt.id,
-                                username: name
-                            }
-                        }
+                        username: user.connections.youtube.username,
+                        connections: user.connections
                     }));
                 }
 
-                //console.log("YT User:", user.validUserObject(), user.toJSON());
+                // Needed replacment with new flow
+                //     session.setUser(req, user.toJSON());
+                //     if(ssi) { await stayLoggedIn(user, res); }
+                //     session.setSesh(req, 'state', 'twitch', res.locals.twitch);
+
                 return passToApp(req, res, server, site, ssi);
             });
 
