@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "node dev.js",
-    "docker-build": "node build.js"
+    "docker-build": "node build.js",
+    "install": "node install.js"
   },
   "repository": {
     "type": "git",

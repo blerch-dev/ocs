@@ -10,18 +10,20 @@ const exe = (cmd) => {
 }
 
 const start = async () => {
+    const clear = process.platform === 'win32' ? ' rd /s /q .\\node_modules\\ &&' : ' rm -rf node_modules/ &&';
+
     console.log("Installing Packages...");
     await exe(`cd type && npm install && npm run build`);
     console.log(` - Installed Type Packages`);
-    await exe(`cd client && npm install`);
+    await exe(`cd client &&${clear} npm install`);
     console.log(` - Installed Client Packages`);
-    await exe(`cd chat && npm install`);
+    await exe(`cd chat &&${clear} npm install`);
     console.log(` - Installed Chat Packages`);
-    await exe(`cd auth && npm install`);
+    await exe(`cd auth &&${clear} npm install`);
     console.log(` - Installed Auth Packages`);
-    await exe(`cd data && npm install`);
+    await exe(`cd data &&${clear} npm install`);
     console.log(` - Installed Data Packages`);
-    await exe(`cd state && npm install`);
+    await exe(`cd state &&${clear} npm install`);
     console.log(` - Installed State Packages`);
 }
 

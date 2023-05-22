@@ -43,6 +43,12 @@ export interface OCServerProps {
     monitor?: { [key: string]: any }
 }
 
+declare module "express" {
+    interface Request {
+        session: any
+    }
+}
+
 declare module "express-session" {
     interface SessionData {
         // state: { [key: string]: any }
@@ -268,7 +274,7 @@ export class OCServices {
 
     static WhitelistedSites: string[] = OCServices.Production ? [
         'client.ocs.gg',
-        'kidnotkin.tv'
+        'kidnotkin.tv' // replace this to a db connected list, update on changes
     ] : [
         'client.ocs.local',
         'client.ocs.cluster'
