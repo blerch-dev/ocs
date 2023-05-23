@@ -28,7 +28,7 @@ export class OCAuth {
     public twitch = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
         verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
-        finalize: () => {},
+        finalize: (req: any, res: any, next: any) => {},
         appAuth: () => {},
         appVerify: () => {}
     }
@@ -36,7 +36,7 @@ export class OCAuth {
     public youtube = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
         verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
-        finalize: () => {},
+        finalize: (req: any, res: any, next: any) => {},
         appAuth: () => {},
         appVerify: () => {}
     }
@@ -100,9 +100,9 @@ export class OCAuth {
                     let user = new OCUser(output.data, { noError: true });
                     let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
                     if(user instanceof OCUser && user.validUserObject()) {
-                        // syncUser
+                        // syncUser - check subscription state
                     } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
-                        // updateUser
+                        this.updateUser(sessionUser, undefined, user.toJSON().connections);
                     } else {
                         // finalize (pass back to route, it will render finalize page that is posted to finalize flow below)
                         // create filler OCUser Object
@@ -118,7 +118,7 @@ export class OCAuth {
                     return next();
                 },
 
-                finalize: () => {
+                finalize: async (req: any, res: any, next: any) => {
                     // createUser
                 },
                 
@@ -210,7 +210,7 @@ export class OCAuth {
                     return next();
                 },
                 
-                finalize: () => {},
+                finalize: async (req: any, res: any, next: any) => {},
 
                 appAuth: () => {},
 
@@ -223,7 +223,7 @@ export class OCAuth {
         return null;
     }
 
-    async updateUser(user: OCUser) {
+    async updateUser(user: OCUser, channel: any, connection: any) {
         return null;
     }
 
