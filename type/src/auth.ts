@@ -24,11 +24,38 @@ export interface OCAuthProps {
     youtube?: boolean,
 }
 
+const VerificationPass = async (req: any, res: any, next: any, output: any) => {
+    let user = new OCUser(output.data, { noError: true });
+    let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
+    if(user instanceof OCUser && user.validUserObject()) {
+        output = await OCAuth.syncUser(user);
+        if(output instanceof Error) {
+            res.locals.authed = output;
+            return next();
+        }
+
+        user = output as OCUser;
+    } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
+        output = await OCAuth.updateUser(sessionUser, user.toJSON());
+        if(output instanceof Error) {
+            res.locals.authed = output;
+            return next();
+        }
+
+        user = output as OCUser;
+    } else {
+        res.locals.authed = { user: user, finish: true }
+        return next();
+    }
+
+    res.locals.authed = { user: user, finish: false }
+    return next();
+}
+
 export class OCAuth {
     public twitch = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
         verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
-        finalize: (req: any, res: any, next: any) => {},
         appAuth: () => {},
         appVerify: () => {}
     }
@@ -36,7 +63,6 @@ export class OCAuth {
     public youtube = {
         authenticate: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
         verify: (req: any, res: any, next: any) => { console.log("Undefined Function"); },
-        finalize: (req: any, res: any, next: any) => {},
         appAuth: () => {},
         appVerify: () => {}
     }
@@ -92,34 +118,20 @@ export class OCAuth {
                     }
 
                     let output = await (await OCServices.Fetch('Data', `/user/twitch/${twitch_data.id}`)).json();
-                    if(output.data instanceof Error) {
+                    if(output.Error) {
                         res.locals.authed = new Error("Issue authenticating with Twitch. Try again later.");
                         return next();
                     }
 
-                    let user = new OCUser(output.data, { noError: true });
-                    let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
-                    if(user instanceof OCUser && user.validUserObject()) {
-                        // syncUser - check subscription state
-                    } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
-                        this.updateUser(sessionUser, undefined, user.toJSON().connections);
-                    } else {
-                        // finalize (pass back to route, it will render finalize page that is posted to finalize flow below)
-                        // create filler OCUser Object
+                    //console.log("Output Data: ", output, twitch_data);
+                    if(output.data.connections?.twitch == undefined) {
+                        output.data.connections.twitch = {
+                            id: twitch_data.id,
+                            username: twitch_data.login
+                        }
                     }
-    
-                    /*
-                    res.locals.authed = {
-                        user: OCUser -> from sync/update/create.
-                        finish: boolean -> yes render finalize page, no skip
-                    }
-                    */
 
-                    return next();
-                },
-
-                finalize: async (req: any, res: any, next: any) => {
-                    // createUser
+                    await VerificationPass(req, res, next, output);
                 },
                 
                 appAuth: () => {},
@@ -163,7 +175,7 @@ export class OCAuth {
                         service.channels.list({
                             auth: authClient,
                             maxResults: 1,
-                            part: ["snippet", "contentDetails", "statistics"],
+                            part: ["snippet"],
                             mine: true
                         }, (err, resp) => {
                             if(err) { console.log(err); rej(err); }
@@ -183,34 +195,22 @@ export class OCAuth {
                         return next();
                     }
 
-                    let output = await (await OCServices.Fetch('Data', `/user/twitch/${youtube_data.id}`)).json();
+                    let output = await (await OCServices.Fetch('Data', `/user/youtube/${youtube_data.id}`)).json();
                     if(output.data instanceof Error) {
                         res.locals.authed = new Error("Issue authenticating with Youtube. Try again later.");
                         return next();
                     }
 
-                    let user = new OCUser(output.data, { noError: true });
-                    let sessionUser = new OCUser(req?.session?.user as any, { noError: true });
-                    if(user instanceof OCUser && user.validUserObject()) {
-                        // syncUser
-                    } else if(sessionUser instanceof OCUser && sessionUser.validUserObject()) {
-                        // updateUser
-                    } else {
-                        // finalize (pass back to route, it will render finalize page that is posted to finalize flow below)
-                        // create filler OCUser Object
+                    //console.log("Output Data: ", output, youtube_data);
+                    if(output.data.connections?.youtube == undefined) {
+                        output.data.connections.youtube = {
+                            id: youtube_data.id,
+                            username: youtube_data.snippet.title
+                        }
                     }
-    
-                    /*
-                    res.locals.authed = {
-                        user: OCUser -> from sync/update/create.
-                        finish: boolean -> yes render finalize page, no skip
-                    }
-                    */
 
-                    return next();
+                    await VerificationPass(req, res, next, output);
                 },
-                
-                finalize: async (req: any, res: any, next: any) => {},
 
                 appAuth: () => {},
 
@@ -219,15 +219,33 @@ export class OCAuth {
         }
     }
 
-    async createUser(user: OCUser) {
-        return null;
+    static async createUser(user: OCUser, extras?: any) {
+        let output = await (await OCServices.Fetch('Data', '/user/create', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_data: user.toJSON(), extras: extras })
+        })).json();
+        
+        if(output.Error)
+            return new Error(output.Error);
+
+        return new OCUser(output.data, { noError: true });
     }
 
-    async updateUser(user: OCUser, channel: any, connection: any) {
-        return null;
+    static async updateUser(user: OCUser, data: any) {
+        let output = await (await OCServices.Fetch('Data', '/user/update', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_data: user.toJSON(), connections: data.connections })
+        })).json();
+
+        if(output.Error)
+            return new Error(output.Error);
+
+        return new OCUser(output.data, { noError: true });
     }
 
-    async syncUser(user: OCUser) {
-        return null;
+    static async syncUser(user: OCUser) {
+        return user; // doesnt sync, but functions as no new data
     }
 }

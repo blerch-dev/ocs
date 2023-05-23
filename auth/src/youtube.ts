@@ -28,23 +28,26 @@ export const GetYoutubeRoute = (beta: boolean, Auth: OCAuth, passToApp: Function
                 }
 
                 if(res.locals.authed?.finish) {
-                    let user = res.locals.auth.user.toJSON();
+                    let user = res.locals.authed.user.toJSON();
                     return res.send(SignUpPage(site, { 
                         username: user.connections.youtube.username,
                         connections: user.connections
                     }));
                 }
 
-                // Needed replacment with new flow
-                //     session.setUser(req, user.toJSON());
-                //     if(ssi) { await stayLoggedIn(user, res); }
-                //     session.setSesh(req, 'state', 'twitch', res.locals.twitch);
+                let user = res.locals.authed.user as OCUser;
+                if(user.validUserObject()) {
+                    session.setUser(req, user.toJSON());
+                    if(req.cookies.ssi) { await stayLoggedIn(user, res); }
+                } else {
+                    return res.json({ Error: { Message: "Failed creating user object." } });
+                }
 
                 return passToApp(req, res, server, site, ssi);
             });
 
             router.post('/user/youtube/sync', (req, res) => {
-                // load subscriptions, match for existing channels
+                // load youtube info from youtube_id, get data, add to user, OCAuth.syncUser(user)
             });
 
             return router;

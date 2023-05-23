@@ -14,7 +14,7 @@ const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true, youtu
 
 let passToApp = (req: any, res: any, server: OCServer, site: string, ssi?: boolean) => {
     let code = require('crypto').randomBytes(16).toString('hex');
-    let json = { cookie: req.cookies['connect.sid'], ssi: ssi ?? false }
+    let json = { cookie: req.cookies['connect.sid'], ssi: ssi ?? false, site: site }
 
     if(json.cookie == undefined) {
         //console.log("No Cookie Value:", json.cookie, req.session);
@@ -24,8 +24,8 @@ let passToApp = (req: any, res: any, server: OCServer, site: string, ssi?: boole
     server.getRedisClient().getClient().set(code, JSON.stringify(json));
     Auth.clearCode(() => { server.getRedisClient().getClient().del(code); }, 10);
     
-    let redirect = `${OCServices.IMP}://${req.session.state?.authing_site ?? site}/auth?authcode=${code}`;
-    console.log("PTA Cookies:", json);
+    let redirect = `${OCServices.IMP}://${site ?? req.session.state?.authing_site}/auth?authcode=${code}`;
+    //console.log("PTA Cookies:", json);
     res.redirect(redirect);
 }
 
@@ -135,8 +135,9 @@ const DefaultRoute = new OCRoute({
         });
 
         router.post('/user/create', async (req, res) => {
+            let code = req.body.code ?? '';
             if(beta) {
-                if(req.body.code !== 'dev-mode') {
+                if(code !== '--dev-mode' && code !== 'beta-tester') {
                     res.json({
                         Error: {
                             Code: 401,
@@ -151,6 +152,7 @@ const DefaultRoute = new OCRoute({
             let user = new OCUser({
                 uuid: OCUser.generateId(),
                 username: username,
+                roles: code === '--dev-mode' ? 1 << 0 : code === 'beta-tester' ? 1 << 4 : 0,
                 connections: data.connections ?? {},
                 channels: data.channels ?? {}
             });
@@ -159,17 +161,14 @@ const DefaultRoute = new OCRoute({
                 return res.json({ Error: { Code: 500, Message: "Failed to create user data." } });
             }
 
-            let output = await (await fetch(`${OCServices.IMP}://${OCServices.Data}/user/create`, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_data: user.toJSON(), extras: { site: req.session.state?.authing_site } })
-            })).json();
+            //console.log("User Data:", user.toJSON());
+            let output = await OCAuth.createUser(user, { site: req.session.state?.authing_site });
 
             // Output is Error | OCUser
-            if(output.Error)
-                return res.json({ Error: output.Error });
+            if(output instanceof Error)
+                return res.json({ Error: { Message: output.message } });
 
-            user = new OCUser(output.data, { noError: true });
+            user = output as OCUser;
             if(user.validUserObject()) {
                 session.setUser(req, user.toJSON());
                 if(req.cookies.ssi) { await stayLoggedIn(user, res); }
@@ -201,7 +200,7 @@ const server = new OCServer({
     session: {
         secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,
-        sameSite: 'none',
+        // sameSite: 'none',
         rolling: true
     },
     debug: true

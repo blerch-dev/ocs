@@ -50,17 +50,26 @@ export const createUser = async (user: OCUser, extras?: { [key: string]: any }):
 
     let ts = user.getCreatedAtTimestamp(), r = user.toJSON().roles ?? 0, s = user.toJSON().status ?? 1;
     query = await queryDB(query_str, [user.getUUID(), user.getName(), ts, ts, r, s]);
-    if(query instanceof Error)
+    if(query instanceof Error) {
+        console.log("CreateUser Error 1::", query);
         return query;
+    }
 
     // Insert Optional Data
     if(user.toJSON().connections.twitch || user.toJSON().connections.youtube) {
-        await addUserConnection({ 
+        let output = await addUserConnection({ 
             user_id: user.getUUID(), 
             created_for: extras?.site, 
             twitch: user.toJSON().connections?.twitch,
             youtube: user.toJSON().connections?.youtube
         });
+
+        if(output instanceof Error) {
+            console.log("CreateUser Error 2::", output);
+            return output;
+        }
+
+        return output;
     }
 
     return user;
@@ -84,12 +93,11 @@ export const addUserConnection = async (data: {
         (user_id, created_for, twitch_id, twitch_name, youtube_id, youtube_name, discord_id, discord_name) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
         ON CONFLICT (user_id) 
-        DO 
-        ${data.twitch != undefined || data.youtube != undefined || data.discord != undefined ? `
+        DO ${data.twitch != undefined || data.youtube != undefined || data.discord != undefined ? `
             UPDATE SET
             ${data.twitch ? `twitch_id = $3, twitch_name = $4${data.youtube || data.discord ? ',' : ''}` : ''}
-            ${data.twitch ? `youtube_id = $5, youtube_name = $6${data.discord ? ',' : ''}` : ''}
-            ${data.twitch ? `discord_id = $7, discord_name = $8` : ''}
+            ${data.youtube ? `youtube_id = $5, youtube_name = $6${data.discord ? ',' : ''}` : ''}
+            ${data.discord ? `discord_id = $7, discord_name = $8` : ''}
         ` : 'NOTHING;'}
     `;
 
@@ -103,6 +111,8 @@ export const addUserConnection = async (data: {
         data.discord?.id ?? null,
         data.discord?.username ?? null
     ]);
+
+    return await getFullUser(data.user_id);
 }
 
 const fullUserSearch = async (qstr: string, ...values: any[]) => {

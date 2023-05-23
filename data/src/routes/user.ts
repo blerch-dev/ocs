@@ -5,6 +5,7 @@ import {
     getFullUserFromYoutube,
     createUser, 
     getUserConnection, 
+    addUserConnection,
     fullUserTest, 
     createUserToken, 
     getUUIDFromSelector, 
@@ -31,15 +32,34 @@ const UserRoute = new OCRoute({
         
             let output = await createUser(user, extras);
             if(output instanceof Error)
-                return res.json({ Error: output });
+                return res.json({ Error: output.message });
         
+            res.json({ code: 200, data: output.toJSON() });
+        });
+
+        router.post('/user/update', async (req, res) => {
+            const { user_data, connections, created_for = undefined } = req.body;
+            // Update Base User Table Info
+            // Update Channel Connections Table Info
+            // Update User Connections Table Info
+            let output = await addUserConnection({
+                user_id: user_data.uuid,
+                created_for: created_for ?? user_data.created_for,
+                twitch: connections.twitch,
+                youtube: connections.youtube,
+                discord: connections.discord
+            });
+
+            if(output instanceof Error)
+                return res.json({ Error: output });
+
             res.json({ code: 200, data: output.toJSON() });
         });
         
         router.get('/user/twitch/:id', async (req, res) => {
             let user = await getFullUserFromTwitch(req.params.id);
             if(user instanceof Error) { 
-                return res.json({ code: 500, message: 'User Error', error: user });
+                return res.json({ Error: user.message });
             }
         
             res.json({ code: 200, data: user.toJSON() });
@@ -48,7 +68,7 @@ const UserRoute = new OCRoute({
         router.get('/user/youtube/:id', async (req, res) => {
             let user = await getFullUserFromYoutube(req.params.id);
             if(user instanceof Error) {
-                return res.json({ code: 500, message: 'User Error', error: user });
+                return res.json({ Error: user.message });
             }
 
             res.json({ code: 200, data: user.toJSON() });
@@ -59,6 +79,17 @@ const UserRoute = new OCRoute({
             res.json({ code: 200, data: result.rows });
         });
         
+        // Channels
+        router.post('/channel/:id/role/:role', async (req, res) => {
+            const { user_data } = req.body;
+            return res.json({ msg: 'todo' });
+        });
+
+        router.post('/channel/:id/status/:status', async (req, res) => {
+            const { user_data } = req.body;
+            return res.json({ msg: 'todo' });
+        });
+
         // User Connections
         router.get('/connections/:platform/:id', async (req, res) => {
             let result = await getUserConnection(req.params.platform, req.params.id);

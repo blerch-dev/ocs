@@ -29,7 +29,8 @@ let configGlobalRoles: () => RoleInterface[] = () => {
         valToRI(1 << 0, 'Admin', '#ff5c00'),
         valToRI(1 << 1, 'Dev', '#00ff00'),
         valToRI(1 << 2, 'Mod', '#ffff00'),
-        valToRI(1 << 3, 'Streamer', "#ff0000")
+        valToRI(1 << 3, 'Streamer', "#ff0000"),
+        valToRI(1 << 4, 'Beta Tester', '#ffffff')
     ];
     return roles;
 }
@@ -168,7 +169,7 @@ export class OCUser {
         const data = {
             uuid: user_data?.uuid,
             username: user_data?.username,
-            roles: Number(user_data?.roles) ?? 0,
+            roles: Number(user_data?.roles ?? 0),
             status: user_data?.status ?? 0,
             created_at: user_data?.created_at ?? Date.now(),
             connections: {

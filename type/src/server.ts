@@ -276,6 +276,7 @@ export class OCServices {
         'client.ocs.gg',
         'kidnotkin.tv' // replace this to a db connected list, update on changes
     ] : [
+        'app.local',
         'client.ocs.local',
         'client.ocs.cluster'
     ]
