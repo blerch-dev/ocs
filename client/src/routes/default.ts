@@ -101,7 +101,7 @@ const DefaultRoute = new OCRoute({
                                     <h4>${con.twitch.username}</h4>
                                 </span>
                             ` : `
-                                <a href="${auth_link('/auth/twitch')}"><h4>Add Twitch Account</h4></a>
+                                <a href="${auth_link('/twitch')}"><h4>Add Twitch Account</h4></a>
                             `}
                             ${con?.youtube ? `
                                 <span class="profile-card-tag twitch-tag">
@@ -109,7 +109,7 @@ const DefaultRoute = new OCRoute({
                                     <h4>${con.youtube.username}</h4>
                                 </span>
                             ` : `
-                                <a href="${auth_link('/auth/youtube')}"><h4>Add Youtube Account</h4></a>
+                                <a href="${auth_link('/youtube')}"><h4>Add Youtube Account</h4></a>
                             `}
                         </span>
                     </div>
