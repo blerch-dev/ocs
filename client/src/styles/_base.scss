@@ -119,3 +119,16 @@ input {
         width: 20px;
     }
 }
+
+.youtube-tag {
+    background-color: var(--youtube-red);
+    border: 2px solid var(--light-bg);
+    padding: 8px 12px;
+    width: fit-content;
+    border-radius: 5px;
+    gap: 8px !important;
+
+    & > img {
+        width: 20px;
+    }
+}

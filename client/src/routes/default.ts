@@ -104,8 +104,8 @@ const DefaultRoute = new OCRoute({
                                 <a href="${auth_link('/twitch')}"><h4>Add Twitch Account</h4></a>
                             `}
                             ${con?.youtube ? `
-                                <span class="profile-card-tag twitch-tag">
-                                    <img src="/assets/logos/twitch.svg">
+                                <span class="profile-card-tag youtube-tag">
+                                    <img src="/assets/logos/youtube.svg">
                                     <h4>${con.youtube.username}</h4>
                                 </span>
                             ` : `

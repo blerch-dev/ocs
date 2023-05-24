@@ -12,6 +12,7 @@ import { GetYoutubeRoute } from './youtube';
 const beta = !OCServices.Production;
 const Auth = new OCAuth({ callbackURL: `${OCServices.Auth}`, twitch: true, youtube: true });
 
+// on additional auth, site is undefined
 let passToApp = (req: any, res: any, server: OCServer, site: string, ssi?: boolean) => {
     let code = require('crypto').randomBytes(16).toString('hex');
     let json = { cookie: req.cookies['connect.sid'], ssi: ssi ?? false, site: site }

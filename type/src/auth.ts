@@ -73,6 +73,12 @@ export class OCAuth {
         if(props.twitch === true) {
             this.twitch = {
                 authenticate: (req: any, res: any, next: any) => {
+                    const site = req.query.site;
+                    if(site) {
+                        // set session site
+                        req.session.state = req.session.state ? { ...req.session.state, site: site } : { site: site }
+                    }
+
                     let twitchRedirectURL = `https://${props.callbackURL}/auth/twitch`;
                     let twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?client_id=${twitch.id}` + 
                         `&redirect_uri=${twitchRedirectURL}&response_type=code` + 
