@@ -58,6 +58,13 @@ const DefaultRoute = new OCRoute({
     domain: `${OCServices.Auth}`,
     callback: (router, server, session) => {
 
+        router.get('*', (req, res, next) => {
+            if(req.query.site)
+                session.setSesh(req, 'state', 'authing_site', req.query.site);
+
+            return next();
+        });
+
         router.get('/pta', async (req, res) => {
             //console.log("Sent to PTA:", req.query.site, req.cookies);
             return passToApp(req, res, server, req.query.site ?? req.session?.state?.authing_site, req.cookies?.ssi)
@@ -74,7 +81,6 @@ const DefaultRoute = new OCRoute({
                 return res.send(ErrorPage(403, "This domain is not authorized to use OCS.GG SSO."));
 
             const auth_fallback = async () => {
-                session.setSesh(req, 'state', 'authing_site', site);
                 res.send(AuthPage(site));
             }
 
