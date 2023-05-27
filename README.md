@@ -13,7 +13,7 @@
 * ~~Internal service authentication, more auth features.~~
 * ~~Build Automation.~~
 * ~~Deployment Testing and Automation.~~
-* Additional chat features and auth platforms.
+* ~~Additional chat features and auth platforms.~~
 * Mod view, along side a development overview app.
 * Custom CMS for channel maintainers.
 * Additional API Data.
