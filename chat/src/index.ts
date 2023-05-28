@@ -20,7 +20,7 @@ const server = new OCServer({
     session: {
         secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,
-        sameSite: 'none',
+        // sameSite: 'none',
         rolling: true
     },
     cors: {

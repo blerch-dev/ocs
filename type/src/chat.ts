@@ -23,6 +23,7 @@ export class OCChannel {
     public getName;
     public getSlug;
     public toString;
+    public toJSON;
 
     public setBannedIP;
     public clearBannedIP;
@@ -67,6 +68,7 @@ export class OCChannel {
         this.getName = () => { return props.name }
         this.getSlug = () => { return props.name.toLowerCase() }
         this.toString = () => { return `Channel: ${this.getName()}` }
+        this.toJSON = () => { return props; }
 
         this.BannedIPs = new Set<string>();
         this.setBannedIP = (ip: string) => {

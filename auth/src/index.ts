@@ -119,7 +119,7 @@ const DefaultRoute = new OCRoute({
         router.get('/logout', async (req, res) => {
             let user_id = req.session?.user?.uuid ?? 'ignore_request';
             let result = await (await OCServices.Fetch('Data', `/token/delete/uuid/${user_id}`)).json();
-            console.log("Logout DB Result:", result);
+            if(result.Okay === false) { console.log("Logout DB Result:", result); }
 
             // destroy was not getting replaced on next request
             req.session.destroy((err) => {

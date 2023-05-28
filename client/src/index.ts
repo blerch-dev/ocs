@@ -47,7 +47,7 @@ const SSIRoute = new OCRoute({
         router.all('*', (req, res, next) => {
             if(req.session?.user == undefined && req.cookies.ssi == 'true') {
                 res.cookie('ssi_forward', req.protocol + '://' + req.hostname + req.originalUrl);
-                res.redirect(`${OCServices.IMP}://${OCServices.Auth}/sso?site=${req.hostname}`);
+                return res.redirect(`${OCServices.IMP}://${OCServices.Auth}/sso?site=${req.hostname}`);
             } else if(req.cookies.ssi_forward) {
                 res.clearCookie('ssi_forward');
                 return res.redirect(req.cookies.ssi_forward);
