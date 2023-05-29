@@ -138,6 +138,10 @@
     footer {
         padding: 4px;
         min-height: 42px;
+
+        & > * {
+            min-height: 30px;
+        }
     }
     
     input {

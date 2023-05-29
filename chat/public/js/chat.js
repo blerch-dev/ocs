@@ -96,10 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const RemoveChat = (code) => { if(frame instanceof Element) { frame.classList.add('hide'); } OCS.disconnect(code); }
 });
 
+function getParentLocation() {
+    return (window.location != window.parent.location) ? document.referrer : document.location.href;
+}
+
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
     const url = window.location.host.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
-    OCS.connect(`wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`, CHANNEL_NAME);
+    let fullURL = `wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${getParentLocation()}`
+    console.log("FullURL:", fullURL);
+    OCS.connect(fullURL, CHANNEL_NAME);
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')

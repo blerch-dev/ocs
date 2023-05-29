@@ -2,6 +2,8 @@
 import { OCRoute, OCServices, OCUser, RoleSheet, Status } from "ocs-type";
 import { defaultLayout, defaultHead, embedComponent, chatComponent, headerComponent } from "../components";
 
+let chatURL = `${OCServices.IMP}://${OCServices.Chat}`
+
 const DefaultRoute = new OCRoute({
     domain: '[\\s\\S]*',
     callback: (router, server, session) => {
@@ -15,7 +17,7 @@ const DefaultRoute = new OCRoute({
         router.get('/live', (req, res, next) => {
             let head = defaultHead('OCS | Live');
             let embed = embedComponent();
-            let chat = chatComponent('Global Chat');
+            let chat = chatComponent(`${chatURL}/chat`); // add resource for domains
             let body = `
                 ${headerComponent('OCS Live', req.session?.user?.username, [{ label: 'bler.ch', link: 'https://bler.ch' }])}
                 <main class="live">${embed}${chat}</main>
@@ -26,7 +28,7 @@ const DefaultRoute = new OCRoute({
 
         router.get('/chat/embed', (req, res) => {
             let head = defaultHead('OCS | Embed Chat');
-            let chat = chatComponent('Global Chat', { transparent: true, flex: true });
+            let chat = chatComponent(`${chatURL}/chat/embed`);
             let body = `<main class="live">${chat}</main>`;
 
             res.send(defaultLayout(head, body, { transparent: true }));
@@ -34,7 +36,7 @@ const DefaultRoute = new OCRoute({
 
         router.get('/chat', (req, res, next) => {
             let head = defaultHead('OCS | Chat');
-            let chat = chatComponent('Global Chat', { flex: true, controls: false });
+            let chat = chatComponent(`${chatURL}/chat`);
             let body = `<main class="live">${chat}</main>`;
 
             res.send(defaultLayout(head, body));

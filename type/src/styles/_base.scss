@@ -1,5 +1,3 @@
-@import "../../node_modules/ocs-type/lib/styles/global.scss";
-
 html {
     font-family: "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif, 
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -23,6 +21,10 @@ body {
 code {
     font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
         Bitstream Vera Sans Mono, Courier New, monospace;
+}
+
+iframe {
+    border: none;
 }
 
 main {
