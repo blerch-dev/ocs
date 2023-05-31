@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const RemoveChat = (code) => { if(frame instanceof Element) { frame.classList.add('hide'); } OCS.disconnect(code); }
 });
 
+// Need a way to either include headers in websocket cross origin, or include in an iframe cross origin
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
     const url = window.location.host.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
