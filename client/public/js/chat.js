@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const RemoveChat = (code) => { if(frame instanceof Element) { frame.classList.add('hide'); } OCS.disconnect(code); }
 });
 
+// could just have the client server forward websocket connection
 // Need a way to either include headers in websocket cross origin, or include in an iframe cross origin
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
