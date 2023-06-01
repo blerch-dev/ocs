@@ -1,5 +1,5 @@
 import path from 'path';
-import { OCServer, OCRoute, OCServices } from 'ocs-type';
+import { OCServer, OCRoute, OCServices, OCServerType } from 'ocs-type';
 
 // Custom Express Based JS Renderer/Session Management
 // Routes will define layout, import components (add component type to oc-type)
@@ -21,11 +21,12 @@ const SSIRoute = new OCRoute({
                 let json = JSON.parse(result);
                 // get session id from cookie, get session, extract info for ssi cookie here
                 //console.log("client auth side:", json);
-                res.cookie('connect.sid', json.cookie);
+                res.cookie('connect.sid', json.cookie, { domain: `.${req.hostname}`, httpOnly: true });
                 if(json.ssi) {
                     res.cookie('ssi', json.ssi, { 
+                        domain: `.${req.hostname}`,
                         expires: new Date(365 * 24 * 60 * 60 * 1000 + Date.now()),
-                        httpOnly: true 
+                        httpOnly: true
                     }) 
                 }
 
@@ -68,9 +69,13 @@ const SSIRoute = new OCRoute({
 
 const server = new OCServer({
     routes: [SSIRoute, DevRoute, DefaultRoute],
+    type: OCServerType.Client,
     port: 8080,
     static: [path.resolve(__dirname, './public/')],
-    session: {}
+    session: {},
+    cors: {
+        domains: OCServices.WhitelistedSites
+    }
 });
 
 export default server;

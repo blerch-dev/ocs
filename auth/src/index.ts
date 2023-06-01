@@ -2,7 +2,7 @@
 // todo - user tokens (only placed on root domain at auth)
 
 import path from 'path';
-import { OCServer, OCAuth, OCRoute, OCUser, OCServices } from 'ocs-type';
+import { OCServer, OCAuth, OCRoute, OCUser, OCServices, OCServerType } from 'ocs-type';
 
 import { DefaultPage, ErrorPage, AuthPage, SessionPage, SignUpPage } from './pages';
 import { GetTwitchRoute } from './twitch';
@@ -201,9 +201,12 @@ const DefaultRoute = new OCRoute({
 
 const server = new OCServer({
     routes: [TwitchRoute, YoutubeRoute, DefaultRoute],
+    type: OCServerType.Auth,
     port: 8082,
     static: [path.resolve(__dirname, './public/')],
-    cors: {},
+    cors: {
+        domains: OCServices.WhitelistedSites
+    },
     session: {
         secure: OCServices.Production ?? true,
         domain: `.${OCServices.RootURL}`,

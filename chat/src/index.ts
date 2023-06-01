@@ -1,4 +1,4 @@
-import { OCServer, OCRoute, OCServices } from "ocs-type";
+import { OCServer, OCRoute, OCServices, OCServerType } from "ocs-type";
 import WSS from "./chat";
 
 // Chat Route
@@ -20,6 +20,7 @@ const ChatRoute = new OCRoute({
 
 const server = new OCServer({
     routes: [ChatRoute],
+    type: OCServerType.Chat,
     port: 8081,
     appFunctions: [WSS],
     session: {

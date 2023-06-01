@@ -15,6 +15,7 @@ import { OCRedisStore, OCRedisClient } from './state';
 
 export interface OCServerProps {
     routes: OCRoute[],
+    type: OCServerType,
 
     id?: string | number, // Always exists, undefined will be generated
     node?: string, // Kubernetes/Docker Info
@@ -153,6 +154,8 @@ export class OCServer {
                 origin: props.cors.origin ?? props.cors.domains ?? '*',
                 preflightContinue: props.cors?.preflightContinue
             }));
+
+            //console.log(OCServerType[props.type], props.cors);
         }
 
         // Header Checks
@@ -277,7 +280,10 @@ export class OCServices {
         'kidnotkin.tv' // replace this to a db connected list, update on changes
     ] : [
         'app.local',
+        'www.app.local',
+        'chat.app.local',
         'client.ocs.local',
+
         'client.ocs.cluster'
     ]
 
@@ -310,4 +316,12 @@ export class OCServices {
                 return await fetch(func(OCServices.Data + resource), headers);
         }
     }
+}
+
+export enum OCServerType {
+    Auth,
+    Chat,
+    Client,
+    Data,
+    State
 }

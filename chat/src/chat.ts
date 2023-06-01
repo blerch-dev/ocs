@@ -118,9 +118,11 @@ export default (server: OCServer) => {
 
         // session is now empty
         let user = OCUser.validUserObject((session as any)?.user) ? new OCUser((session as any)?.user) : undefined;
-        console.log("User:", user?.toJSON());
-        console.log("Channel:", (channel_data as OCChannel)?.toJSON());
-        console.log("Origin:", origin);
+
+        //console.log("User:", user?.toJSON());
+        //console.log("Channel:", (channel_data as OCChannel)?.toJSON());
+        //console.log("Origin:", origin);
+
         // Updating User with new User from new session should effect current chatter copium
 
         server.logger.debug(`${channel_data.toString()} - ${user?.getName()} | ${(socket as any).hexcode}`)

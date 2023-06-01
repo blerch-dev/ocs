@@ -3,7 +3,6 @@ class OCSocket {
         //console.log("Loaded:", loc); // Should do maps here
         this.loc = loc;
         this.embed = loc?.pathname?.indexOf('/embed') >= 0 ?? false;
-        console.log(loc);
 
         this.events = new Map();
         this.channel_name = undefined;
@@ -98,8 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const OCS = new OCSocket(window.location);
 function ConfigureChat(chat, input, submit) {
-    const url = window.location.host.indexOf('local') >= 0 ? 'chat.ocs.local' : 'chat.ocs.gg'
-    OCS.connect(`wss://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`, CHANNEL_NAME);
+    const url = `chat.${window.location.host.split(".").slice(-2).join(".")}`
+    const secure = window.location.host.indexOf('local') < 0;
+    const fullURL = `${secure ? 'wss' : 'ws'}://${url}/?channel=${CHANNEL_NAME ?? 'global'}&client=${window.location}`;
+    //console.log("Full URL:", fullURL);
+
+    OCS.connect(fullURL, CHANNEL_NAME);
     OCS.on('message', (event) => {
         let msg = event.data;
         if(msg === 'ping')

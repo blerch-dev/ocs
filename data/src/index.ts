@@ -1,4 +1,4 @@
-import { OCServer, OCRoute, OCServices } from 'ocs-type';
+import { OCServer, OCRoute, OCServices, OCServerType } from 'ocs-type';
 
 import UserRoute from './routes/user';
 
@@ -19,6 +19,7 @@ const DefaultRoute = new OCRoute({
 
 const server = new OCServer({
     routes: [UserRoute, DefaultRoute],
+    type: OCServerType.Data,
     port: 8083,
     cors: {
         creds: true

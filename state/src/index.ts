@@ -1,4 +1,4 @@
-import { OCServer, OCRoute, OCAuth, OCServices } from 'ocs-type';
+import { OCServer, OCRoute, OCServices, OCServerType } from 'ocs-type';
 import { Streams } from './streams';
 // Some form of user oauth access for syncing subs is required
 
@@ -30,6 +30,7 @@ const DefaultRoute = new OCRoute({
 
 const server = new OCServer({
     routes: [DefaultRoute],
+    type: OCServerType.State,
     port: 8084,
     cors: {
         creds: true
