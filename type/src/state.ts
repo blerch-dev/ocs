@@ -45,3 +45,20 @@ export class OCRedisClient {
         this.getPublisher = () => { return new Redis({ host: host, port: port }); }
     }
 }
+
+// per platform info, management for interactions
+export class OCPlatformInterface {
+    constructor() {
+
+    }
+}
+
+// websocket/webhook for live updates, possible sync checks
+export class OCPlatformManager {
+
+    private platformInterfaces: OCPlatformInterface[];
+
+    constructor(interfaces: OCPlatformInterface[]) {
+        this.platformInterfaces = interfaces;
+    }
+}
