@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import connectRedis = require('connect-redis');
 import { OCServer } from './server';
+import { OCChannel } from './chat';
 
 export class OCRedisStore {
     public getStore;
@@ -48,17 +49,22 @@ export class OCRedisClient {
 
 // per platform info, management for interactions
 export class OCPlatformInterface {
-    constructor() {
 
+    private channel: OCChannel;
+
+    constructor(channel: OCChannel) {
+        this.channel = channel;
     }
 }
 
+// app access token attempt, says it needs user but docs so that both can work
+// can do user, need to set up a default account to check with
 // websocket/webhook for live updates, possible sync checks
 export class OCPlatformManager {
 
-    private platformInterfaces: OCPlatformInterface[];
+    private interfaces: OCPlatformInterface[];
 
-    constructor(interfaces: OCPlatformInterface[]) {
-        this.platformInterfaces = interfaces;
+    constructor(interfaces: OCPlatformInterface[] = []) {
+        this.interfaces = interfaces;
     }
 }

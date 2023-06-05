@@ -2,6 +2,7 @@ import { OCServer, OCServerProps, OCRoute, OCRouteProps, OCServices, OCServerTyp
 import { OCAuth, OCAuthProps } from './auth';
 import { OCMessage, OCChannel } from './chat';
 import { OCUser, RoleSheet, Status } from './user';
+import { OCPlatformInterface, OCPlatformManager } from './state';
 import { hashValidator, generateSelectorAndValidator, daysToTimestamp } from './crypto';
 
 export {
@@ -9,5 +10,6 @@ export {
     OCAuth, OCAuthProps,
     OCMessage, OCChannel,
     OCUser, RoleSheet, Status,
+    OCPlatformInterface, OCPlatformManager,
     hashValidator, generateSelectorAndValidator, daysToTimestamp
 }

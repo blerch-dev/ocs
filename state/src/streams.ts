@@ -1,4 +1,5 @@
 import Crypto from 'crypto';
+import { OCPlatformManager, OCPlatformInterface } from 'ocs-type';
 
 // Here for testing, load from db
 const Channels = [
@@ -49,5 +50,8 @@ class StreamManager {
 
     }
 }
+
+// WebSocket EventSub - Might Have Both Options Available
+const PlatformManager = new OCPlatformManager();
 
 export const Streams = new StreamManager();
