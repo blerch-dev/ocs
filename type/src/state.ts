@@ -57,6 +57,23 @@ export class OCPlatformInterface {
     }
 }
 
+enum Platform {
+    Twitch,
+    Youtube
+}
+
+export class OCPlatformAccess {
+    public platform: Platform;
+    public codes: { [key: string]: string };
+
+    constructor(platform: Platform) {
+        this.platform = platform;
+
+        // generate codes
+        this.codes = {};
+    }
+}
+
 // app access token attempt, says it needs user but docs so that both can work
 // can do user, need to set up a default account to check with
 // websocket/webhook for live updates, possible sync checks
@@ -64,7 +81,17 @@ export class OCPlatformManager {
 
     private interfaces: OCPlatformInterface[];
 
+    private accessCodes: { [key: string]: unknown };
+    private saveAccessCodes = (access: OCPlatformAccess) => {
+        this.accessCodes[Platform[access.platform]] = access.codes;
+        // save to local file
+    }
+    private loadAccessCodes = () => {
+        return {};
+    }
+
     constructor(interfaces: OCPlatformInterface[] = []) {
         this.interfaces = interfaces;
+        this.accessCodes = this.loadAccessCodes();
     }
 }
