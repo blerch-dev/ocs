@@ -208,9 +208,9 @@ export class OCServer {
 
         // Host/Clients
         let port = props.port ?? 3000;
-        const server = this.app.listen(port);
+        const server = this.app.listen(port, () => { OCServices.AddAvailableService(props.type, this) });
         this.getServer = () => { return server; }
-        this.getRedisClient = () => { return RedisClient }
+        this.getRedisClient = () => { return RedisClient; }
         this.logger.verbose(`Listening on Port: ${port}`);
 
         // App Functions (WSS Upgrade) - Require getServer Function
@@ -314,6 +314,30 @@ export class OCServices {
                 return await fetch(func(OCServices.State + resource), headers);
             default:
                 return await fetch(func(OCServices.Data + resource), headers);
+        }
+    }
+
+    static AvailableServices = new Map<OCServerType, OCServer[]>();
+    static AddAvailableService = (type: OCServerType, server: OCServer) => {
+        if(OCServices.AvailableServices.has(type)) {
+            (OCServices.AvailableServices.get(type) as OCServer[]).push(server);
+        } else {
+            OCServices.AvailableServices.set(type, [server]);
+        }
+
+        if(OCServices.WaitingForServices.has(type)) {
+            (OCServices.WaitingForServices.get(type) as Function[]).forEach((cb) => { cb(); });
+        }
+    }
+
+    static WaitingForServices = new Map<OCServerType, Function[]>();
+    static WaitForService = (type: OCServerType, cb: Function) => {
+        if(OCServices.AvailableServices.has(type)) {
+            cb();
+        } else if(OCServices.WaitingForServices.has(type)) {
+            (OCServices.WaitingForServices.get(type) as Function[]).push(cb);
+        } else {
+            OCServices.WaitingForServices.set(type, [cb]);
         }
     }
 }

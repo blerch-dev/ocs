@@ -9,6 +9,12 @@ const DefaultRoute = new OCRoute({
             res.send('pong');
         });
 
+        // router.post('/test/post', (req, res) => {
+        //     const { body, method, headers } = req;
+        //     console.log(method, headers, body);
+        //     res.end();
+        // });
+
         router.all('*', (req, res) => {
             res.json({ code: 404, message: 'data catch all' });
         });

@@ -1,5 +1,5 @@
 import Crypto from 'crypto';
-import { OCPlatformManager, OCPlatformInterface } from 'ocs-type';
+import { OCPlatformManager, OCPlatformAccess, OCPlatform } from 'ocs-type';
 
 // Here for testing, load from db
 const Channels = [
@@ -17,7 +17,7 @@ interface StreamSource {
     youtube?: boolean
 }
 
-class StreamManager {
+class OCStreamManager {
     constructor() {
         // needs api creds configured on creation, auto renew
     }
@@ -52,6 +52,30 @@ class StreamManager {
 }
 
 // WebSocket EventSub - Might Have Both Options Available
-const PlatformManager = new OCPlatformManager();
+const TwitchAccess = new OCPlatformAccess(OCPlatform.Twitch, async () => {
+    let url = `https://id.twitch.tv/oauth2/token`;
+    let details = {
+        'client_id': process.env.TWITCH_ID,
+        'client_secret': process.env.TWITCH_SECRET,
+        'grant_type': 'client_credentials'
+    } as any;
 
-export const Streams = new StreamManager();
+    let response = await fetch(url, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(details).toString()
+    });
+
+    let value = await response.json();
+    console.log("Value:", value);
+
+    return {};
+});
+
+const PlatformManager = new OCPlatformManager(TwitchAccess);
+const StreamManager = new OCStreamManager();
+
+export {
+    PlatformManager,
+    StreamManager
+}

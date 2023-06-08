@@ -1,3 +1,4 @@
+import { WebSocket } from 'ws';
 import Redis from 'ioredis';
 import connectRedis = require('connect-redis');
 import { OCServer } from './server';
@@ -47,30 +48,29 @@ export class OCRedisClient {
     }
 }
 
-// per platform info, management for interactions
-export class OCPlatformInterface {
-
-    private channel: OCChannel;
-
-    constructor(channel: OCChannel) {
-        this.channel = channel;
-    }
-}
-
-enum Platform {
+export enum OCPlatform {
     Twitch,
     Youtube
 }
 
+// per platform info, management for interactions
 export class OCPlatformAccess {
-    public platform: Platform;
-    public codes: { [key: string]: string };
+    static socketURLS = [
+        'wss://eventsub.wss.twitch.tv/ws'
+    ];
 
-    constructor(platform: Platform) {
+    public platform: OCPlatform;
+    public codes: { [key: string]: string };
+    public getCodes: () => Promise<{ [key: string]: unknown }>;
+    //public connectSocket: () => {};
+
+    constructor(platform: OCPlatform, codeFetch: () => Promise<{ [key: string]: unknown }>) {
         this.platform = platform;
 
         // generate codes
         this.codes = {};
+        this.getCodes = codeFetch;
+        //this.connectSocket = connectSocket;
     }
 }
 
@@ -79,19 +79,55 @@ export class OCPlatformAccess {
 // websocket/webhook for live updates, possible sync checks
 export class OCPlatformManager {
 
-    private interfaces: OCPlatformInterface[];
+    public setPlatformAccess = (access: OCPlatformAccess) => {
+        this.accessors.set(access.platform, access);
+    }
+
+    public connectWebSocketEventSub = async (...platforms: OCPlatform[]) => {
+        for(let i = 0; i < platforms.length; i++) {
+            // check if codes are already here and not expired
+            let access = this.accessors.get(platforms[i]);
+            if(!access) { continue; }
+
+            let pls = `${OCPlatform[platforms[i]]}`;
+            let codes = await access.getCodes();
+            console.log(`${pls} Codes:`, codes);
+
+            // might move this to access
+            let socket = new WebSocket(OCPlatformAccess.socketURLS[platforms[i]]);
+            //socket.addEventListener('open', () => { console.log(`${pls} Socket Opened`); });
+            socket.addEventListener('close', () => { 
+                //console.log(`${pls} Socket Closed`, Date.now());
+                this.sockets.delete(platforms[i]);
+            });
+            //socket.addEventListener('error', (err) => { console.log(`${pls} Socket Error:`, err); });
+            socket.addEventListener('message', (ev) => { 
+                //console.log(`${pls} Socket Message:`, JSON.parse(ev.data.toString()), Date.now());
+            });
+
+            this.sockets.set(platforms[i], socket);
+        }
+    }
+
+    // webhook setup
+
+    private accessors: Map<OCPlatform, OCPlatformAccess> = new Map();
+    private sockets: Map<OCPlatform, WebSocket> = new Map();
 
     private accessCodes: { [key: string]: unknown };
     private saveAccessCodes = (access: OCPlatformAccess) => {
-        this.accessCodes[Platform[access.platform]] = access.codes;
+        this.accessCodes[OCPlatform[access.platform]] = access.codes;
         // save to local file
     }
     private loadAccessCodes = () => {
         return {};
     }
 
-    constructor(interfaces: OCPlatformInterface[] = []) {
-        this.interfaces = interfaces;
+    constructor(...accessors: OCPlatformAccess[]) {
+        let map: Map<OCPlatform, OCPlatformAccess> = new Map();
+        accessors.forEach((acc) => { map.set(acc.platform, acc); });
+        this.accessors = map;
+
         this.accessCodes = this.loadAccessCodes();
     }
 }

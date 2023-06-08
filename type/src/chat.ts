@@ -41,6 +41,7 @@ export class OCChannel {
     public getRoleSheet: () => RoleSheet;
 
     private BannedIPs: Set<string>;
+    private ModConnections = new Map<string, UserConnection>(); // mods will also be in the user connections list
     private UserConnections = new Map<string, UserConnection>();
     private AnonConnections = new Set<WebSocket.WebSocket>();
 
@@ -84,6 +85,7 @@ export class OCChannel {
         }
 
         this.addUserConnection = (user: OCUser, socket: WebSocket.WebSocket) => {
+            // if mod, add to mod list
             if(this.UserConnections.has(user.getName())) {
                 let connections = this.UserConnections.get(user.getName());
                 let sockets = connections?.sockets;
@@ -116,6 +118,7 @@ export class OCChannel {
         }
 
         this.deleteUserConnection = (user: OCUser, socket: WebSocket.WebSocket) => {
+            // if mod, remove from mod list
             if(!this.UserConnections.has(user.getName()))
                 return true;
 

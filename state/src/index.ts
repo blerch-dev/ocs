@@ -1,5 +1,5 @@
 import { OCServer, OCRoute, OCServices, OCServerType } from 'ocs-type';
-import { Streams } from './streams';
+import { PlatformManager, StreamManager } from './streams';
 // Some form of user oauth access for syncing subs is required
 
 const DefaultRoute = new OCRoute({
@@ -12,7 +12,7 @@ const DefaultRoute = new OCRoute({
 
         // Might want broad status path for all pieces of info
         router.get('/channel/status/live/:channel_id', async (req, res) => {
-            res.json(await Streams.isLive(req.params.channel_id));
+            res.json(await StreamManager.isLive(req.params.channel_id));
         });
 
         // same broad check above might be wanted
@@ -21,8 +21,8 @@ const DefaultRoute = new OCRoute({
             // platforms: ocs, twitch, youtube
         });
 
-        // Twitch Event Listener
-        router.get('/ingress/twitch/event', Streams.getTwitchEventCallback);
+        // Twitch Event Listener - Needs Public SSl Server
+        router.get('/ingress/twitch/event', StreamManager.getTwitchEventCallback);
 
         return router;
     }
