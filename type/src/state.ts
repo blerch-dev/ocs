@@ -60,16 +60,33 @@ export class OCPlatformAccess {
     ];
 
     public platform: OCPlatform;
-    public codes: { [key: string]: string };
+    public codes: { [key: string]: unknown };
     public getCodes: () => Promise<{ [key: string]: unknown }>;
+    public createSubscription: (session_id: string, stream_id: string) => Promise<unknown>;
+    public targetURL: string;
     //public connectSocket: () => {};
 
-    constructor(platform: OCPlatform, codeFetch: () => Promise<{ [key: string]: unknown }>) {
+    constructor(
+        platform: OCPlatform, 
+        codeFetch: () => Promise<{ [key: string]: unknown }>,
+        createSubscription: (access_token: string, session_id: string, stream_id: string) => Promise<unknown>
+    ) {
         this.platform = platform;
 
         // generate codes
         this.codes = {};
-        this.getCodes = codeFetch;
+        this.getCodes = async () => { 
+            if(this.codes?.access_token) {
+                return this.codes;
+            }        
+
+            this.codes = await codeFetch(); 
+            return this.codes; 
+        };
+        this.createSubscription = async (session_id: string, stream_id: string) => {
+            await createSubscription(this?.codes?.access_token as string, session_id, stream_id);
+        }
+        this.targetURL = OCPlatformAccess.socketURLS[platform];
         //this.connectSocket = connectSocket;
     }
 }
@@ -83,18 +100,28 @@ export class OCPlatformManager {
         this.accessors.set(access.platform, access);
     }
 
+    public createLiveEventSubcription = async (platform: OCPlatform, createSub: Function) => {
+        let access = this.accessors.get(platform);
+        let codes = access?.getCodes();
+        if(!access || !access?.codes?.access_token) { return; }
+        let accessor = access as OCPlatformAccess;
+
+
+    }
+
     public connectWebSocketEventSub = async (...platforms: OCPlatform[]) => {
         for(let i = 0; i < platforms.length; i++) {
             // check if codes are already here and not expired
             let access = this.accessors.get(platforms[i]);
             if(!access) { continue; }
+            let accessor = access as OCPlatformAccess;
 
             let pls = `${OCPlatform[platforms[i]]}`;
-            let codes = await access.getCodes();
-            console.log(`${pls} Codes:`, codes);
+            let codes = await accessor.getCodes();
+            //console.log(`${pls} Codes:`, codes);
 
             // might move this to access
-            let socket = new WebSocket(OCPlatformAccess.socketURLS[platforms[i]]);
+            let socket = new WebSocket(accessor.targetURL);
             //socket.addEventListener('open', () => { console.log(`${pls} Socket Opened`); });
             socket.addEventListener('close', () => { 
                 //console.log(`${pls} Socket Closed`, Date.now());
@@ -103,6 +130,18 @@ export class OCPlatformManager {
             //socket.addEventListener('error', (err) => { console.log(`${pls} Socket Error:`, err); });
             socket.addEventListener('message', (ev) => { 
                 //console.log(`${pls} Socket Message:`, JSON.parse(ev.data.toString()), Date.now());
+                const { payload } = JSON.parse(ev.data.toString());
+                let session_id = undefined;
+                if(payload?.session?.id && session_id != payload.session.id) {
+                    session_id = payload.session.id;
+                }
+
+                if(payload?.websocket?.url) {
+                    accessor.targetURL = payload.websocket.url;
+                    this.connectWebSocketEventSub(platforms[i]);
+                    let socket = this.sockets.get(platforms[i]);
+                    setTimeout(() => { socket?.close(); }, 15000);
+                }
             });
 
             this.sockets.set(platforms[i], socket);
@@ -131,3 +170,44 @@ export class OCPlatformManager {
         this.accessCodes = this.loadAccessCodes();
     }
 }
+
+// has to be implemented individual per platform, twitch needs a seperate subscription/socket
+// might be able to make calls for every channel with same session id
+// might still need to do manually created platform eventsubs
+/*
+// WebSocket EventSub - Might Have Both Options Available
+const TwitchAccess = new OCPlatformAccess(OCPlatform.Twitch, async () => {
+    let url = `https://id.twitch.tv/oauth2/token`;
+    let details = {
+        'client_id': process.env.TWITCH_ID,
+        'client_secret': process.env.TWITCH_SECRET,
+        'grant_type': 'client_credentials'
+    } as any;
+
+    let response = await fetch(url, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(details).toString()
+    });
+
+    let value = await response.json();
+
+    return value;
+}, (access_token: string, session_id: string, stream_id: string) => {
+    let response = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions`, {
+        method: 'POST',
+        headers: {
+            'Client-ID': `${process.env.TWITCH_ID}`,
+            'Authorization': `${access_token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            type: "stream.online",
+            version: "1",
+            condition: {
+
+            }
+        })
+    });
+});
+*/
