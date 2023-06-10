@@ -78,20 +78,20 @@ const UserRoute = new OCRoute({
             let result = await pg.query('SELECT * FROM users');
             res.json({ code: 200, data: result.rows });
         });
-        
-        // Channels
-        router.post('/channel/:id/role/:role', async (req, res) => {
-            const { user_data } = req.body;
+
+        // Channel Roles
+        router.post('/user/:id/channel/:channel_id/role/:role', async (req, res) => {
+            // const { user_data } = req.body;
             return res.json({ msg: 'todo' });
         });
 
-        router.post('/channel/:id/status/:status', async (req, res) => {
+        router.post('/user/:idchannel/:id/status/:status', async (req, res) => {
             const { user_data } = req.body;
             return res.json({ msg: 'todo' });
         });
 
         // User Connections
-        router.get('/connections/:platform/:id', async (req, res) => {
+        router.get('/user/:id/connections/:platform/:id', async (req, res) => {
             let result = await getUserConnection(req.params.platform, req.params.id);
             res.json({ code: 200, data: (result as QueryResult).rows });
         });
@@ -164,7 +164,7 @@ const UserRoute = new OCRoute({
             return res.json(json);
         });
 
-        router.get('/token/delete/uuid/:id', async (req, res) => {
+        router.get(['/token/delete/user/:id', '/token/delete/uuid/:id'], async (req, res) => {
             if(req.params.id === 'ignore_request')
                 return res.json({ Okay: true, Deleted: false });
 

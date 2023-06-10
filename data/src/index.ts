@@ -1,6 +1,7 @@
 import { OCServer, OCRoute, OCServices, OCServerType } from 'ocs-type';
 
 import UserRoute from './routes/user';
+import ChannelRoute from './routes/channel';
 
 const DefaultRoute = new OCRoute({
     domain: `${OCServices.Data}`,
@@ -24,7 +25,7 @@ const DefaultRoute = new OCRoute({
 });
 
 const server = new OCServer({
-    routes: [UserRoute, DefaultRoute],
+    routes: [UserRoute, ChannelRoute, DefaultRoute],
     type: OCServerType.Data,
     port: 8083,
     cors: {

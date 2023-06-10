@@ -1,4 +1,4 @@
-import { OCServer, OCRoute, OCServices, OCServerType } from 'ocs-type';
+import { OCServer, OCRoute, OCServices, OCServerType, OCPlatform } from 'ocs-type';
 import { PlatformManager, StreamManager } from './streams';
 // Some form of user oauth access for syncing subs is required
 
