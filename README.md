@@ -14,7 +14,9 @@
 * ~~Build Automation.~~
 * ~~Deployment Testing and Automation.~~
 * ~~Additional chat features and auth platforms.~~
+* ~~Functional Private Test~~
 * Mod view, along side a development overview app.
+* Functional Public Beta
 * Custom CMS for channel maintainers.
 * Additional API Data.
 * Paid subscription integration.
