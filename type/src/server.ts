@@ -272,20 +272,25 @@ export class OCServices {
     static Production: boolean = process.env.NODE_ENV === 'prod' ?? false;
     static IMP: string = OCServices.Production ? 'https' : 'http';
 
-    static RootURL: string = OCServices.Production ? 'ocs.gg' : 
+    static RootURL: string = OCServices.Production ? process.env.BASE_URL as string : 
         process.env.KUBERNETES_SERVICE_HOST != undefined ? 'ocs.cluster' : 'ocs.local';
 
+    // Add DB Related URLs here with AddWhitelistSites function
     static WhitelistedSites: string[] = OCServices.Production ? [
-        'client.ocs.gg',
-        'kidnotkin.tv' // replace this to a db connected list, update on changes
+        `${OCServices.RootURL}`
     ] : [
+        // Default Local URLs
         'app.local',
         'www.app.local',
         'chat.app.local',
         'client.ocs.local',
 
+        // Default Minikube URL
         'client.ocs.cluster'
     ]
+    static AddWhitelistSites = (...urls: string[]) => {
+        OCServices.WhitelistedSites = OCServices.WhitelistedSites.concat(urls);
+    }
 
     static Auth: string = `auth.${OCServices.RootURL}`;
     static Chat: string = `chat.${OCServices.RootURL}`;
