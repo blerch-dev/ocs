@@ -273,7 +273,7 @@ export class OCServices {
     static IMP: string = OCServices.Production ? 'https' : 'http';
 
     static RootURL: string = OCServices.Production ? process.env.BASE_URL as string : 
-        process.env.KUBERNETES_SERVICE_HOST != undefined ? process.env.DEV_URL : process.env.LOCAL_URL;
+        process.env.KUBERNETES_SERVICE_HOST != undefined ? process.env.DEV_URL as string : process.env.LOCAL_URL as string;
 
     // Add DB Related URLs here with AddWhitelistSites function
     static WhitelistedSites: string[] = OCServices.Production ? [
