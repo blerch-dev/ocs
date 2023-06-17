@@ -106,10 +106,10 @@ export class TwitchAccess extends OCPlatformAccess {
         super(OCPlatform.Twitch);
 
         // Start Listening on Creation
-        OCServices.WaitForService(OCServerType.Data, () => {
-            console.log("Listening for Live Channels...");
-            this.ListenForLiveChannels();
-        });
+        // OCServices.WaitForService(OCServerType.Data, () => {
+        //     console.log("Listening for Live Channels...");
+        //     this.ListenForLiveChannels();
+        // });
     }
 
     private twitchCodes: { [key: string]: unknown } = {};

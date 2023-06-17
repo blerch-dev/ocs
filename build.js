@@ -40,12 +40,13 @@ const images = Object.keys(pkg).map((key) => {
 const build_images = async () => {
     console.log("Clearing Old Images...")
     let tp = require('./type/package.json');
-    await exe(`docker rmi -f $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => { 
-        console.log("Image RM -", err); 
+    await exe(`docker rmi -f $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => {
+        //console.log("Image RM -", err);
+        console.log("RM Image Error | Can show when no images available to delete. Should be fine.");
     });
 
     console.log("Building Type Library Image...")
-    await exe(`cd type && docker build -t blerch-dev/${tp.name}:latest .`);
+    await exe(`cd type && docker build -t blerch-dev/${tp.name}:${tp.version} -t blerch-dev/${tp.name}:latest .`);
 
     console.log("Building Images...");
     for(let i = 0; i < images.length; i++) {
@@ -92,8 +93,7 @@ const run = async () => {
 
     if(process.argv.includes('-m'))
         await minikube_config();
-
-    if(process.argv.includes('-l'))
+    else if(process.argv.includes('-l'))
         await load_images_to_minikube();
 }
 
