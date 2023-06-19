@@ -40,10 +40,13 @@ const images = Object.keys(pkg).map((key) => {
 const build_images = async () => {
     console.log("Clearing Old Images...")
     let tp = require('./type/package.json');
-    await exe(`docker rmi -f $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`).catch((err) => {
-        //console.log("Image RM -", err);
-        console.log("RM Image Error | Can show when no images available to delete. Should be fine.");
-    });
+    let event = await exe(`docker rmi -f $(docker images --filter=reference="blerch-dev/ocs-*:*" -q)`);
+    
+    console.log(event);
+    // catch((err) => {
+    //     //console.log("Image RM -", err);
+    //     console.log("RM Image Error | Can show when no images available to delete. Should be fine.");
+    // });
 
     console.log("Building Type Library Image...")
     await exe(`cd type && docker build -t blerch-dev/${tp.name}:${tp.version} -t blerch-dev/${tp.name}:latest .`);
@@ -68,7 +71,7 @@ const load_images_to_minikube = async () => {
     console.log("Finished loading Images.");
 }
 
-const minikube_config = async () => {
+const clear_minikube = async () => {
     console.log("Minikube Configuring...\n");
 
     console.log("Deleteing Deployments...");
@@ -79,7 +82,9 @@ const minikube_config = async () => {
         let m = images[i];
         await exe(`minikube image rm ${m.img_nme}`);
     }
+}
 
+const minikube_config = async () => {
     await load_images_to_minikube();
 
     console.log("Applying Yaml Files...");
@@ -88,6 +93,9 @@ const minikube_config = async () => {
 }
 
 const run = async () => {
+    if(process.argv.includes('-m') || process.argv.includes('-l'))
+        await clear_minikube();
+
     if(!process.argv.includes('-c'))
         await build_images();
 

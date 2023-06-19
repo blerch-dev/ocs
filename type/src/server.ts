@@ -288,6 +288,9 @@ export class OCServices {
         'client.ocs.local',
 
         // Default Minikube URL
+        'app.cluster',
+        'www.app.cluster',
+        'chat.app.cluster',
         'client.ocs.cluster'
     ]
     static AddWhitelistSites = (...urls: string[]) => {

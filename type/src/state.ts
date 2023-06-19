@@ -23,6 +23,7 @@ export class OCRedisClient {
     public getPublisher;
 
     private client;
+    private hasConnected = false;
 
     constructor(host: string, port = 6379, server: OCServer) {
         // let url = `redis://${host}:${port}`;
@@ -31,14 +32,19 @@ export class OCRedisClient {
             port: port
         });
 
+        this.client.on('close', () => {
+            this.hasConnected = false;
+        });
+
         this.client.on('error', (err) => {
-            console.log("Redis Client Error:", err);
+            if(this.hasConnected) { server.logger.debug("Redis Client Error:", err); }
         });
 
         this.client.on('connect', (err) => {
             if(err)
                 return server.logger.debug("Redis Client Connect Error:", err);
 
+            this.hasConnected = true;
             server.logger.verbose("Connected to Redis Server");
         });
 
